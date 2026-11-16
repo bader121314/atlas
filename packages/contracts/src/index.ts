@@ -26,6 +26,11 @@ export const loginRequestSchema = z
   .strict();
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 
+export const resendVerificationRequestSchema = z.object({ email }).strict();
+export type ResendVerificationRequest = z.infer<
+  typeof resendVerificationRequestSchema
+>;
+
 export const verifyEmailRequestSchema = z
   .object({ token: z.string().min(1).max(128) })
   .strict();

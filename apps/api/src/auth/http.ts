@@ -3,6 +3,8 @@ export interface HttpRequest {
   method: string;
   headers: Record<string, string | string[] | undefined>;
   body: unknown;
+  /** Socket address; proxy headers are not trusted until configured. */
+  ip?: string;
   auth?: AuthContext;
 }
 

@@ -36,7 +36,7 @@ inviters, immutable `organization_id`, no ownership via invitation, one
 outstanding invitation per email, 32-byte token digests, normalized emails.
 Tests: `tests/integration/identity-tenancy.test.ts`.
 
-**Done (PR #3, branch `m1/auth-sessions`):** ADR-011. Routes under `/v1/auth`:
+**Merged (PR #3):** ADR-011. Routes under `/v1/auth`:
 signup (202 for new and existing emails), verify-email, login (uniform 401),
 logout, session. Argon2id via `node:crypto`, opaque 256-bit tokens with HMAC
 digests, HttpOnly SameSite=Lax cookie, global exact-Origin guard on writes,
@@ -44,21 +44,26 @@ development console mail transport. Tests: `tests/auth-primitives.test.ts`
 (unit) and `tests/integration/auth-flow.test.ts`. CI: 20 unit + 20
 integration tests passing.
 
+**Done (PR #4, branch `m1/rate-limits`):** ADR-012. Redis fixed-window
+limits per address and per account on login, signup, verify-email and the
+new resend-verification route; 429 with Retry-After; fails closed (503) when
+Redis is down; identities hashed in keys. Tests:
+`tests/integration/rate-limits.test.ts`. Integration tests override
+`RateLimitSettings` with a unique prefix and generous limits.
+
 **Next, in order:**
 
-1. Rate limiting with Redis (per IP and per account on login, signup,
-   verify-email) with 429 responses; resend-verification endpoint.
-2. Password reset (single-use digest token, uniform responses, revoke all
+1. Password reset (single-use digest token, uniform responses, revoke all
    sessions on reset); session list and revoke-all.
-3. `audit_events` table and audit entries for login, logout, password reset,
+2. `audit_events` table and audit entries for login, logout, password reset,
    membership and invitation changes.
-4. Tenant request context and deny-by-default membership guard; organization
+3. Tenant request context and deny-by-default membership guard; organization
    create/list/switch; negative cross-tenant HTTP tests.
-5. Invitations and membership management (accept, revoke, role change,
+4. Invitations and membership management (accept, revoke, role change,
    removal) on top of the ADR-010 constraints.
-6. Anti-CSRF token alongside the Origin check, once web forms exist.
-7. Web UI: signup, verify, login, organization switcher, invite and members.
-8. M1 exit demo: 2 organizations and 3 accounts proving isolation.
+5. Anti-CSRF token alongside the Origin check, once web forms exist.
+6. Web UI: signup, verify, login, organization switcher, invite and members.
+7. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
 
