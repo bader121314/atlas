@@ -1,9 +1,4 @@
-import {
-  argon2,
-  createHmac,
-  randomBytes,
-  timingSafeEqual,
-} from 'node:crypto';
+import { argon2, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 // Argon2id via Node's built-in implementation (Node >= 24.7). Parameters follow
 // the OWASP Password Storage Cheat Sheet baseline (19 MiB, 2 passes, 1 lane).
