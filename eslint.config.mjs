@@ -8,6 +8,7 @@ export default tseslint.config(
       '**/next-env.d.ts',
       '**/generated/**',
       'scaffold.cjs',
+      'scripts/ui-smoke.cjs',
     ],
   },
   ...tseslint.configs.recommended,
