@@ -1,0 +1,17 @@
+{
+  "name": "@atlas/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@atlas/config": "workspace:*",
+    "pg": "8.23.1",
+    "redis": "6.3.1",
+    "@nestjs/common": "11.2.10"
+  }
+}

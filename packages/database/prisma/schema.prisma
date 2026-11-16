@@ -1,0 +1,13 @@
+generator client {
+  provider = "prisma-client"
+  output = "../generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+// Infrastructure-only baseline. Identity and tenant tables are designed in docs/03.
+model SystemMetadata {
+  key String @id @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@map("system_metadata")
+}

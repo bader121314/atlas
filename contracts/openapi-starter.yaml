@@ -1,0 +1,312 @@
+openapi: 3.1.0
+info:
+  title: Atlas API
+  version: 0.1.0-design
+  description: >-
+    Design starter contract, not a complete or implemented API. All tenant endpoints
+    require server-verified organization and resource-level authorization.
+servers:
+  - url: /v1
+security:
+  - sessionCookie: []
+tags:
+  - name: Identity
+  - name: Organizations
+  - name: Projects
+  - name: Tasks
+paths:
+  /auth/login:
+    post:
+      tags: [Identity]
+      summary: Create a first-party session
+      security: []
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+                password: { type: string, minLength: 1, maxLength: 1024 }
+      responses:
+        '204':
+          {
+            description: Authenticated; sets HttpOnly session cookie and CSRF material,
+          }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+  /me:
+    get:
+      tags: [Identity]
+      operationId: getMe
+      responses:
+        '200':
+          description: Signed-in user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Problem' }
+  /organizations:
+    get:
+      tags: [Organizations]
+      operationId: listOrganizations
+      responses:
+        '200':
+          description: Organizations accessible to current user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, pageInfo]
+                properties:
+                  items:
+                    {
+                      type: array,
+                      items: { $ref: '#/components/schemas/Organization' },
+                    }
+                  pageInfo: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Organizations]
+      operationId: createOrganization
+      parameters: [{ $ref: '#/components/parameters/CsrfToken' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, slug]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 120 }
+                slug:
+                  {
+                    type: string,
+                    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+                    maxLength: 63,
+                  }
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Organization' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /organizations/{orgId}/projects/{projectId}/tasks:
+    parameters:
+      - { $ref: '#/components/parameters/OrgId' }
+      - { $ref: '#/components/parameters/ProjectId' }
+    get:
+      tags: [Tasks]
+      operationId: listTasks
+      parameters:
+        - { name: cursor, in: query, schema: { type: string } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 100, default: 25 },
+          }
+      responses:
+        '200':
+          description: Tenant-scoped tasks accessible to caller
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, pageInfo]
+                properties:
+                  items:
+                    {
+                      type: array,
+                      items: { $ref: '#/components/schemas/Task' },
+                    }
+                  pageInfo: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Tasks]
+      operationId: createTask
+      parameters:
+        - { $ref: '#/components/parameters/CsrfToken' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTask' }
+      responses:
+        '201':
+          description: Task created
+          headers:
+            Location: { schema: { type: string } }
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /organizations/{orgId}/projects/{projectId}/tasks/{taskId}:
+    parameters:
+      - { $ref: '#/components/parameters/OrgId' }
+      - { $ref: '#/components/parameters/ProjectId' }
+      - {
+          name: taskId,
+          in: path,
+          required: true,
+          schema: { type: string, format: uuid },
+        }
+    get:
+      tags: [Tasks]
+      operationId: getTask
+      responses:
+        '200':
+          description: Authorized task view
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [Tasks]
+      operationId: updateTask
+      parameters:
+        - { $ref: '#/components/parameters/CsrfToken' }
+        - name: If-Match
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                title: { type: string, minLength: 1, maxLength: 240 }
+                priority:
+                  { type: string, enum: [urgent, high, medium, low, none] }
+                dueAt: { type: [string, 'null'], format: date-time }
+      responses:
+        '200':
+          description: Updated task
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+        '428': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-atlas_session
+  parameters:
+    OrgId:
+      {
+        name: orgId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    ProjectId:
+      {
+        name: projectId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    CsrfToken:
+      {
+        name: X-CSRF-Token,
+        in: header,
+        required: true,
+        schema: { type: string },
+      }
+  responses:
+    Problem:
+      description: Standard RFC 9457 problem description
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    User:
+      type: object
+      required: [id, email, displayName]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+    Organization:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+    PageInfo:
+      type: object
+      required: [hasNextPage]
+      properties:
+        hasNextPage: { type: boolean }
+        nextCursor: { type: [string, 'null'] }
+    Task:
+      type: object
+      required:
+        [id, organizationId, projectId, title, priority, version, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        organizationId: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        title: { type: string }
+        priority: { type: string, enum: [urgent, high, medium, low, none] }
+        version: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+    CreateTask:
+      type: object
+      additionalProperties: false
+      required: [title, stateId]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 240 }
+        stateId: { type: string, format: uuid }
+        description: { type: object }
+        priority:
+          {
+            type: string,
+            enum: [urgent, high, medium, low, none],
+            default: medium,
+          }
+        assigneeIds:
+          {
+            type: array,
+            uniqueItems: true,
+            items: { type: string, format: uuid },
+          }
+        dueAt: { type: [string, 'null'], format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }

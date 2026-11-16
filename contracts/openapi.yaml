@@ -1,0 +1,50 @@
+openapi: 3.1.0
+info:
+  title: Atlas implemented M0 API
+  version: 0.0.0
+  description: Only these infrastructure routes are implemented. Product routes remain in openapi-starter.yaml as design requirements.
+servers:
+  - url: /v1
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      security: []
+      responses:
+        '200':
+          description: Process is responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /health/ready:
+    get:
+      operationId: getReadiness
+      security: []
+      responses:
+        '200':
+          description: PostgreSQL and Redis are reachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: A required dependency is unavailable
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required: [type, title, status]
+                properties:
+                  type: { type: string }
+                  title: { type: string }
+                  status: { type: integer, const: 503 }
+components:
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status, service]
+      properties:
+        status: { type: string, const: ok }
+        service: { type: string, enum: [api, worker, web] }
