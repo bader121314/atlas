@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 
-**Status:** M0 complete and verified in CI. M1 in progress: database-enforced tenancy rules (ADR-010) and account signup, verification and sessions (ADR-011). Product features remain design requirements.
+**Status:** M0 complete and verified in CI. M1 in progress: accounts, sessions, rate limits and audit log (ADR-011 to ADR-014), and organizations with database- and API-level tenant isolation (ADR-010, ADR-015). Product features remain design requirements.
 
 **Owner:** Bader Altemane
 
@@ -34,7 +34,9 @@ unavailable. Authentication routes live under `/v1/auth` (signup, verify-email,
 resend-verification, login, logout, session, password reset and session
 management) and are rate limited through Redis; see `contracts/openapi.yaml`
 and ADR-011 to ADR-013. Security-relevant actions are written to an
-append-only audit log (ADR-014). In
+append-only audit log (ADR-014). Organizations live under
+`/v1/organizations/{slug}`; membership and role are checked on every request
+(ADR-015). In
 development, verification emails are printed to the API console. Set
 `SESSION_SECRET` and `WEB_ORIGIN` in `.env` before starting the API.
 

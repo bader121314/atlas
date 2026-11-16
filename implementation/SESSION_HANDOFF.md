@@ -58,25 +58,33 @@ return 404) and revoke-others. Tests: `tests/integration/account-security.test.t
 using the shared helper `tests/integration/support/auth-app.ts` (use it for
 new auth-dependent integration tests).
 
-**Done (PR #6, branch `m1/audit-log`):** ADR-014. Append-only
+**Merged (PR #6):** ADR-014. Append-only
 `audit_events` (triggers block update/delete/truncate), `AuditService` writing
 in the same transaction as the change, events for every account action,
 coarsened IPs, no secrets. Tests: `tests/ip-summary.test.ts`,
 `tests/integration/audit-log.test.ts`. Test cleanup cannot delete audit rows;
 that is expected.
 
+**Done (PR #7, branch `m1/organizations`):** ADR-015. `/v1/organizations`
+create/list, `/{slug}` get/patch, `/{slug}/members`. `TenantGuard` resolves
+slug + active membership (404 for outsiders, 403 for insufficient role);
+routes must declare `@RequirePermission`; policy matrix in
+`organizations/policy.ts`, pinned by `tests/organization-policy.test.ts`.
+2-org/3-account isolation tests in `tests/integration/organizations.test.ts`
+(memberships beyond owners inserted directly until invitations exist). Test
+helper now exposes `api.api(method, path)` for any `/v1` route.
+
 **Next, in order:**
 
-1. Tenant request context and deny-by-default membership guard; organization
-   create/list/switch; negative cross-tenant HTTP tests. Record
-   organization events through `AuditService`.
-2. Invitations and membership management (accept, revoke, role change,
-   removal) on top of the ADR-010 constraints.
-3. Anti-CSRF token alongside the Origin check, once web forms exist.
-4. Web UI: signup, verify, login, organization switcher, invite and members.
-5. Smaller follow-ups: change password while signed in, email notice after
+1. Invitations and membership management (invite, accept, revoke, role
+   change, removal, ownership transfer) on top of ADR-010 constraints; add
+   policy actions and audit events; replace direct membership inserts in
+   tests with invitations.
+2. Anti-CSRF token alongside the Origin check, once web forms exist.
+3. Web UI: signup, verify, login, organization switcher, invite and members.
+4. Smaller follow-ups: change password while signed in, email notice after
    a reset, request IDs in audit events.
-6. M1 exit demo: 2 organizations and 3 accounts proving isolation.
+5. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
 

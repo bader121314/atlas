@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Client, DatabaseError } from 'pg';
 import { parseEnvironment } from '../../packages/config/src';
@@ -81,29 +82,27 @@ describe('audit log', () => {
   });
 
   it('records failed logins for unknown accounts without identifying anyone', async () => {
-    const before = await db.query<{ count: string }>(
-      "SELECT count(*) FROM audit_events WHERE action = 'auth.login.failed' AND metadata->>'reason' = 'unknown_account'",
-    );
+    // A unique user agent isolates this request from other test files that
+    // run in parallel against the same database.
+    const marker = `audit-test-${randomUUID()}`;
     await api.request('POST', '/login', {
       body: { email: api.email('ghost'), password: PASSWORD },
+      headers: { 'user-agent': marker },
     });
-    const after = await db.query<AuditRow>(
+    const rows = await db.query<AuditRow>(
       `SELECT action, actor_user_id, target_type, target_id, ip_summary, metadata
-       FROM audit_events
-       WHERE action = 'auth.login.failed' AND metadata->>'reason' = 'unknown_account'
-       ORDER BY occurred_at DESC LIMIT 1`,
+       FROM audit_events WHERE user_agent_summary = $1`,
+      [marker],
     );
-    const count = await db.query<{ count: string }>(
-      "SELECT count(*) FROM audit_events WHERE action = 'auth.login.failed' AND metadata->>'reason' = 'unknown_account'",
-    );
-    expect(Number(count.rows[0]?.count)).toBe(
-      Number(before.rows[0]?.count) + 1,
-    );
-    expect(after.rows[0]).toMatchObject({
-      actor_user_id: null,
-      target_type: null,
-      target_id: null,
-    });
+    expect(rows.rows).toEqual([
+      expect.objectContaining({
+        action: 'auth.login.failed',
+        actor_user_id: null,
+        target_type: null,
+        target_id: null,
+        metadata: { reason: 'unknown_account' },
+      }),
+    ]);
   });
 
   it('records how many sessions a password reset revoked', async () => {
