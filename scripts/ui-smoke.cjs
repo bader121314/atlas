@@ -70,10 +70,18 @@ async function signIn(page, email, next) {
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 
+const pages = [];
+
 (async () => {
   const browser = await chromium.launch();
+  browser.on('disconnected', () => undefined);
   const desktop = { viewport: { width: 1280, height: 800 } };
-  const alice = await browser.newPage(desktop);
+  const open = async (options) => {
+    const page = await browser.newPage(options);
+    pages.push(page);
+    return page;
+  };
+  const alice = await open(desktop);
   const aliceEmail = `alice-${run}@example.test`;
   const bobEmail = `bob-${run}@example.test`;
   const carolEmail = `carol-${run}@example.test`;
@@ -96,10 +104,10 @@ async function signIn(page, email, next) {
   await shot(alice, '06-organization-owner');
 
   // Bob and Carol sign up in their own browsers.
-  const bob = await browser.newPage(desktop);
+  const bob = await open(desktop);
   await signUp(bob, 'Bob Haddad', bobEmail);
   await verify(bob, bobEmail, false);
-  const carol = await browser.newPage(desktop);
+  const carol = await open(desktop);
   await signUp(carol, 'Carol Ng', carolEmail);
   await verify(carol, carolEmail, false);
 
@@ -112,9 +120,15 @@ async function signIn(page, email, next) {
   // Bob opens the emailed link while signed out: sign-in keeps the token.
   const inviteToken = await waitForToken(bobEmail, '/invitations/accept');
   await bob.goto(`${BASE}/invitations/accept?token=${inviteToken}`);
-  await bob.waitForURL(/\/login/);
-  await signIn(bob, bobEmail, null);
-  await bob.goto(`${BASE}/invitations/accept?token=${inviteToken}`);
+  await bob.getByRole('heading', { name: 'Sign in' }).waitFor();
+  const next = new URL(bob.url()).searchParams.get('next') ?? '';
+  if (!next.includes(inviteToken)) {
+    throw new Error('sign-in redirect lost the invitation token');
+  }
+  await bob.getByLabel('Email').fill(bobEmail);
+  await bob.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  await bob.getByRole('button', { name: 'Sign in' }).click();
+  // Signing in returns Bob to the invitation.
   await bob.getByRole('button', { name: 'Accept invitation' }).waitFor();
   await shot(bob, '08-accept-invitation');
   await bob.getByRole('button', { name: 'Accept invitation' }).click();
@@ -140,7 +154,7 @@ async function signIn(page, email, next) {
     .waitFor();
   await shot(alice, '12-account-sessions');
 
-  const phone = await browser.newPage({
+  const phone = await open({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,
   });
@@ -149,7 +163,19 @@ async function signIn(page, email, next) {
 
   await browser.close();
   console.log('UI smoke test passed');
-})().catch((error) => {
+})().catch(async (error) => {
   console.error(error);
+  // Capture every open page so failures can be diagnosed from the artifact.
+  for (const [index, page] of pages.entries()) {
+    try {
+      console.error(`page ${index}: ${page.url()}`);
+      await page.screenshot({
+        path: path.join(OUT, `failure-page-${index}.png`),
+        fullPage: true,
+      });
+    } catch {
+      // The page may already be closed.
+    }
+  }
   process.exit(1);
 });
