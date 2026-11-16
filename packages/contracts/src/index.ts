@@ -124,6 +124,41 @@ export const memberListResponseSchema = z
   .strict();
 export type MemberListResponse = z.infer<typeof memberListResponseSchema>;
 
+export const createInvitationRequestSchema = z
+  .object({ email, role: z.enum(['admin', 'member', 'guest']) })
+  .strict();
+export type CreateInvitationRequest = z.infer<
+  typeof createInvitationRequestSchema
+>;
+
+export const invitationSchema = z
+  .object({
+    id: z.uuid(),
+    email: z.string(),
+    role: z.enum(['admin', 'member', 'guest']),
+    invitedBy: z.string(),
+    createdAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime(),
+  })
+  .strict();
+export type Invitation = z.infer<typeof invitationSchema>;
+
+export const invitationListResponseSchema = z
+  .object({ invitations: z.array(invitationSchema) })
+  .strict();
+export type InvitationListResponse = z.infer<
+  typeof invitationListResponseSchema
+>;
+
+export const acceptInvitationRequestSchema = z
+  .object({ token: z.string().min(1).max(128) })
+  .strict();
+
+export const updateMemberRequestSchema = z
+  .object({ role: organizationRole })
+  .strict();
+export type UpdateMemberRequest = z.infer<typeof updateMemberRequestSchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z

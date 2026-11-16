@@ -26,6 +26,8 @@ export const DEFAULT_RATE_LIMITS = {
   resetRequestPerAccount: { limit: 3, windowSeconds: 60 * 60 },
   resetConfirmPerIp: { limit: 30, windowSeconds: 15 * 60 },
   orgCreatePerAccount: { limit: 10, windowSeconds: 60 * 60 },
+  invitePerAccount: { limit: 50, windowSeconds: 60 * 60 },
+  acceptInvitePerIp: { limit: 30, windowSeconds: 15 * 60 },
 } satisfies Record<string, RateLimitRule>;
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 

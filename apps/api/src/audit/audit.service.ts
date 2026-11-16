@@ -15,7 +15,13 @@ export type AuditAction =
   | 'auth.session.revoked'
   | 'auth.sessions.revoked_others'
   | 'org.created'
-  | 'org.updated';
+  | 'org.updated'
+  | 'org.invitation.created'
+  | 'org.invitation.revoked'
+  | 'org.member.joined'
+  | 'org.member.role_changed'
+  | 'org.member.removed'
+  | 'org.member.left';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {
@@ -29,7 +35,10 @@ export interface AuditEvent {
   action: AuditAction;
   actorUserId?: string | null;
   organizationId?: string | null;
-  target?: { type: 'user' | 'session' | 'organization'; id: string };
+  target?: {
+    type: 'user' | 'session' | 'organization' | 'invitation';
+    id: string;
+  };
   /** Small, non-sensitive facts only: never passwords, tokens or emails. */
   metadata?: Record<string, MetadataValue>;
   request?: RequestMeta;
