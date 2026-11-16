@@ -38,6 +38,7 @@ type App = ReturnType<TestingModule['createNestApplication']>;
 interface RequestOptions {
   body?: unknown;
   cookie?: string;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -84,7 +85,10 @@ export async function startAuthApp() {
     path: string,
     options: RequestOptions = {},
   ): Promise<Response> {
-    const headers: Record<string, string> = { origin: ORIGIN };
+    const headers: Record<string, string> = {
+      origin: ORIGIN,
+      ...options.headers,
+    };
     if (options.cookie) headers.cookie = options.cookie;
     if (options.body !== undefined)
       headers['content-type'] = 'application/json';
