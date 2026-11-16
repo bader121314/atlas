@@ -76,13 +76,6 @@ jobs:
           API_LOG: api.log
           SCREENSHOT_DIR: screenshots
         run: node scripts/ui-smoke.cjs
-      - name: Print new screenshots (temporary review)
-        run: |
-          for f in screenshots/11b-board.png screenshots/11c-task.png; do
-            echo "BEGIN-IMAGE $(basename "$f" .png)"
-            base64 -w 40000 "$f"
-            echo "END-IMAGE"
-          done
       - name: Server logs on failure
         if: failure()
         run: tail -n 100 api.log web.log
