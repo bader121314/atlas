@@ -18,6 +18,6 @@ import { DevelopmentConsoleMailer, Mailer } from './mailer';
     { provide: Mailer, useClass: DevelopmentConsoleMailer },
     { provide: APP_GUARD, useClass: OriginGuard },
   ],
-  exports: [AuthService, SessionGuard],
+  exports: [AuthService, SessionGuard, Mailer],
 })
 export class AuthModule {}
