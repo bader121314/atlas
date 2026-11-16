@@ -36,7 +36,8 @@ management) and are rate limited through Redis; see `contracts/openapi.yaml`
 and ADR-011 to ADR-013. Security-relevant actions are written to an
 append-only audit log (ADR-014). Organizations live under
 `/v1/organizations/{slug}`; membership and role are checked on every request
-(ADR-015). In
+(ADR-015); members join through email invitations and roles follow a
+no-escalation policy (ADR-016). In
 development, verification emails are printed to the API console. Set
 `SESSION_SECRET` and `WEB_ORIGIN` in `.env` before starting the API.
 

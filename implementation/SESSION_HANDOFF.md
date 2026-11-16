@@ -1,7 +1,7 @@
 # Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
-**Milestone:** M0 complete in CI; M1 in progress (schema and sessions done).
+**Milestone:** M0 complete in CI; M1 backend complete; web UI and exit demo remain.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
 **Deployments:** none; no paid resources provisioned.
@@ -65,7 +65,7 @@ coarsened IPs, no secrets. Tests: `tests/ip-summary.test.ts`,
 `tests/integration/audit-log.test.ts`. Test cleanup cannot delete audit rows;
 that is expected.
 
-**Done (PR #7, branch `m1/organizations`):** ADR-015. `/v1/organizations`
+**Merged (PR #7):** ADR-015. `/v1/organizations`
 create/list, `/{slug}` get/patch, `/{slug}/members`. `TenantGuard` resolves
 slug + active membership (404 for outsiders, 403 for insufficient role);
 routes must declare `@RequirePermission`; policy matrix in
@@ -74,17 +74,23 @@ routes must declare `@RequirePermission`; policy matrix in
 (memberships beyond owners inserted directly until invitations exist). Test
 helper now exposes `api.api(method, path)` for any `/v1` route.
 
+**Done (PR #8, branch `m1/invitations`):** ADR-016. Invite/list/revoke
+under `/v1/organizations/{slug}/invitations`, accept at
+`/v1/invitations/accept` (email must match), role change and removal/leave
+under `/{slug}/members/{userId}`. Admins cannot create or touch admins or
+owners (`canInviteAs`, `canChangeRole`, `canRemove` in policy.ts); last-owner
+violations return 409; removal sets `state = 'removed'`. Tests:
+`tests/integration/invitations.test.ts`, extended policy unit tests. CI: 51
+unit + 55 integration tests.
+
 **Next, in order:**
 
-1. Invitations and membership management (invite, accept, revoke, role
-   change, removal, ownership transfer) on top of ADR-010 constraints; add
-   policy actions and audit events; replace direct membership inserts in
-   tests with invitations.
-2. Anti-CSRF token alongside the Origin check, once web forms exist.
-3. Web UI: signup, verify, login, organization switcher, invite and members.
-4. Smaller follow-ups: change password while signed in, email notice after
-   a reset, request IDs in audit events.
-5. M1 exit demo: 2 organizations and 3 accounts proving isolation.
+1. Anti-CSRF token alongside the Origin check, once web forms exist.
+2. Web UI: signup, verify, login, organization switcher, invite and members.
+3. Smaller follow-ups: change password while signed in, email notice after
+   a reset, request IDs in audit events, step-up auth for ownership
+   transfer, suspend/unsuspend members.
+4. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
 

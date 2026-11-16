@@ -328,6 +328,155 @@ paths:
         '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+  /organizations/{slug}/invitations:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      operationId: listInvitations
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Outstanding invitations (owner or admin)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [invitations]
+                properties:
+                  invitations:
+                    type: array
+                    items: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+    post:
+      operationId: createInvitation
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, role]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+                role: { type: string, enum: [admin, member, guest] }
+      responses:
+        '201':
+          description: Invitation created and emailed; replaces any earlier invitation for the same email
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403':
+          description: Not allowed to invite, or an admin inviting an admin
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /organizations/{slug}/invitations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, format: uuid },
+        }
+    delete:
+      operationId: revokeInvitation
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Invitation revoked }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+  /organizations/{slug}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - {
+          name: userId,
+          in: path,
+          required: true,
+          schema: { type: string, format: uuid },
+        }
+    patch:
+      operationId: changeMemberRole
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [role]
+              properties:
+                role: { $ref: '#/components/schemas/OrganizationRole' }
+      responses:
+        '200':
+          description: Role changed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [role]
+                properties:
+                  role: { $ref: '#/components/schemas/OrganizationRole' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+        '409':
+          description: The change would leave the organization without an active owner
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    delete:
+      operationId: removeMember
+      security: [{ sessionCookie: [] }]
+      description: Removes a member, or leaves the organization when userId is the caller.
+      responses:
+        '204': { description: Member removed; access ends immediately }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /invitations/accept:
+    post:
+      operationId: acceptInvitation
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token]
+              properties:
+                token: { type: string, maxLength: 128 }
+      responses:
+        '201':
+          description: Joined; returns the organization with the new role
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Organization' }
+        '400':
+          description: Invalid, used, revoked, expired or someone else's invitation; indistinguishable by design.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
 components:
   parameters:
     Slug:
@@ -440,3 +589,14 @@ components:
         name: { type: string }
         role: { $ref: '#/components/schemas/OrganizationRole' }
         createdAt: { type: string, format: date-time }
+    Invitation:
+      type: object
+      additionalProperties: false
+      required: [id, email, role, invitedBy, createdAt, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        role: { type: string, enum: [admin, member, guest] }
+        invitedBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
