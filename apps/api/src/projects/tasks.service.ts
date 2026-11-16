@@ -16,6 +16,8 @@ import type {
 } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
+import { ActivityService } from './activity.service';
+import type { Changes } from './activity.service';
 import { effectiveProjectRole } from './policy';
 
 interface TaskRow {
@@ -75,6 +77,25 @@ function toTask(row: TaskRow, projectKey: string): Task {
   };
 }
 
+const iso = (date: Date | null) => date?.toISOString() ?? null;
+
+/** Field-level summary of a task edit. Text fields record only that they changed. */
+function diff(before: TaskRow, after: TaskRow): Changes {
+  const changes: Changes = {};
+  const pairs: [string, string | null, string | null][] = [
+    ['state', before.state_key, after.state_key],
+    ['priority', before.priority, after.priority],
+    ['assignee', before.assignee_user_id, after.assignee_user_id],
+    ['dueAt', iso(before.due_at), iso(after.due_at)],
+  ];
+  for (const [field, from, to] of pairs) {
+    if (from !== to) changes[field] = { from, to };
+  }
+  if (before.title !== after.title) changes.title = true;
+  if (before.description !== after.description) changes.description = true;
+  return changes;
+}
+
 /**
  * Tasks are always addressed through (organization, project) resolved by
  * the guards; every query filters on both.
@@ -83,6 +104,7 @@ function toTask(row: TaskRow, projectKey: string): Task {
 export class TasksService {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(ActivityService) private readonly activity: ActivityService,
   ) {}
 
   async states(
@@ -188,6 +210,15 @@ export class TasksService {
       );
       const row = await this.find(client, tenant, project, number);
       if (!row) throw new Error('task vanished after insert');
+      await this.activity.record(client, {
+        organizationId: tenant.organizationId,
+        projectId: project.id,
+        taskId: row.id,
+        actorUserId: userId,
+        action: 'task.created',
+        changes: { number, state: row.state_key, priority: row.priority },
+        aggregateVersion: 1,
+      });
       return toTask(row, project.key);
     });
   }
@@ -200,6 +231,7 @@ export class TasksService {
     tenant: TenantContext,
     project: ProjectContext,
     number: number,
+    userId: string,
     input: UpdateTaskRequest,
   ): Promise<Task> {
     return this.database.transaction(async (client) => {
@@ -217,6 +249,7 @@ export class TasksService {
       const task = current.rows[0];
       if (!task) throw new NotFoundException();
       if (Number(task.version) !== input.version) throw new ConflictException();
+      const before = await this.find(client, tenant, project, number);
       const stateId = input.stateId
         ? await this.requireState(client, tenant, project, input.stateId)
         : task.state_id;
@@ -254,7 +287,17 @@ export class TasksService {
         ],
       );
       const row = await this.find(client, tenant, project, number);
-      if (!row) throw new Error('task vanished after update');
+      if (!row || !before) throw new Error('task vanished after update');
+      const changes = diff(before, row);
+      await this.activity.record(client, {
+        organizationId: tenant.organizationId,
+        projectId: project.id,
+        taskId: row.id,
+        actorUserId: userId,
+        action: 'task.updated',
+        changes,
+        aggregateVersion: Number(row.version),
+      });
       return toTask(row, project.key);
     });
   }

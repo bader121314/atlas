@@ -88,6 +88,9 @@ export async function startFixtures() {
         [slugs],
       );
       for (const table of [
+        'outbox_events',
+        'activity_events',
+        'task_comments',
         'tasks',
         'workflow_states',
         'project_memberships',
