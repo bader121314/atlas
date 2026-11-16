@@ -32,3 +32,36 @@ export function parseEnvironment(input: Record<string, unknown>): Environment {
   }
   return result.data;
 }
+
+// Authentication settings are validated separately so infrastructure-only
+// processes (worker, health checks) do not require auth secrets.
+export const authEnvironmentSchema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
+  SESSION_SECRET: z.string().min(32),
+  WEB_ORIGIN: z.url().refine((v) => {
+    try {
+      const url = new URL(v);
+      return ['http:', 'https:'].includes(url.protocol) && url.origin === v;
+    } catch {
+      return false;
+    }
+  }),
+});
+export type AuthEnvironment = z.infer<typeof authEnvironmentSchema>;
+export function parseAuthEnvironment(
+  input: Record<string, unknown>,
+): AuthEnvironment {
+  const result = authEnvironmentSchema.safeParse(input);
+  if (!result.success) {
+    // Field names only: SESSION_SECRET must never appear in errors or logs.
+    throw new Error(
+      'Invalid auth environment: ' +
+        [...new Set(result.error.issues.map((i) => i.path.join('.')))].join(
+          ', ',
+        ),
+    );
+  }
+  return result.data;
+}

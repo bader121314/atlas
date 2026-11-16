@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 
-**Status:** M0 complete and verified in CI. M1 in progress: identity and organization schema with database-enforced tenancy rules (ADR-010). Product features remain design requirements.
+**Status:** M0 complete and verified in CI. M1 in progress: database-enforced tenancy rules (ADR-010) and account signup, verification and sessions (ADR-011). Product features remain design requirements.
 
 **Owner:** Bader Altemane
 
@@ -30,7 +30,10 @@ Web: [localhost:3000](http://localhost:3000). API liveness/readiness:
 `http://127.0.0.1:3001/v1/health/live` and `/v1/health/ready`.
 Worker exposes the same health routes on port 3002; it processes no jobs yet.
 Web liveness is `/health/live`. Readiness returns 503 if PostgreSQL or Redis is
-unavailable. The API has no identity or tenant endpoints yet.
+unavailable. Authentication routes live under `/v1/auth` (signup, verify-email,
+login, logout, session); see `contracts/openapi.yaml` and ADR-011. In
+development, verification emails are printed to the API console. Set
+`SESSION_SECRET` and `WEB_ORIGIN` in `.env` before starting the API.
 
 Mailpit's local inbox is at `http://127.0.0.1:8025` (SMTP 1025), and MinIO uses
 9000/9001. These services are development-only. MinIO is built from a pinned
