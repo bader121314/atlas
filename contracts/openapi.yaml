@@ -138,6 +138,85 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Session' }
         '401': { $ref: '#/components/responses/Problem' }
+  /auth/password-reset/request:
+    post:
+      operationId: requestPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+      responses:
+        '202':
+          description: Accepted. Identical for every email; only verified, active accounts receive a link.
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /auth/password-reset/confirm:
+    post:
+      operationId: confirmPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, password]
+              properties:
+                token: { type: string, maxLength: 128 }
+                password: { type: string, minLength: 12, maxLength: 128 }
+      responses:
+        '204': { description: Password changed and every session revoked }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /auth/sessions:
+    get:
+      operationId: listSessions
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: The caller's active sessions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionList' }
+        '401': { $ref: '#/components/responses/Problem' }
+  /auth/sessions/revoke-others:
+    post:
+      operationId: revokeOtherSessions
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Every session except the current one revoked }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /auth/sessions/{id}:
+    delete:
+      operationId: revokeSession
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Session revoked }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404':
+          description: Unknown, malformed or another user's session; indistinguishable by design.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
 components:
   securitySchemes:
     sessionCookie:
@@ -203,3 +282,21 @@ components:
             id: { type: string, format: uuid }
             email: { type: string }
             displayName: { type: string }
+    SessionList:
+      type: object
+      additionalProperties: false
+      required: [sessions]
+      properties:
+        sessions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, current, issuedAt, lastSeenAt, expiresAt, userAgent]
+            properties:
+              id: { type: string, format: uuid }
+              current: { type: boolean }
+              issuedAt: { type: string, format: date-time }
+              lastSeenAt: { type: [string, 'null'], format: date-time }
+              expiresAt: { type: string, format: date-time }
+              userAgent: { type: [string, 'null'] }

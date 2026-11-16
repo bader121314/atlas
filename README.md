@@ -31,8 +31,9 @@ Web: [localhost:3000](http://localhost:3000). API liveness/readiness:
 Worker exposes the same health routes on port 3002; it processes no jobs yet.
 Web liveness is `/health/live`. Readiness returns 503 if PostgreSQL or Redis is
 unavailable. Authentication routes live under `/v1/auth` (signup, verify-email,
-resend-verification, login, logout, session) and are rate limited through
-Redis; see `contracts/openapi.yaml`, ADR-011 and ADR-012. In
+resend-verification, login, logout, session, password reset and session
+management) and are rate limited through Redis; see `contracts/openapi.yaml`
+and ADR-011 to ADR-013. In
 development, verification emails are printed to the API console. Set
 `SESSION_SECRET` and `WEB_ORIGIN` in `.env` before starting the API.
 

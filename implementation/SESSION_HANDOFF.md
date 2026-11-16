@@ -44,26 +44,32 @@ development console mail transport. Tests: `tests/auth-primitives.test.ts`
 (unit) and `tests/integration/auth-flow.test.ts`. CI: 20 unit + 20
 integration tests passing.
 
-**Done (PR #4, branch `m1/rate-limits`):** ADR-012. Redis fixed-window
+**Merged (PR #4):** ADR-012. Redis fixed-window
 limits per address and per account on login, signup, verify-email and the
 new resend-verification route; 429 with Retry-After; fails closed (503) when
 Redis is down; identities hashed in keys. Tests:
 `tests/integration/rate-limits.test.ts`. Integration tests override
 `RateLimitSettings` with a unique prefix and generous limits.
 
+**Done (PR #5, branch `m1/password-reset-sessions`):** ADR-013. Password
+reset request/confirm (1-hour single-use links, reset revokes every session
+in the same transaction), session list, revoke one (own only; others' ids
+return 404) and revoke-others. Tests: `tests/integration/account-security.test.ts`
+using the shared helper `tests/integration/support/auth-app.ts` (use it for
+new auth-dependent integration tests).
+
 **Next, in order:**
 
-1. Password reset (single-use digest token, uniform responses, revoke all
-   sessions on reset); session list and revoke-all.
-2. `audit_events` table and audit entries for login, logout, password reset,
-   membership and invitation changes.
-3. Tenant request context and deny-by-default membership guard; organization
+1. `audit_events` table and audit entries for login, logout, password reset,
+   session revocation, membership and invitation changes. Also: change
+   password while signed in; email notice after a reset.
+2. Tenant request context and deny-by-default membership guard; organization
    create/list/switch; negative cross-tenant HTTP tests.
-4. Invitations and membership management (accept, revoke, role change,
+3. Invitations and membership management (accept, revoke, role change,
    removal) on top of the ADR-010 constraints.
-5. Anti-CSRF token alongside the Origin check, once web forms exist.
-6. Web UI: signup, verify, login, organization switcher, invite and members.
-7. M1 exit demo: 2 organizations and 3 accounts proving isolation.
+4. Anti-CSRF token alongside the Origin check, once web forms exist.
+5. Web UI: signup, verify, login, organization switcher, invite and members.
+6. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
 
