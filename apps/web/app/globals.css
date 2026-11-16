@@ -1,0 +1,317 @@
+/* Atlas — survey-map palette. Paper, ink, sea and contour. */
+:root {
+  --paper: #f3f6f4;
+  --surface: #ffffff;
+  --ink: #1d2a33;
+  --ink-soft: #52616b;
+  --sea: #2f6f8f;
+  --sea-deep: #1f5068;
+  --contour: #8fb3a1;
+  --line: #d5dfda;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --ok-soft: #e6f2ed;
+  --serif:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
+    serif;
+  --sans:
+    'Segoe UI Variable Text', 'Segoe UI', -apple-system, system-ui,
+    'Helvetica Neue', Arial, sans-serif;
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+h1 {
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+}
+h2 {
+  font-size: 1.35rem;
+}
+h3 {
+  font-size: 1.1rem;
+}
+p {
+  margin: 0 0 1em;
+  max-width: 68ch;
+}
+
+a {
+  color: var(--sea);
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--sea-deep);
+}
+
+:focus-visible {
+  outline: 3px solid var(--sea);
+  outline-offset: 2px;
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+/* Forms */
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 26rem;
+}
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+.field label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.field .hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+input,
+select {
+  font: inherit;
+  color: inherit;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #b9c7c0;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  min-height: 2.75rem;
+}
+input:focus-visible,
+select:focus-visible {
+  border-color: var(--sea);
+}
+
+.button {
+  font: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--sea);
+  background: var(--sea);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+.button:hover {
+  background: var(--sea-deep);
+  border-color: var(--sea-deep);
+  color: #fff;
+}
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.button.secondary {
+  background: transparent;
+  color: var(--sea-deep);
+}
+.button.secondary:hover {
+  background: var(--ok-soft);
+}
+.button.danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.button.danger:hover {
+  background: var(--danger-soft);
+}
+.button.small {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.notice {
+  border-left: 4px solid var(--sea);
+  background: var(--ok-soft);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  max-width: 40rem;
+}
+.notice.error {
+  border-left-color: var(--danger);
+  background: var(--danger-soft);
+}
+.notice p:last-child {
+  margin-bottom: 0;
+}
+
+/* Sign-in pages: the contour map is the one bold element. */
+.auth {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+}
+.auth-map {
+  background: var(--sea-deep);
+  color: #e8f1ee;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem;
+}
+.auth-map svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.auth-map .wordmark,
+.auth-map .caption {
+  position: relative;
+}
+.auth-map .caption {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  line-height: 1.3;
+  max-width: 18ch;
+}
+.wordmark {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+}
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem clamp(1.5rem, 6vw, 5rem);
+}
+.auth-panel .switch {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .auth-map {
+    min-height: 9rem;
+    padding: 1.5rem;
+  }
+  .auth-map .caption {
+    display: none;
+  }
+}
+
+/* Signed-in app */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.topbar .wordmark {
+  color: var(--sea-deep);
+}
+.topbar .spacer {
+  flex: 1;
+}
+.topbar select {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+}
+.page {
+  max-width: 60rem;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+.section {
+  margin-top: 2.5rem;
+}
+.section > h2 {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Lists of people, organizations and sessions */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+.rows li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  flex-wrap: wrap;
+}
+.rows li + li {
+  border-top: 1px solid var(--line);
+}
+.rows .grow {
+  flex: 1;
+  min-width: 12rem;
+}
+.rows .title {
+  font-weight: 600;
+}
+.role {
+  font-size: 0.85rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--contour);
+  color: var(--sea-deep);
+  background: var(--ok-soft);
+}
+.inline-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+.inline-form .field {
+  min-width: 14rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
