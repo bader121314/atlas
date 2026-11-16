@@ -8,6 +8,7 @@ export interface HttpRequest {
   params?: Record<string, string | undefined>;
   auth?: AuthContext;
   tenant?: TenantContext;
+  project?: ProjectContext;
 }
 
 export interface HttpResponse {
@@ -24,6 +25,13 @@ export interface TenantContext {
   organizationId: string;
   slug: string;
   role: string;
+}
+
+/** Resolved by ProjectGuard within the tenant, from the route key. */
+export interface ProjectContext {
+  id: string;
+  key: string;
+  role: 'manager' | 'editor' | 'commenter' | 'viewer';
 }
 
 export function header(request: HttpRequest, name: string): string | undefined {

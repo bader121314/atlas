@@ -8,6 +8,7 @@ import { checkDependencies } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
 import { AuthModule } from './auth/auth.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { ProjectsModule } from './projects/projects.module';
 @Controller('health')
 export class HealthController {
   @Get('ready') async ready(): Promise<Health> {
@@ -23,7 +24,7 @@ export class HealthController {
   }
 }
 @Module({
-  imports: [AuthModule, OrganizationsModule],
+  imports: [AuthModule, OrganizationsModule, ProjectsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -17,6 +17,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'members.read': true,
     'members.invite': true,
     'members.manage': true,
+    'projects.create': true,
   },
   admin: {
     'organization.read': true,
@@ -24,6 +25,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'members.read': true,
     'members.invite': true,
     'members.manage': true,
+    'projects.create': true,
   },
   member: {
     'organization.read': true,
@@ -31,6 +33,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'members.read': true,
     'members.invite': false,
     'members.manage': false,
+    'projects.create': true,
   },
   guest: {
     'organization.read': true,
@@ -38,6 +41,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'members.read': false,
     'members.invite': false,
     'members.manage': false,
+    'projects.create': false,
   },
 };
 

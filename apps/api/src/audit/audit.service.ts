@@ -21,7 +21,11 @@ export type AuditAction =
   | 'org.member.joined'
   | 'org.member.role_changed'
   | 'org.member.removed'
-  | 'org.member.left';
+  | 'org.member.left'
+  | 'project.created'
+  | 'project.updated'
+  | 'project.member.set'
+  | 'project.member.removed';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {
@@ -36,7 +40,7 @@ export interface AuditEvent {
   actorUserId?: string | null;
   organizationId?: string | null;
   target?: {
-    type: 'user' | 'session' | 'organization' | 'invitation';
+    type: 'user' | 'session' | 'organization' | 'invitation' | 'project';
     id: string;
   };
   /** Small, non-sensitive facts only: never passwords, tokens or emails. */

@@ -120,3 +120,32 @@ model AuditEvent {
   @@index([action, occurredAt(sort: Desc)])
   @@map("audit_events")
 }
+model Project {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  key String @db.VarChar(10)
+  name String @db.VarChar(100)
+  description String @default("") @db.VarChar(2000)
+  visibility String @default("organization")
+  status String @default("active")
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  version BigInt @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  members ProjectMembership[]
+  @@unique([organizationId, id])
+  @@unique([organizationId, key])
+  @@map("projects")
+}
+model ProjectMembership {
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  role String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  project Project @relation(fields: [organizationId, projectId], references: [organizationId, id], onDelete: Cascade, map: "project_memberships_project_fkey")
+  @@id([projectId, userId])
+  @@index([organizationId, userId])
+  @@map("project_memberships")
+}
