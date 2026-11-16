@@ -149,6 +149,41 @@ const pages = [];
   await alice.getByText('Bob Haddad').waitFor();
   await shot(alice, '11-members');
 
+  // Projects and tasks (M2).
+  await alice.getByLabel('Project name').fill('Coastal survey');
+  await alice.getByLabel('Key').fill('COAST');
+  await alice.getByRole('button', { name: 'Create project' }).click();
+  await alice.getByRole('link', { name: 'Coastal survey' }).click();
+  await alice.getByRole('heading', { name: 'Coastal survey' }).waitFor();
+  for (const title of [
+    'Chart the harbour',
+    'Survey the cliffs',
+    'Mark the tide lines',
+  ]) {
+    await alice.getByLabel('New task').fill(title);
+    await alice.getByRole('button', { name: 'Add task' }).click();
+    await alice.getByRole('link', { name: new RegExp(title) }).waitFor();
+  }
+  await alice.getByRole('link', { name: /Chart the harbour/ }).click();
+  await alice.getByLabel('Status').selectOption({ label: 'In progress' });
+  await alice.getByText('Status changed.').waitFor();
+  await alice.getByLabel('Assignee').selectOption({ label: 'Alice Rahman' });
+  await alice.getByText('Assignee changed.').waitFor();
+  await alice
+    .getByLabel('Add a comment')
+    .fill('Tide tables are in the shared folder.');
+  await alice.getByRole('button', { name: 'Post comment' }).click();
+  await alice.getByText('Tide tables are in the shared folder.').waitFor();
+  await shot(alice, '11c-task');
+  await alice.getByRole('link', { name: 'Coastal survey' }).click();
+  await alice
+    .getByRole('region', { name: 'In progress' })
+    .getByText('Chart the harbour')
+    .waitFor();
+  await shot(alice, '11b-board');
+  await alice.goto(`${BASE}/organizations/${slug}`);
+  await alice.getByText('Bob Haddad').waitFor();
+
   // Removing a member ends their access on the next request.
   alice.once('dialog', (dialog) => void dialog.accept());
   await alice

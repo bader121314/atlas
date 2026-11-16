@@ -319,3 +319,133 @@ select:focus-visible {
     animation: none !important;
   }
 }
+
+/* Projects and tasks */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 1.25rem;
+}
+.tabs a {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.tabs a[aria-current='page'] {
+  background: var(--sea-deep);
+  border-color: var(--sea-deep);
+  color: #fff;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.column {
+  background: #e8efec;
+  border-radius: var(--radius-panel);
+  padding: 0.75rem;
+}
+.column h2 {
+  font-size: 1rem;
+  margin: 0.15rem 0.25rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+}
+.column .count {
+  font-family: var(--sans);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.card:hover {
+  border-color: var(--contour);
+  color: var(--ink);
+}
+.card .key {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+.card .meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.priority-urgent,
+.priority-high {
+  color: var(--danger);
+  font-weight: 600;
+}
+.task-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 2rem;
+  align-items: start;
+}
+.task-side {
+  display: grid;
+  gap: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 1rem;
+}
+.task-side .field select,
+.task-side .field input {
+  width: 100%;
+}
+textarea {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #b9c7c0;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  resize: vertical;
+}
+.thread {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.thread li {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 0.75rem 1rem;
+}
+.history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.history li {
+  padding: 0.35rem 0 0.35rem 0.9rem;
+  border-left: 2px solid var(--contour);
+}
+@media (max-width: 860px) {
+  .task-layout {
+    grid-template-columns: 1fr;
+  }
+}
