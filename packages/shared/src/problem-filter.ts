@@ -5,6 +5,7 @@ import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 interface ProblemResponse {
   status(code: number): ProblemResponse;
   type(contentType: string): ProblemResponse;
+  setHeader(name: string, value: string): void;
   send(body: { type: string; title: string; status: number }): void;
 }
 const TITLES: Record<number, string> = {
@@ -16,14 +17,22 @@ const TITLES: Record<number, string> = {
   429: 'Too many requests',
   503: 'Service unavailable',
 };
+function retryAfterSeconds(exception: unknown): number | undefined {
+  if (typeof exception !== 'object' || exception === null) return undefined;
+  const value: unknown = Reflect.get(exception, 'retryAfterSeconds');
+  return typeof value === 'number' && value > 0 ? value : undefined;
+}
 @Catch()
 export class ProblemFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
-    host
-      .switchToHttp()
-      .getResponse<ProblemResponse>()
+    const response = host.switchToHttp().getResponse<ProblemResponse>();
+    const retryAfter = retryAfterSeconds(exception);
+    if (retryAfter !== undefined) {
+      response.setHeader('Retry-After', String(retryAfter));
+    }
+    response
       .status(status)
       .type('application/problem+json')
       .send({

@@ -7,6 +7,10 @@ import { Client } from 'pg';
 import { AppModule } from '../../apps/api/src/app.module';
 import { Mailer } from '../../apps/api/src/auth/mailer';
 import type { MailMessage } from '../../apps/api/src/auth/mailer';
+import {
+  DEFAULT_RATE_LIMITS,
+  RateLimitSettings,
+} from '../../apps/api/src/rate-limit/rate-limit.service';
 import { parseEnvironment } from '../../packages/config/src';
 import { digestToken, ProblemFilter } from '../../packages/shared/src';
 
@@ -35,6 +39,18 @@ beforeAll(async () => {
   const module = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(Mailer)
     .useValue(mailer)
+    // Generous limits so this file exercises auth behavior; limits have their
+    // own tests in rate-limits.test.ts.
+    .overrideProvider(RateLimitSettings)
+    .useValue({
+      prefix: `test:auth-flow:${run}:`,
+      rules: Object.fromEntries(
+        Object.keys(DEFAULT_RATE_LIMITS).map((name) => [
+          name,
+          { limit: 1000, windowSeconds: 60 },
+        ]),
+      ),
+    })
     .compile();
   app = module.createNestApplication();
   app.setGlobalPrefix('v1');
@@ -146,6 +162,31 @@ describe('signup, verification and sessions', () => {
     const hash = stored.rows[0]?.token_hash;
     expect(hash?.equals(digestToken(raw, SECRET))).toBe(true);
     expect(hash?.toString('utf8')).not.toContain(raw);
+  });
+});
+
+describe('resend verification', () => {
+  it('issues a new link and invalidates the previous one', async () => {
+    const email = newEmail('resend');
+    await post('/signup', { email, password, displayName: 'Resend' });
+    const first = tokenFromMail(email);
+    const resend = await post('/resend-verification', { email });
+    expect(resend.status).toBe(202);
+    const second = tokenFromMail(email);
+    expect(second).not.toBe(first);
+    expect((await post('/verify-email', { token: first })).status).toBe(400);
+    expect((await post('/verify-email', { token: second })).status).toBe(204);
+  });
+
+  it('answers identically and sends nothing for verified or unknown emails', async () => {
+    const email = await verifiedAccount('resend-verified');
+    const before = mailer.sent.length;
+    for (const target of [email, `unknown-${run}@example.test`]) {
+      const response = await post('/resend-verification', { email: target });
+      expect(response.status).toBe(202);
+      expect(await response.text()).toBe('');
+    }
+    expect(mailer.sent.length).toBe(before);
   });
 });
 

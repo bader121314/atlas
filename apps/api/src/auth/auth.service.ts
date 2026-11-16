@@ -63,17 +63,51 @@ export class AuthService {
       );
       return true;
     });
-    if (!created) return;
+    if (created) await this.sendVerification(input.email, token);
+  }
+
+  /**
+   * Issues a fresh link for an unverified account and invalidates older ones.
+   * Silent for unknown or already verified emails, like signup.
+   */
+  async resendVerification(email: string): Promise<void> {
+    const token = generateToken();
+    const issued = await this.database.transaction(async (client) => {
+      const user = await client.query<{ id: string }>(
+        `SELECT id FROM users
+         WHERE email_normalized = $1 AND email_verified_at IS NULL
+           AND status = 'active'
+         FOR UPDATE`,
+        [email],
+      );
+      const userId = user.rows[0]?.id;
+      if (!userId) return false;
+      await client.query(
+        `UPDATE verification_tokens SET used_at = now()
+         WHERE user_id = $1 AND purpose = 'email_verification'
+           AND used_at IS NULL`,
+        [userId],
+      );
+      await client.query(
+        `INSERT INTO verification_tokens (user_id, purpose, token_hash, expires_at)
+         VALUES ($1, 'email_verification', $2, now() + $3::interval)`,
+        [userId, this.digest(token), VERIFICATION_TTL],
+      );
+      return true;
+    });
+    if (issued) await this.sendVerification(email, token);
+  }
+
+  private async sendVerification(email: string, token: string): Promise<void> {
     const link = `${this.config.WEB_ORIGIN}/verify-email?token=${token}`;
     try {
       await this.mailer.send({
-        to: input.email,
+        to: email,
         subject: 'Verify your Atlas email address',
         text: `Confirm your email address to finish creating your Atlas account:\n\n${link}\n\nThis link expires in 24 hours.`,
       });
     } catch {
-      // The account exists; the user can request a new link once resend
-      // exists. Never log the address or token.
+      // Never log the address or token; the user can request a new link.
       this.logger.error('verification email could not be sent');
     }
   }

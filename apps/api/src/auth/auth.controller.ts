@@ -14,10 +14,12 @@ import {
 import {
   loginRequestSchema,
   parseRequest,
+  resendVerificationRequestSchema,
   signupRequestSchema,
   verifyEmailRequestSchema,
 } from '@atlas/contracts';
 import type { SessionResponse } from '@atlas/contracts';
+import { RateLimitService } from '../rate-limit/rate-limit.service';
 import { AuthService, SESSION_TTL_SECONDS } from './auth.service';
 import { clearedSessionCookie, sessionCookie } from './cookies';
 import { SessionGuard } from './guards';
@@ -33,6 +35,10 @@ function parse<T>(
   return value;
 }
 
+function clientIp(request: HttpRequest): string {
+  return request.ip ?? 'unknown';
+}
+
 function caller(request: HttpRequest): AuthContext {
   if (!request.auth) throw new UnauthorizedException();
   return request.auth;
@@ -40,17 +46,46 @@ function caller(request: HttpRequest): AuthContext {
 
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject(AuthService) private readonly auth: AuthService) {}
+  constructor(
+    @Inject(AuthService) private readonly auth: AuthService,
+    @Inject(RateLimitService) private readonly limits: RateLimitService,
+  ) {}
 
   @Post('signup')
   @HttpCode(202)
-  async signup(@Body() body: unknown): Promise<void> {
+  async signup(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    await this.limits.consume([
+      { rule: 'signupPerIp', subject: clientIp(request) },
+    ]);
     await this.auth.signup(parse(signupRequestSchema, body));
+  }
+
+  @Post('resend-verification')
+  @HttpCode(202)
+  async resendVerification(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    const { email } = parse(resendVerificationRequestSchema, body);
+    await this.limits.consume([
+      { rule: 'resendPerIp', subject: clientIp(request) },
+      { rule: 'resendPerAccount', subject: email },
+    ]);
+    await this.auth.resendVerification(email);
   }
 
   @Post('verify-email')
   @HttpCode(204)
-  async verifyEmail(@Body() body: unknown): Promise<void> {
+  async verifyEmail(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    await this.limits.consume([
+      { rule: 'verifyPerIp', subject: clientIp(request) },
+    ]);
     const { token } = parse(verifyEmailRequestSchema, body);
     if (!(await this.auth.verifyEmail(token))) {
       throw new BadRequestException();
@@ -64,10 +99,12 @@ export class AuthController {
     @Req() request: HttpRequest,
     @Res({ passthrough: true }) response: HttpResponse,
   ): Promise<void> {
-    const result = await this.auth.login(
-      parse(loginRequestSchema, body),
-      header(request, 'user-agent'),
-    );
+    const input = parse(loginRequestSchema, body);
+    await this.limits.consume([
+      { rule: 'loginPerIp', subject: clientIp(request) },
+      { rule: 'loginPerAccount', subject: input.email },
+    ]);
+    const result = await this.auth.login(input, header(request, 'user-agent'));
     if (!result.ok) throw new UnauthorizedException();
     response.setHeader(
       'Set-Cookie',
