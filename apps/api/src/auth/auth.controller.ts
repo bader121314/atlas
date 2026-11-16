@@ -21,6 +21,7 @@ import {
   verifyEmailRequestSchema,
 } from '@atlas/contracts';
 import type { SessionResponse } from '@atlas/contracts';
+import type { RequestMeta } from '../audit/audit.service';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
 import { AuthService, SESSION_TTL_SECONDS } from './auth.service';
 import { clearedSessionCookie, sessionCookie } from './cookies';
@@ -39,6 +40,10 @@ export function parse<T>(
 
 function clientIp(request: HttpRequest): string {
   return request.ip ?? 'unknown';
+}
+
+export function requestMeta(request: HttpRequest): RequestMeta {
+  return { ip: request.ip, userAgent: header(request, 'user-agent') };
 }
 
 export function caller(request: HttpRequest): AuthContext {
@@ -62,7 +67,10 @@ export class AuthController {
     await this.limits.consume([
       { rule: 'signupPerIp', subject: clientIp(request) },
     ]);
-    await this.auth.signup(parse(signupRequestSchema, body));
+    await this.auth.signup(
+      parse(signupRequestSchema, body),
+      requestMeta(request),
+    );
   }
 
   @Post('resend-verification')
@@ -89,7 +97,7 @@ export class AuthController {
       { rule: 'verifyPerIp', subject: clientIp(request) },
     ]);
     const { token } = parse(verifyEmailRequestSchema, body);
-    if (!(await this.auth.verifyEmail(token))) {
+    if (!(await this.auth.verifyEmail(token, requestMeta(request)))) {
       throw new BadRequestException();
     }
   }
@@ -106,7 +114,7 @@ export class AuthController {
       { rule: 'loginPerIp', subject: clientIp(request) },
       { rule: 'loginPerAccount', subject: input.email },
     ]);
-    const result = await this.auth.login(input, header(request, 'user-agent'));
+    const result = await this.auth.login(input, requestMeta(request));
     if (!result.ok) throw new UnauthorizedException();
     response.setHeader(
       'Set-Cookie',
@@ -125,7 +133,7 @@ export class AuthController {
       { rule: 'resetRequestPerIp', subject: clientIp(request) },
       { rule: 'resetRequestPerAccount', subject: email },
     ]);
-    await this.auth.requestPasswordReset(email);
+    await this.auth.requestPasswordReset(email, requestMeta(request));
   }
 
   @Post('password-reset/confirm')
@@ -138,7 +146,13 @@ export class AuthController {
       { rule: 'resetConfirmPerIp', subject: clientIp(request) },
     ]);
     const { token, password } = parse(passwordResetConfirmSchema, body);
-    if (!(await this.auth.confirmPasswordReset(token, password))) {
+    if (
+      !(await this.auth.confirmPasswordReset(
+        token,
+        password,
+        requestMeta(request),
+      ))
+    ) {
       throw new BadRequestException();
     }
   }
@@ -150,7 +164,7 @@ export class AuthController {
     @Req() request: HttpRequest,
     @Res({ passthrough: true }) response: HttpResponse,
   ): Promise<void> {
-    await this.auth.revoke(caller(request).sessionId);
+    await this.auth.logout(caller(request), requestMeta(request));
     response.setHeader('Set-Cookie', clearedSessionCookie());
   }
 

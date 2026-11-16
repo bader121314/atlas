@@ -13,7 +13,7 @@ import {
 import { parseRequest, resourceIdSchema } from '@atlas/contracts';
 import type { SessionListResponse } from '@atlas/contracts';
 import { AuthService } from './auth.service';
-import { caller } from './auth.controller';
+import { caller, requestMeta } from './auth.controller';
 import { SessionGuard } from './guards';
 import type { HttpRequest } from './http';
 
@@ -33,7 +33,11 @@ export class SessionsController {
   @HttpCode(204)
   async revokeOthers(@Req() request: HttpRequest): Promise<void> {
     const { user, sessionId } = caller(request);
-    await this.auth.revokeOtherSessions(user.id, sessionId);
+    await this.auth.revokeOtherSessions(
+      user.id,
+      sessionId,
+      requestMeta(request),
+    );
   }
 
   /**
@@ -48,7 +52,14 @@ export class SessionsController {
   ): Promise<void> {
     const sessionId = parseRequest(resourceIdSchema, id);
     const { user } = caller(request);
-    if (!sessionId || !(await this.auth.revokeOwnSession(user.id, sessionId))) {
+    if (
+      !sessionId ||
+      !(await this.auth.revokeOwnSession(
+        user.id,
+        sessionId,
+        requestMeta(request),
+      ))
+    ) {
       throw new NotFoundException();
     }
   }

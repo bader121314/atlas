@@ -12,6 +12,8 @@ import {
   hashPassword,
   verifyPassword,
 } from '@atlas/shared';
+import { AuditService } from '../audit/audit.service';
+import type { RequestMeta } from '../audit/audit.service';
 import { DatabaseService } from '../database.service';
 import type { AuthContext } from './http';
 import { Mailer } from './mailer';
@@ -33,6 +35,7 @@ export class AuthService {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(Mailer) private readonly mailer: Mailer,
+    @Inject(AuditService) private readonly audit: AuditService,
   ) {}
 
   get config(): AuthEnvironment {
@@ -48,7 +51,7 @@ export class AuthService {
    * Creates an unverified account and emails a verification link. Returns
    * nothing either way, so callers cannot learn whether an email exists.
    */
-  async signup(input: SignupRequest): Promise<void> {
+  async signup(input: SignupRequest, request: RequestMeta): Promise<void> {
     const passwordHash = await hashPassword(input.password);
     const token = generateToken();
     const created = await this.database.transaction(async (client) => {
@@ -65,6 +68,15 @@ export class AuthService {
         `INSERT INTO verification_tokens (user_id, purpose, token_hash, expires_at)
          VALUES ($1, 'email_verification', $2, now() + $3::interval)`,
         [userId, this.digest(token), VERIFICATION_TTL],
+      );
+      await this.audit.record(
+        {
+          action: 'auth.signup.created',
+          actorUserId: userId,
+          target: { type: 'user', id: userId },
+          request,
+        },
+        client,
       );
       return true;
     });
@@ -118,7 +130,7 @@ export class AuthService {
   }
 
   /** Single-use, expiring token. Returns false for unknown or used tokens. */
-  async verifyEmail(token: string): Promise<boolean> {
+  async verifyEmail(token: string, request: RequestMeta): Promise<boolean> {
     return this.database.transaction(async (client) => {
       const used = await client.query<{ user_id: string }>(
         `UPDATE verification_tokens SET used_at = now()
@@ -136,6 +148,15 @@ export class AuthService {
          WHERE id = $1`,
         [userId],
       );
+      await this.audit.record(
+        {
+          action: 'auth.email.verified',
+          actorUserId: userId,
+          target: { type: 'user', id: userId },
+          request,
+        },
+        client,
+      );
       return true;
     });
   }
@@ -144,10 +165,7 @@ export class AuthService {
    * Issues a new session for verified, active accounts. Every failure returns
    * the same result so responses do not reveal which check failed.
    */
-  async login(
-    input: LoginRequest,
-    userAgent: string | undefined,
-  ): Promise<LoginResult> {
+  async login(input: LoginRequest, request: RequestMeta): Promise<LoginResult> {
     const result = await this.database.pool.query<{
       id: string;
       password_hash: string | null;
@@ -162,23 +180,51 @@ export class AuthService {
     if (!user?.password_hash) {
       this.decoyHash ??= hashPassword(generateToken());
       await verifyPassword(input.password, await this.decoyHash);
+      await this.audit.record({
+        action: 'auth.login.failed',
+        metadata: { reason: 'unknown_account' },
+        request,
+      });
       return { ok: false };
     }
     const valid = await verifyPassword(input.password, user.password_hash);
-    if (!valid || !user.email_verified_at || user.status !== 'active') {
+    const reason = !valid
+      ? 'invalid_password'
+      : !user.email_verified_at
+        ? 'email_unverified'
+        : user.status !== 'active'
+          ? 'account_inactive'
+          : undefined;
+    if (reason) {
+      await this.audit.record({
+        action: 'auth.login.failed',
+        target: { type: 'user', id: user.id },
+        metadata: { reason },
+        request,
+      });
       return { ok: false };
     }
     const token = generateToken();
-    await this.database.pool.query(
+    const session = await this.database.pool.query<{ id: string }>(
       `INSERT INTO sessions (user_id, token_hash, expires_at, user_agent_summary)
-       VALUES ($1, $2, now() + make_interval(secs => $3), $4)`,
+       VALUES ($1, $2, now() + make_interval(secs => $3), $4)
+       RETURNING id`,
       [
         user.id,
         this.digest(token),
         SESSION_TTL_SECONDS,
-        userAgent?.slice(0, 256) ?? null,
+        request.userAgent?.slice(0, 256) ?? null,
       ],
     );
+    const sessionId = session.rows[0]?.id;
+    if (sessionId) {
+      await this.audit.record({
+        action: 'auth.login.succeeded',
+        actorUserId: user.id,
+        target: { type: 'session', id: sessionId },
+        request,
+      });
+    }
     return { ok: true, token };
   }
 
@@ -221,7 +267,10 @@ export class AuthService {
    * Emails a single-use reset link to verified, active accounts and
    * invalidates earlier links. Silent otherwise, so responses match.
    */
-  async requestPasswordReset(email: string): Promise<void> {
+  async requestPasswordReset(
+    email: string,
+    request: RequestMeta,
+  ): Promise<void> {
     const token = generateToken();
     const issued = await this.database.transaction(async (client) => {
       const user = await client.query<{ id: string }>(
@@ -242,6 +291,14 @@ export class AuthService {
         `INSERT INTO verification_tokens (user_id, purpose, token_hash, expires_at)
          VALUES ($1, 'password_reset', $2, now() + $3::interval)`,
         [userId, this.digest(token), PASSWORD_RESET_TTL],
+      );
+      await this.audit.record(
+        {
+          action: 'auth.password_reset.requested',
+          target: { type: 'user', id: userId },
+          request,
+        },
+        client,
       );
       return true;
     });
@@ -265,6 +322,7 @@ export class AuthService {
   async confirmPasswordReset(
     token: string,
     password: string,
+    request: RequestMeta,
   ): Promise<boolean> {
     const passwordHash = await hashPassword(password);
     return this.database.transaction(async (client) => {
@@ -283,10 +341,20 @@ export class AuthService {
         [userId, passwordHash],
       );
       if (updated.rowCount !== 1) return false;
-      await client.query(
+      const revoked = await client.query(
         `UPDATE sessions SET revoked_at = now()
          WHERE user_id = $1 AND revoked_at IS NULL`,
         [userId],
+      );
+      await this.audit.record(
+        {
+          action: 'auth.password_reset.completed',
+          actorUserId: userId,
+          target: { type: 'user', id: userId },
+          metadata: { sessionsRevoked: revoked.rowCount ?? 0 },
+          request,
+        },
+        client,
       );
       return true;
     });
@@ -324,32 +392,72 @@ export class AuthService {
   }
 
   /** Revokes one of the caller's own sessions. False if not theirs or gone. */
-  async revokeOwnSession(userId: string, sessionId: string): Promise<boolean> {
-    const result = await this.database.pool.query(
-      `UPDATE sessions SET revoked_at = now()
-       WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL`,
-      [sessionId, userId],
-    );
-    return result.rowCount === 1;
+  async revokeOwnSession(
+    userId: string,
+    sessionId: string,
+    request: RequestMeta,
+  ): Promise<boolean> {
+    return this.database.transaction(async (client) => {
+      const result = await client.query(
+        `UPDATE sessions SET revoked_at = now()
+         WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+        [sessionId, userId],
+      );
+      if (result.rowCount !== 1) return false;
+      await this.audit.record(
+        {
+          action: 'auth.session.revoked',
+          actorUserId: userId,
+          target: { type: 'session', id: sessionId },
+          request,
+        },
+        client,
+      );
+      return true;
+    });
   }
 
   /** Signs out every other device; returns how many sessions were revoked. */
   async revokeOtherSessions(
     userId: string,
     currentSessionId: string,
+    request: RequestMeta,
   ): Promise<number> {
-    const result = await this.database.pool.query(
-      `UPDATE sessions SET revoked_at = now()
-       WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL`,
-      [userId, currentSessionId],
-    );
-    return result.rowCount ?? 0;
+    return this.database.transaction(async (client) => {
+      const result = await client.query(
+        `UPDATE sessions SET revoked_at = now()
+         WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL`,
+        [userId, currentSessionId],
+      );
+      const count = result.rowCount ?? 0;
+      await this.audit.record(
+        {
+          action: 'auth.sessions.revoked_others',
+          actorUserId: userId,
+          metadata: { sessionsRevoked: count },
+          request,
+        },
+        client,
+      );
+      return count;
+    });
   }
 
-  async revoke(sessionId: string): Promise<void> {
-    await this.database.pool.query(
-      'UPDATE sessions SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL',
-      [sessionId],
-    );
+  async logout(context: AuthContext, request: RequestMeta): Promise<void> {
+    await this.database.transaction(async (client) => {
+      await client.query(
+        'UPDATE sessions SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL',
+        [context.sessionId],
+      );
+      await this.audit.record(
+        {
+          action: 'auth.logout',
+          actorUserId: context.user.id,
+          target: { type: 'session', id: context.sessionId },
+          request,
+        },
+        client,
+      );
+    });
   }
 }

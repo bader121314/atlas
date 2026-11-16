@@ -102,3 +102,21 @@ model Invitation {
   inviter OrganizationMembership @relation("InvitationInviter", fields: [organizationId, invitedByUserId], references: [organizationId, userId], onDelete: Restrict, map: "invitations_inviter_membership_fkey")
   @@map("invitations")
 }
+// Append-only (enforced by triggers). No relations on purpose: history must
+// outlive the rows it mentions. See ADR-014.
+model AuditEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String? @map("organization_id") @db.Uuid
+  actorUserId String? @map("actor_user_id") @db.Uuid
+  action String @db.VarChar(64)
+  targetType String? @map("target_type") @db.VarChar(32)
+  targetId String? @map("target_id") @db.Uuid
+  ipSummary String? @map("ip_summary") @db.VarChar(64)
+  userAgentSummary String? @map("user_agent_summary") @db.VarChar(256)
+  metadata Json @default("{}")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  @@index([actorUserId, occurredAt(sort: Desc)])
+  @@index([organizationId, occurredAt(sort: Desc)])
+  @@index([action, occurredAt(sort: Desc)])
+  @@map("audit_events")
+}
