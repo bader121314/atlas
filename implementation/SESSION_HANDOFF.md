@@ -102,8 +102,9 @@ Read `docs/08` M2, `docs/03` planning tables and the deferrals in
 1. Done (PR #11): projects, project roles, `ProjectGuard`, optimistic
    concurrency (ADR-018). Task permissions `task.read/write/comment` already
    exist in `projects/policy.ts`.
-2. Workflows, states and transitions; tasks with assignees, priority, due
-   dates, labels; optimistic concurrency via `version`.
+2. Done (PR #12): workflow states, tasks, filters, keyset pagination,
+   versioning (ADR-019). Deferred: custom states/transitions (M3), labels,
+   multiple assignees. Test fixture: `tests/integration/support/fixtures.ts`.
 3. Comments and activity feed; outbox rows written in the same transaction.
 4. Filters and stable cursor pagination; OpenAPI and contract tests.
 5. Board and list views in the web app; extend the browser smoke test.

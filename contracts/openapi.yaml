@@ -564,6 +564,52 @@ paths:
         '204': { description: Explicit role removed }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { description: No explicit role, or no access }
+  /organizations/{slug}/projects/{key}/states:
+    get:
+      operationId: listWorkflowStates
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: The project's workflow states in order }
+        '404': { description: Unknown project or no access }
+  /organizations/{slug}/projects/{key}/tasks:
+    get:
+      operationId: listTasks
+      security: [{ sessionCookie: [] }]
+      description: 'Query: state (key), assignee (me | none | uuid), priority, after (task number cursor), limit (1-100, default 50). Unknown parameters return 400.'
+      responses:
+        '200':
+          {
+            description: 'Tasks ordered by number, with nextCursor (null on the last page)',
+          }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown project or no access }
+    post:
+      operationId: createTask
+      security: [{ sessionCookie: [] }]
+      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), dueAt? (ISO 8601). Editor or manager.'
+      responses:
+        '201': { description: 'Created with key PROJECT-N' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown project or no access }
+        '409': { description: Project is archived }
+  /organizations/{slug}/projects/{key}/tasks/{number}:
+    get:
+      operationId: getTask
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: The task }
+        '404': { description: Unknown task or no access }
+    patch:
+      operationId: updateTask
+      security: [{ sessionCookie: [] }]
+      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), dueAt (null clears).'
+      responses:
+        '200': { description: Updated; version incremented }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown task or no access }
+        '409': { description: Stale version or archived project }
 components:
   parameters:
     Slug:
