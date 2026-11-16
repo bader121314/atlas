@@ -15,7 +15,7 @@ Notation: `PK`, `FK`, `UQ`, `IDX`; all omitted conventional timestamps still app
 - `authenticators`: id PK, user_id FK, kind enum, encrypted_secret, created_at, confirmed_at, revoked_at; one active TOTP per user policy.
 - `recovery_codes`: id PK, user_id FK, code_hash, consumed_at.
 - `verification_tokens`: id PK, user_id FK, purpose, token_hash UQ, expires_at, used_at.
-- `organizations`: id PK, slug UQ, name, owner_user_id FK, retention_days, status, settings_json, created_at.
+- `organizations`: id PK, slug UQ, name, created_by_user_id FK, retention_days, status, settings_json, created_at. Ownership is expressed only through `organization_memberships.role = 'owner'` (see ADR-010); a separate owner column would duplicate and drift from it.
 - `organization_memberships`: id PK, organization_id FK, user_id FK, role, state, joined_at, UQ(org_id,user_id); role CHECK.
 - `invitations`: id PK, organization_id FK, email_normalized, invited_by FK, role, token_hash UQ, expires_at, accepted_at, revoked_at, UQ index for active outstanding invitation policy.
 - `teams`: id PK, org_id FK, name, slug, UQ(org_id,slug).
