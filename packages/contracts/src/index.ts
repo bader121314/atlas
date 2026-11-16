@@ -308,6 +308,33 @@ export const taskListResponseSchema = z
   .strict();
 export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
 
+export const commentBodySchema = z
+  .object({ body: z.string().trim().min(1).max(10000) })
+  .strict();
+
+export const commentSchema = z
+  .object({
+    id: z.uuid(),
+    author: z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    body: z.string().nullable(),
+    createdAt: z.iso.datetime(),
+    editedAt: z.iso.datetime().nullable(),
+    deleted: z.boolean(),
+  })
+  .strict();
+export type Comment = z.infer<typeof commentSchema>;
+
+export const activitySchema = z
+  .object({
+    id: z.uuid(),
+    action: z.string(),
+    actor: z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    changes: z.record(z.string(), z.unknown()),
+    occurredAt: z.iso.datetime(),
+  })
+  .strict();
+export type Activity = z.infer<typeof activitySchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z

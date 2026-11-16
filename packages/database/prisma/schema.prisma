@@ -186,3 +186,41 @@ model Task {
   @@index([organizationId, dueAt])
   @@map("tasks")
 }
+model TaskComment {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  authorUserId String @map("author_user_id") @db.Uuid
+  body String @db.VarChar(10000)
+  editedAt DateTime? @map("edited_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([organizationId, taskId, createdAt])
+  @@map("task_comments")
+}
+model ActivityEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  taskId String? @map("task_id") @db.Uuid
+  actorUserId String @map("actor_user_id") @db.Uuid
+  action String @db.VarChar(64)
+  changes Json @default("{}")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  @@index([organizationId, taskId, occurredAt], map: "activity_events_task_idx")
+  @@index([organizationId, projectId, occurredAt], map: "activity_events_project_idx")
+  @@map("activity_events")
+}
+model OutboxEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  aggregateType String @map("aggregate_type") @db.VarChar(32)
+  aggregateId String @map("aggregate_id") @db.Uuid
+  aggregateVersion BigInt @map("aggregate_version")
+  eventType String @map("event_type") @db.VarChar(64)
+  payload Json
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  attemptCount Int @default(0) @map("attempt_count")
+  @@map("outbox_events")
+}

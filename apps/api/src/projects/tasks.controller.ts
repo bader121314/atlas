@@ -27,7 +27,7 @@ import { ProjectGuard, RequireProjectPermission } from './project.guard';
 import { projectOf, tenantOf } from './projects.controller';
 import { TasksService } from './tasks.service';
 
-function taskNumber(value: string): number {
+export function taskNumber(value: string): number {
   const number = /^[1-9][0-9]{0,8}$/.test(value) ? Number(value) : NaN;
   if (!Number.isSafeInteger(number)) throw new NotFoundException();
   return number;
@@ -100,6 +100,7 @@ export class TasksController {
       tenantOf(request),
       projectOf(request),
       taskNumber(number),
+      caller(request).user.id,
       parse(updateTaskRequestSchema, body),
     );
   }
