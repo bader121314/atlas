@@ -14,6 +14,8 @@ import {
 import {
   loginRequestSchema,
   parseRequest,
+  passwordResetConfirmSchema,
+  passwordResetRequestSchema,
   resendVerificationRequestSchema,
   signupRequestSchema,
   verifyEmailRequestSchema,
@@ -26,7 +28,7 @@ import { SessionGuard } from './guards';
 import { header } from './http';
 import type { AuthContext, HttpRequest, HttpResponse } from './http';
 
-function parse<T>(
+export function parse<T>(
   schema: Parameters<typeof parseRequest<T>>[0],
   body: unknown,
 ): T {
@@ -39,7 +41,7 @@ function clientIp(request: HttpRequest): string {
   return request.ip ?? 'unknown';
 }
 
-function caller(request: HttpRequest): AuthContext {
+export function caller(request: HttpRequest): AuthContext {
   if (!request.auth) throw new UnauthorizedException();
   return request.auth;
 }
@@ -110,6 +112,35 @@ export class AuthController {
       'Set-Cookie',
       sessionCookie(result.token, SESSION_TTL_SECONDS),
     );
+  }
+
+  @Post('password-reset/request')
+  @HttpCode(202)
+  async requestPasswordReset(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    const { email } = parse(passwordResetRequestSchema, body);
+    await this.limits.consume([
+      { rule: 'resetRequestPerIp', subject: clientIp(request) },
+      { rule: 'resetRequestPerAccount', subject: email },
+    ]);
+    await this.auth.requestPasswordReset(email);
+  }
+
+  @Post('password-reset/confirm')
+  @HttpCode(204)
+  async confirmPasswordReset(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    await this.limits.consume([
+      { rule: 'resetConfirmPerIp', subject: clientIp(request) },
+    ]);
+    const { token, password } = parse(passwordResetConfirmSchema, body);
+    if (!(await this.auth.confirmPasswordReset(token, password))) {
+      throw new BadRequestException();
+    }
   }
 
   @Post('logout')

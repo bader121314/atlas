@@ -22,6 +22,9 @@ export const DEFAULT_RATE_LIMITS = {
   verifyPerIp: { limit: 30, windowSeconds: 15 * 60 },
   resendPerIp: { limit: 10, windowSeconds: 60 * 60 },
   resendPerAccount: { limit: 3, windowSeconds: 60 * 60 },
+  resetRequestPerIp: { limit: 10, windowSeconds: 60 * 60 },
+  resetRequestPerAccount: { limit: 3, windowSeconds: 60 * 60 },
+  resetConfirmPerIp: { limit: 30, windowSeconds: 15 * 60 },
 } satisfies Record<string, RateLimitRule>;
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 

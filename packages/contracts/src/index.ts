@@ -36,6 +36,34 @@ export const verifyEmailRequestSchema = z
   .strict();
 export type VerifyEmailRequest = z.infer<typeof verifyEmailRequestSchema>;
 
+export const passwordResetRequestSchema = z.object({ email }).strict();
+export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
+
+export const passwordResetConfirmSchema = z
+  .object({ token: z.string().min(1).max(128), password })
+  .strict();
+export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;
+
+export const resourceIdSchema = z.uuid();
+
+export const sessionListResponseSchema = z
+  .object({
+    sessions: z.array(
+      z
+        .object({
+          id: z.uuid(),
+          current: z.boolean(),
+          issuedAt: z.iso.datetime(),
+          lastSeenAt: z.iso.datetime().nullable(),
+          expiresAt: z.iso.datetime(),
+          userAgent: z.string().nullable(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type SessionListResponse = z.infer<typeof sessionListResponseSchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z
