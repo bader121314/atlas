@@ -1,7 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { parseAuthEnvironment } from '@atlas/config';
 import type { AuthEnvironment } from '@atlas/config';
-import type { LoginRequest, SignupRequest } from '@atlas/contracts';
+import type {
+  LoginRequest,
+  SessionListResponse,
+  SignupRequest,
+} from '@atlas/contracts';
 import {
   digestToken,
   generateToken,
@@ -14,6 +18,7 @@ import { Mailer } from './mailer';
 
 export const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 const VERIFICATION_TTL = '24 hours';
+const PASSWORD_RESET_TTL = '1 hour';
 const LAST_SEEN_RESOLUTION = '5 minutes';
 
 export type LoginResult = { ok: true; token: string } | { ok: false };
@@ -210,6 +215,135 @@ export class AuthService {
         displayName: row.display_name,
       },
     };
+  }
+
+  /**
+   * Emails a single-use reset link to verified, active accounts and
+   * invalidates earlier links. Silent otherwise, so responses match.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const token = generateToken();
+    const issued = await this.database.transaction(async (client) => {
+      const user = await client.query<{ id: string }>(
+        `SELECT id FROM users
+         WHERE email_normalized = $1 AND email_verified_at IS NOT NULL
+           AND status = 'active'
+         FOR UPDATE`,
+        [email],
+      );
+      const userId = user.rows[0]?.id;
+      if (!userId) return false;
+      await client.query(
+        `UPDATE verification_tokens SET used_at = now()
+         WHERE user_id = $1 AND purpose = 'password_reset' AND used_at IS NULL`,
+        [userId],
+      );
+      await client.query(
+        `INSERT INTO verification_tokens (user_id, purpose, token_hash, expires_at)
+         VALUES ($1, 'password_reset', $2, now() + $3::interval)`,
+        [userId, this.digest(token), PASSWORD_RESET_TTL],
+      );
+      return true;
+    });
+    if (!issued) return;
+    const link = `${this.config.WEB_ORIGIN}/reset-password?token=${token}`;
+    try {
+      await this.mailer.send({
+        to: email,
+        subject: 'Reset your Atlas password',
+        text: `Someone asked to reset the password for your Atlas account. If it was you, choose a new password here:\n\n${link}\n\nThis link expires in 1 hour. If you did not ask, you can ignore this email; your password has not changed.`,
+      });
+    } catch {
+      this.logger.error('password reset email could not be sent');
+    }
+  }
+
+  /**
+   * Consumes a reset token, sets the new password and signs the account out
+   * everywhere, all in one transaction. Returns false for invalid tokens.
+   */
+  async confirmPasswordReset(
+    token: string,
+    password: string,
+  ): Promise<boolean> {
+    const passwordHash = await hashPassword(password);
+    return this.database.transaction(async (client) => {
+      const used = await client.query<{ user_id: string }>(
+        `UPDATE verification_tokens SET used_at = now()
+         WHERE token_hash = $1 AND purpose = 'password_reset'
+           AND used_at IS NULL AND expires_at > now()
+         RETURNING user_id`,
+        [this.digest(token)],
+      );
+      const userId = used.rows[0]?.user_id;
+      if (!userId) return false;
+      const updated = await client.query(
+        `UPDATE users SET password_hash = $2, updated_at = now()
+         WHERE id = $1 AND status = 'active'`,
+        [userId, passwordHash],
+      );
+      if (updated.rowCount !== 1) return false;
+      await client.query(
+        `UPDATE sessions SET revoked_at = now()
+         WHERE user_id = $1 AND revoked_at IS NULL`,
+        [userId],
+      );
+      return true;
+    });
+  }
+
+  /** Active sessions for one user; never returns another user's sessions. */
+  async listSessions(
+    userId: string,
+    currentSessionId: string,
+  ): Promise<SessionListResponse> {
+    const result = await this.database.pool.query<{
+      id: string;
+      issued_at: Date;
+      last_seen_at: Date | null;
+      expires_at: Date;
+      user_agent_summary: string | null;
+    }>(
+      `SELECT id, issued_at, last_seen_at, expires_at, user_agent_summary
+       FROM sessions
+       WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now()
+       ORDER BY issued_at DESC
+       LIMIT 100`,
+      [userId],
+    );
+    return {
+      sessions: result.rows.map((row) => ({
+        id: row.id,
+        current: row.id === currentSessionId,
+        issuedAt: row.issued_at.toISOString(),
+        lastSeenAt: row.last_seen_at?.toISOString() ?? null,
+        expiresAt: row.expires_at.toISOString(),
+        userAgent: row.user_agent_summary,
+      })),
+    };
+  }
+
+  /** Revokes one of the caller's own sessions. False if not theirs or gone. */
+  async revokeOwnSession(userId: string, sessionId: string): Promise<boolean> {
+    const result = await this.database.pool.query(
+      `UPDATE sessions SET revoked_at = now()
+       WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+      [sessionId, userId],
+    );
+    return result.rowCount === 1;
+  }
+
+  /** Signs out every other device; returns how many sessions were revoked. */
+  async revokeOtherSessions(
+    userId: string,
+    currentSessionId: string,
+  ): Promise<number> {
+    const result = await this.database.pool.query(
+      `UPDATE sessions SET revoked_at = now()
+       WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL`,
+      [userId, currentSessionId],
+    );
+    return result.rowCount ?? 0;
   }
 
   async revoke(sessionId: string): Promise<void> {
