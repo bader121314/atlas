@@ -102,7 +102,7 @@ select {
   border: 1px solid #b9c7c0;
   border-radius: var(--radius-control);
   background: var(--surface);
-  min-height: 2.75rem;
+  height: 2.75rem;
 }
 input:focus-visible,
 select:focus-visible {
@@ -223,10 +223,14 @@ select:focus-visible {
 @media (max-width: 760px) {
   .auth {
     grid-template-columns: 1fr;
+    grid-template-rows: 7.5rem auto;
   }
   .auth-map {
-    min-height: 9rem;
     padding: 1.5rem;
+  }
+  .auth-panel {
+    justify-content: flex-start;
+    padding-top: 2rem;
   }
   .auth-map .caption {
     display: none;
@@ -250,7 +254,7 @@ select:focus-visible {
   flex: 1;
 }
 .topbar select {
-  min-height: 2.25rem;
+  height: 2.25rem;
   padding: 0.25rem 0.5rem;
 }
 .page {
