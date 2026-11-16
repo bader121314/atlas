@@ -51,24 +51,31 @@ Redis is down; identities hashed in keys. Tests:
 `tests/integration/rate-limits.test.ts`. Integration tests override
 `RateLimitSettings` with a unique prefix and generous limits.
 
-**Done (PR #5, branch `m1/password-reset-sessions`):** ADR-013. Password
+**Merged (PR #5):** ADR-013. Password
 reset request/confirm (1-hour single-use links, reset revokes every session
 in the same transaction), session list, revoke one (own only; others' ids
 return 404) and revoke-others. Tests: `tests/integration/account-security.test.ts`
 using the shared helper `tests/integration/support/auth-app.ts` (use it for
 new auth-dependent integration tests).
 
+**Done (PR #6, branch `m1/audit-log`):** ADR-014. Append-only
+`audit_events` (triggers block update/delete/truncate), `AuditService` writing
+in the same transaction as the change, events for every account action,
+coarsened IPs, no secrets. Tests: `tests/ip-summary.test.ts`,
+`tests/integration/audit-log.test.ts`. Test cleanup cannot delete audit rows;
+that is expected.
+
 **Next, in order:**
 
-1. `audit_events` table and audit entries for login, logout, password reset,
-   session revocation, membership and invitation changes. Also: change
-   password while signed in; email notice after a reset.
-2. Tenant request context and deny-by-default membership guard; organization
-   create/list/switch; negative cross-tenant HTTP tests.
-3. Invitations and membership management (accept, revoke, role change,
+1. Tenant request context and deny-by-default membership guard; organization
+   create/list/switch; negative cross-tenant HTTP tests. Record
+   organization events through `AuditService`.
+2. Invitations and membership management (accept, revoke, role change,
    removal) on top of the ADR-010 constraints.
-4. Anti-CSRF token alongside the Origin check, once web forms exist.
-5. Web UI: signup, verify, login, organization switcher, invite and members.
+3. Anti-CSRF token alongside the Origin check, once web forms exist.
+4. Web UI: signup, verify, login, organization switcher, invite and members.
+5. Smaller follow-ups: change password while signed in, email notice after
+   a reset, request IDs in audit events.
 6. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
