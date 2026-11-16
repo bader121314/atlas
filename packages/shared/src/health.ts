@@ -12,7 +12,6 @@ export async function checkDependencies(): Promise<void> {
   const redis = createClient({
     url: config.REDIS_URL,
     socket: { connectTimeout: 2000, reconnectStrategy: false },
-    commandsQueueMaxLength: 1,
   });
   redis.on('error', () => {});
   let timer: ReturnType<typeof setTimeout> | undefined;
