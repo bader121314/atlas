@@ -1,0 +1,64 @@
+import { Inject, Injectable } from '@nestjs/common';
+import type { PoolClient } from 'pg';
+import { DatabaseService } from '../database.service';
+import { summarizeIp } from './ip-summary';
+
+/** Security-relevant actions. Add new names here, never free text. */
+export type AuditAction =
+  | 'auth.signup.created'
+  | 'auth.email.verified'
+  | 'auth.login.succeeded'
+  | 'auth.login.failed'
+  | 'auth.logout'
+  | 'auth.password_reset.requested'
+  | 'auth.password_reset.completed'
+  | 'auth.session.revoked'
+  | 'auth.sessions.revoked_others';
+
+/** Where a request came from; summarized before storage. */
+export interface RequestMeta {
+  ip?: string | undefined;
+  userAgent?: string | undefined;
+}
+
+type MetadataValue = string | number | boolean | null;
+
+export interface AuditEvent {
+  action: AuditAction;
+  actorUserId?: string | null;
+  organizationId?: string | null;
+  target?: { type: 'user' | 'session'; id: string };
+  /** Small, non-sensitive facts only: never passwords, tokens or emails. */
+  metadata?: Record<string, MetadataValue>;
+  request?: RequestMeta;
+}
+
+@Injectable()
+export class AuditService {
+  constructor(
+    @Inject(DatabaseService) private readonly database: DatabaseService,
+  ) {}
+
+  /**
+   * Appends one event. Pass the transaction client when the audited change is
+   * transactional, so the change and its audit record commit together.
+   */
+  async record(event: AuditEvent, client?: PoolClient): Promise<void> {
+    const runner = client ?? this.database.pool;
+    await runner.query(
+      `INSERT INTO audit_events (organization_id, actor_user_id, action,
+         target_type, target_id, ip_summary, user_agent_summary, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        event.organizationId ?? null,
+        event.actorUserId ?? null,
+        event.action,
+        event.target?.type ?? null,
+        event.target?.id ?? null,
+        summarizeIp(event.request?.ip),
+        event.request?.userAgent?.slice(0, 256) ?? null,
+        JSON.stringify(event.metadata ?? {}),
+      ],
+    );
+  }
+}

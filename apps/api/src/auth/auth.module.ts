@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { DatabaseService } from '../database.service';
+import { AuditModule } from '../audit/audit.module';
+import { DatabaseModule } from '../database.module';
 import { RateLimitModule } from '../rate-limit/rate-limit.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -9,10 +10,9 @@ import { OriginGuard, SessionGuard } from './guards';
 import { DevelopmentConsoleMailer, Mailer } from './mailer';
 
 @Module({
-  imports: [RateLimitModule],
+  imports: [DatabaseModule, AuditModule, RateLimitModule],
   controllers: [AuthController, SessionsController],
   providers: [
-    DatabaseService,
     AuthService,
     SessionGuard,
     { provide: Mailer, useClass: DevelopmentConsoleMailer },
