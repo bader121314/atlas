@@ -104,7 +104,7 @@ async function signIn(page, email, next) {
   await verify(carol, carolEmail, false);
 
   await alice.getByLabel('Email').fill(bobEmail);
-  await alice.getByLabel('Role').selectOption('admin');
+  await alice.locator('#inviteRole').selectOption('admin');
   await alice.getByRole('button', { name: 'Send invitation' }).click();
   await alice.getByText(`Invitation sent to ${bobEmail}.`).waitFor();
   await shot(alice, '07-invitation-sent');
