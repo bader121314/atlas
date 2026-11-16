@@ -99,10 +99,9 @@ now covers member removal.
 Read `docs/08` M2, `docs/03` planning tables and the deferrals in
 `docs/09`. In order:
 
-1. Projects (create, list, archive) under `/v1/organizations/{slug}/projects`,
-   with project memberships and project roles added to the policy matrix
-   (project roles may never grant owner-only actions). Composite
-   `(organization_id, ...)` keys as in ADR-010.
+1. Done (PR #11): projects, project roles, `ProjectGuard`, optimistic
+   concurrency (ADR-018). Task permissions `task.read/write/comment` already
+   exist in `projects/policy.ts`.
 2. Workflows, states and transitions; tasks with assignees, priority, due
    dates, labels; optimistic concurrency via `version`.
 3. Comments and activity feed; outbox rows written in the same transaction.

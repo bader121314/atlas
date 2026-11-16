@@ -159,6 +159,73 @@ export const updateMemberRequestSchema = z
   .strict();
 export type UpdateMemberRequest = z.infer<typeof updateMemberRequestSchema>;
 
+export const projectKeySchema = z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/);
+const projectRole = z.enum(['manager', 'editor', 'commenter', 'viewer']);
+const projectVisibility = z.enum(['organization', 'private']);
+
+export const createProjectRequestSchema = z
+  .object({
+    key: projectKeySchema,
+    name: z.string().trim().min(1).max(100),
+    description: z.string().trim().max(2000).default(''),
+    visibility: projectVisibility.default('organization'),
+  })
+  .strict();
+export type CreateProjectRequest = z.infer<typeof createProjectRequestSchema>;
+
+export const updateProjectRequestSchema = z
+  .object({
+    version: z.number().int().positive(),
+    name: z.string().trim().min(1).max(100).optional(),
+    description: z.string().trim().max(2000).optional(),
+    visibility: projectVisibility.optional(),
+    status: z.enum(['active', 'archived']).optional(),
+  })
+  .strict();
+export type UpdateProjectRequest = z.infer<typeof updateProjectRequestSchema>;
+
+export const projectSchema = z
+  .object({
+    id: z.uuid(),
+    key: z.string(),
+    name: z.string(),
+    description: z.string(),
+    visibility: projectVisibility,
+    status: z.enum(['active', 'archived']),
+    role: projectRole,
+    version: z.number().int(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+  })
+  .strict();
+export type Project = z.infer<typeof projectSchema>;
+
+export const projectListResponseSchema = z
+  .object({ projects: z.array(projectSchema) })
+  .strict();
+export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
+
+export const setProjectMemberRequestSchema = z
+  .object({ role: projectRole })
+  .strict();
+
+export const projectMemberListResponseSchema = z
+  .object({
+    members: z.array(
+      z
+        .object({
+          userId: z.uuid(),
+          displayName: z.string(),
+          role: projectRole,
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type ProjectMemberListResponse = z.infer<
+  typeof projectMemberListResponseSchema
+>;
+
 export const sessionResponseSchema = z
   .object({
     user: z

@@ -477,6 +477,93 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
+  /organizations/{slug}/projects:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      operationId: listProjects
+      description: Projects the caller can see, each with the caller's effective role (ADR-018).
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Visible projects }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+    post:
+      operationId: createProject
+      security: [{ sessionCookie: [] }]
+      description: 'Body: key (^[A-Z][A-Z0-9]{1,9}$), name, description?, visibility? (organization | private). Owner, admin or member.'
+      responses:
+        '201': { description: Created; the caller manages it }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - {
+          name: key,
+          in: path,
+          required: true,
+          schema: { type: string, pattern: '^[A-Z][A-Z0-9]{1,9}$' },
+        }
+    get:
+      operationId: getProject
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: The project and the caller's role }
+        '404':
+          {
+            description: Unknown project or no access; indistinguishable by design,
+          }
+    patch:
+      operationId: updateProject
+      security: [{ sessionCookie: [] }]
+      description: 'Body: version (required), name?, description?, visibility?, status? (active | archived). Manager only.'
+      responses:
+        '200': { description: Updated; version incremented }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown project or no access }
+        '409': { description: Stale version }
+  /organizations/{slug}/projects/{key}/members:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - { name: key, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: listProjectMembers
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Explicit project roles }
+  /organizations/{slug}/projects/{key}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - { name: key, in: path, required: true, schema: { type: string } }
+      - {
+          name: userId,
+          in: path,
+          required: true,
+          schema: { type: string, format: uuid },
+        }
+    put:
+      operationId: setProjectMember
+      security: [{ sessionCookie: [] }]
+      description: 'Body: role (manager | editor | commenter | viewer). Guests may be at most commenter (400 otherwise). Manager only.'
+      responses:
+        '204': { description: Role set }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404':
+          {
+            description: Not an active member of this organization,
+            or no access,
+          }
+    delete:
+      operationId: removeProjectMember
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Explicit role removed }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: No explicit role, or no access }
 components:
   parameters:
     Slug:
