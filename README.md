@@ -1,14 +1,46 @@
-# Atlas — Engineering Blueprint v1.0
+# Atlas
 
-**Date:** 2026-11-16
+Atlas is a multi-tenant workspace where teams organize their work. Many
+organizations share one application and database, and none can see another's
+data: that guarantee is enforced in the API on every request and again by
+constraints inside PostgreSQL, and both layers are attacked by automated tests
+on every change.
 
-**Status:** M0 complete and verified in CI. M1 in progress: accounts, sessions, rate limits and audit log (ADR-011 to ADR-014), organizations with database- and API-level tenant isolation (ADR-010, ADR-015), and web pages for all of it (ADR-017). Product features remain design requirements.
+**Status:** milestones M0 (foundation) and M1 (identity, organizations,
+tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
+M2 adds projects and tasks. Not deployed; no production-readiness claims.
+
+| Sign in                                   | Organization owner                                       |
+| ----------------------------------------- | -------------------------------------------------------- |
+| ![Sign in](docs/screenshots/01-login.png) | ![Organization](docs/screenshots/07-invitation-sent.png) |
+
+## What works today
+
+- **Accounts:** signup with email verification, sign-in, password reset that
+  signs out every device, and a list of signed-in devices you can revoke.
+- **Organizations:** create, switch, rename; invite people by email; change
+  roles; remove members or leave. Admins can never grant or touch admin or
+  owner roles, and every organization always keeps an owner.
+- **Security:** Argon2id passwords; opaque session tokens stored only as
+  HMAC digests in HttpOnly cookies; exact-Origin checks on every write; Redis
+  rate limits that fail closed; an append-only audit log written in the same
+  transaction as each change.
+- **Isolation:** outsiders get the same 404 as for an organization that does
+  not exist; composite foreign keys and triggers stop cross-tenant links even
+  if application code is wrong.
+
+**Stack:** TypeScript (strict) monorepo with pnpm and Turborepo; Next.js 16
+and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
+Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
+
+**How it is verified:** 51 unit tests and 55 integration tests against real
+PostgreSQL and Redis, plus a browser test that drives three users through
+signup, invitations and removal. Design decisions are recorded as ADRs in
+[`docs/adrs`](docs/adrs).
 
 **Owner:** Bader Altemane
 
-**Product:** Multi-tenant collaborative work management SaaS.
-
-## Run the M0 workspace locally
+## Run it locally
 
 The repository root is this `atlas/` directory. Install Node.js 24 (tested with
 24.22.0), pnpm 10.34.9, and Docker Desktop with Linux containers and Compose v2.
@@ -98,6 +130,8 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Infrastructure and operations](docs/06-infrastructure.md)
 - [Quality and test strategy](docs/07-quality.md)
 - [Milestones, dependencies and acceptance](docs/08-milestones.md)
+- [M1 exit report](docs/09-m1-exit-report.md)
+- [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
 ## Engineering nonnegotiables

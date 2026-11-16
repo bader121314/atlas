@@ -148,18 +148,32 @@ const pages = [];
   await alice.reload();
   await alice.getByText('Bob Haddad').waitFor();
   await shot(alice, '11-members');
+
+  // Removing a member ends their access on the next request.
+  alice.once('dialog', (dialog) => void dialog.accept());
+  await alice
+    .getByRole('listitem')
+    .filter({ hasText: 'Bob Haddad' })
+    .getByRole('button', { name: 'Remove' })
+    .click();
+  await alice.getByText('Bob Haddad was removed.').waitFor();
+  await shot(alice, '12-member-removed');
+  await bob.reload();
+  await bob.getByRole('heading', { name: 'Organization not found' }).waitFor();
+  await shot(bob, '13-removed-member-not-found');
+
   await alice.goto(`${BASE}/account`);
   await alice
     .getByRole('heading', { name: 'Where you are signed in' })
     .waitFor();
-  await shot(alice, '12-account-sessions');
+  await shot(alice, '14-account-sessions');
 
   const phone = await open({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,
   });
   await phone.goto(`${BASE}/login`);
-  await shot(phone, '13-login-mobile');
+  await shot(phone, '15-login-mobile');
 
   await browser.close();
   console.log('UI smoke test passed');

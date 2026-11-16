@@ -1,7 +1,7 @@
 # Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
-**Milestone:** M0 complete in CI; M1 backend and web UI complete; exit write-up remains.
+**Milestone:** M0 and M1 complete (`docs/09-m1-exit-report.md`); M2 next.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
 **Deployments:** none; no paid resources provisioned.
@@ -28,7 +28,7 @@ Not verified on the owner's laptop: Docker Compose startup, the MinIO source
 build and Mailpit. Docker Desktop and WSL are installed there, but the laptop
 was low on free disk space. CI covers PostgreSQL/Redis, so this is not blocking.
 
-### M1 — in progress
+### M1 — complete
 
 **Merged (PR #2):** migration `20261116120000_m1_identity_organizations`,
 ADR-010. Database-enforced active-owner invariant, composite tenant FK for
@@ -83,7 +83,7 @@ violations return 409; removal sets `state = 'removed'`. Tests:
 `tests/integration/invitations.test.ts`, extended policy unit tests. CI: 51
 unit + 55 integration tests.
 
-**Done (PR #9, branch `m1/web-ui`):** ADR-017. Next.js pages for signup,
+**Merged (PR #9):** ADR-017. Next.js pages for signup,
 login, verify-email, forgot/reset password, organizations (list, create,
 detail with members, invitations, role changes, leave), accept invitation and
 account sessions. `/api/*` is proxied to the API. Plain CSS in
@@ -91,15 +91,26 @@ account sessions. `/api/*` is proxied to the API. Plain CSS in
 `scripts/ui-smoke.cjs` (3 users, 13 screenshots, uploaded as artifact).
 Anti-CSRF token deliberately deferred (see ADR-017).
 
-**Next, in order:**
+**Merged (PR #10):** M1 exit report, README screenshots, browser smoke test
+now covers member removal.
 
-1. Smaller follow-ups: change password while signed in, email notice after
-   a reset, request IDs in audit events, step-up auth for ownership
-   transfer, suspend/unsuspend members.
-2. M1 exit: write up the 2-organization / 3-account isolation demo (the
-   smoke test and integration tests already exercise it), README screenshots,
-   then mark M1 complete.
-3. Trusted-proxy client addresses before any deployment (ADR-017).
+### M2 — next (projects and tasks)
+
+Read `docs/08` M2, `docs/03` planning tables and the deferrals in
+`docs/09`. In order:
+
+1. Projects (create, list, archive) under `/v1/organizations/{slug}/projects`,
+   with project memberships and project roles added to the policy matrix
+   (project roles may never grant owner-only actions). Composite
+   `(organization_id, ...)` keys as in ADR-010.
+2. Workflows, states and transitions; tasks with assignees, priority, due
+   dates, labels; optimistic concurrency via `version`.
+3. Comments and activity feed; outbox rows written in the same transaction.
+4. Filters and stable cursor pagination; OpenAPI and contract tests.
+5. Board and list views in the web app; extend the browser smoke test.
+6. Carry-overs: trusted-proxy client addresses before deployment, request IDs
+   in audit events, change password while signed in, email notice after a
+   reset, suspend/unsuspend members.
 
 ## Environment and versions
 
