@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 
-**Status:** M0 foundation implemented; local Docker validation pending. Product features remain design requirements.
+**Status:** M0 complete and verified in CI. M1 in progress: identity and organization schema with database-enforced tenancy rules (ADR-010). Product features remain design requirements.
 
 **Owner:** Bader Altemane
 
@@ -86,9 +86,6 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Infrastructure and operations](docs/06-infrastructure.md)
 - [Quality and test strategy](docs/07-quality.md)
 - [Milestones, dependencies and acceptance](docs/08-milestones.md)
-- [Initial Codex instruction file](AGENTS.md)
-- [First Codex implementation prompt](implementation/FIRST_CODEX_PROMPT.md)
-- [Persistent session handoff](implementation/SESSION_HANDOFF.md)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
 ## Engineering nonnegotiables
