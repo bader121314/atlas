@@ -150,6 +150,16 @@ export class ProjectsService {
         );
         const row = created.rows[0];
         if (!row) throw new Error('project insert returned no row');
+        await client.query(
+          `INSERT INTO workflow_states (organization_id, project_id, key, label, category, position)
+           SELECT $1, $2, s.key, s.label, s.category, s.position
+           FROM (VALUES
+             ('todo', 'To do', 'todo', 1),
+             ('in_progress', 'In progress', 'in_progress', 2),
+             ('done', 'Done', 'done', 3)
+           ) AS s (key, label, category, position)`,
+          [tenant.organizationId, row.id],
+        );
         // The creator manages the project, including private ones.
         await client.query(
           `INSERT INTO project_memberships (organization_id, project_id, user_id, role)

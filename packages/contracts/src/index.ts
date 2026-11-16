@@ -226,6 +226,88 @@ export type ProjectMemberListResponse = z.infer<
   typeof projectMemberListResponseSchema
 >;
 
+const priority = z.enum(['none', 'low', 'medium', 'high', 'urgent']);
+
+export const createTaskRequestSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    description: z.string().max(20000).default(''),
+    stateId: z.uuid().optional(),
+    priority: priority.default('none'),
+    assigneeId: z.uuid().nullable().default(null),
+    dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
+  })
+  .strict();
+export type CreateTaskRequest = z.infer<typeof createTaskRequestSchema>;
+
+export const updateTaskRequestSchema = z
+  .object({
+    version: z.number().int().positive(),
+    title: z.string().trim().min(1).max(200).optional(),
+    description: z.string().max(20000).optional(),
+    stateId: z.uuid().optional(),
+    priority: priority.optional(),
+    assigneeId: z.uuid().nullable().optional(),
+    dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  })
+  .strict();
+export type UpdateTaskRequest = z.infer<typeof updateTaskRequestSchema>;
+
+export const taskQuerySchema = z
+  .object({
+    state: z
+      .string()
+      .regex(/^[a-z][a-z0-9_]*$/)
+      .optional(),
+    assignee: z.union([z.uuid(), z.enum(['me', 'none'])]).optional(),
+    priority: priority.optional(),
+    after: z.coerce.number().int().nonnegative().optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict();
+export type TaskQuery = z.infer<typeof taskQuerySchema>;
+
+export const workflowStateSchema = z
+  .object({
+    id: z.uuid(),
+    key: z.string(),
+    label: z.string(),
+    category: z.enum(['todo', 'in_progress', 'done']),
+    position: z.number().int(),
+  })
+  .strict();
+export type WorkflowState = z.infer<typeof workflowStateSchema>;
+
+export const taskSchema = z
+  .object({
+    id: z.uuid(),
+    key: z.string(),
+    number: z.number().int(),
+    title: z.string(),
+    description: z.string(),
+    state: workflowStateSchema,
+    priority,
+    assignee: z
+      .object({ userId: z.uuid(), displayName: z.string() })
+      .strict()
+      .nullable(),
+    dueAt: z.iso.datetime().nullable(),
+    completedAt: z.iso.datetime().nullable(),
+    version: z.number().int(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+  })
+  .strict();
+export type Task = z.infer<typeof taskSchema>;
+
+export const taskListResponseSchema = z
+  .object({
+    tasks: z.array(taskSchema),
+    nextCursor: z.number().int().nullable(),
+  })
+  .strict();
+export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z
