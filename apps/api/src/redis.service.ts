@@ -3,8 +3,19 @@ import type { OnApplicationShutdown } from '@nestjs/common';
 import { createClient } from 'redis';
 import { parseEnvironment } from '@atlas/config';
 
-export type RedisClient = ReturnType<typeof createClient>;
 const CONNECT_TIMEOUT_MS = 2000;
+
+function buildClient(url: string) {
+  return createClient({
+    url,
+    disableOfflineQueue: true,
+    socket: {
+      connectTimeout: CONNECT_TIMEOUT_MS,
+      reconnectStrategy: (retries: number) => Math.min(retries * 100, 2000),
+    },
+  });
+}
+export type RedisClient = ReturnType<typeof buildClient>;
 
 // One lazily connected client per process. Commands fail fast while
 // disconnected (no offline queue) so callers can fail closed promptly.
@@ -23,14 +34,7 @@ export class RedisService implements OnApplicationShutdown {
   }
 
   private async connect(): Promise<RedisClient> {
-    const client = createClient({
-      url: parseEnvironment(process.env).REDIS_URL,
-      disableOfflineQueue: true,
-      socket: {
-        connectTimeout: CONNECT_TIMEOUT_MS,
-        reconnectStrategy: (retries: number) => Math.min(retries * 100, 2000),
-      },
-    });
+    const client = buildClient(parseEnvironment(process.env).REDIS_URL);
     client.on('error', () => {
       // Log once per outage without connection details.
       if (!this.reportedError) this.logger.error('redis connection error');
