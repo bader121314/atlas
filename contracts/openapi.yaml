@@ -610,6 +610,51 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '404': { description: Unknown task or no access }
         '409': { description: Stale version or archived project }
+  /organizations/{slug}/projects/{key}/tasks/{number}/comments:
+    get:
+      operationId: listComments
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          {
+            description: 'Comments oldest first; deleted ones have body null and deleted true',
+          }
+        '404': { description: Unknown task or no access }
+    post:
+      operationId: createComment
+      security: [{ sessionCookie: [] }]
+      description: 'Body: body (1-10000 characters). Commenter, editor or manager.'
+      responses:
+        '201': { description: Created }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown task or no access }
+  /organizations/{slug}/projects/{key}/tasks/{number}/comments/{id}:
+    patch:
+      operationId: editComment
+      security: [{ sessionCookie: [] }]
+      description: Author only.
+      responses:
+        '200': { description: Edited }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown or deleted comment }
+    delete:
+      operationId: deleteComment
+      security: [{ sessionCookie: [] }]
+      description: Author or project manager. Soft delete; returns the deleted entry.
+      responses:
+        '200': { description: Deleted }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown or already deleted comment }
+  /organizations/{slug}/projects/{key}/tasks/{number}/activity:
+    get:
+      operationId: listTaskActivity
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          {
+            description: 'Activity oldest first: action, actor, field-level changes, time',
+          }
+        '404': { description: Unknown task or no access }
 components:
   parameters:
     Slug:
