@@ -53,6 +53,29 @@ paths:
           description: Accepted. Identical whether or not the email already has an account; a verification email is sent only for new accounts.
         '400': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /auth/resend-verification:
+    post:
+      operationId: resendVerification
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+      responses:
+        '202':
+          description: Accepted. Identical for unknown, verified and unverified emails; only unverified accounts receive a new link.
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
   /auth/verify-email:
     post:
       operationId: verifyEmail
@@ -71,6 +94,8 @@ paths:
         '204': { description: Email verified }
         '400': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
   /auth/login:
     post:
       operationId: login
@@ -92,6 +117,8 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/Problem' }
   /auth/logout:
     post:
       operationId: logout
@@ -119,6 +146,15 @@ components:
       name: atlas_session
       description: Opaque session token. Named __Host-atlas_session in production.
   responses:
+    TooManyRequests:
+      description: Rate limit exceeded (ADR-012)
+      headers:
+        Retry-After:
+          description: Seconds until the limit resets
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
     Problem:
       description: RFC 9457 problem response without internal details
       content:
