@@ -38,7 +38,6 @@ jobs:
         ports: ['6379:6379']
         options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
     env:
-      NODE_ENV: development
       DATABASE_URL: postgresql://atlas:ephemeral-ci-only@127.0.0.1:5432/atlas
       REDIS_URL: redis://127.0.0.1:6379
       SESSION_SECRET: ephemeral-ci-only-session-secret-0123456789
