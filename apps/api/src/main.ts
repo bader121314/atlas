@@ -1,10 +1,12 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { parseEnvironment } from '@atlas/config';
+import { parseAuthEnvironment, parseEnvironment } from '@atlas/config';
 import { API_PREFIX, ProblemFilter } from '@atlas/shared';
 import { AppModule } from './app.module';
 async function bootstrap(): Promise<void> {
   const config = parseEnvironment(process.env);
+  // Fail fast at startup; auth settings are otherwise read on first use.
+  parseAuthEnvironment(process.env);
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new ProblemFilter());

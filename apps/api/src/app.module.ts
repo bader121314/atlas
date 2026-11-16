@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { checkDependencies } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
+import { AuthModule } from './auth/auth.module';
 @Controller('health')
 export class HealthController {
   @Get('ready') async ready(): Promise<Health> {
@@ -20,5 +21,5 @@ export class HealthController {
     return { status: 'ok', service: 'api' };
   }
 }
-@Module({ controllers: [HealthController] })
+@Module({ imports: [AuthModule], controllers: [HealthController] })
 export class AppModule {}

@@ -21,6 +21,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://atlas:ephemeral-ci-only@127.0.0.1:5432/atlas
       REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ephemeral-ci-only-session-secret-0123456789
+      WEB_ORIGIN: http://localhost:3000
       NEXT_TELEMETRY_DISABLED: '1'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
