@@ -81,7 +81,8 @@ jobs:
         run: |
           for f in screenshots/*.png; do
             echo "BEGIN-IMAGE $(basename "$f" .png)"
-            base64 -w 0 "$f"
+            base64 -w 40000 "$f"
+            echo "END-IMAGE"
             echo
           done
       - name: Server logs on failure
