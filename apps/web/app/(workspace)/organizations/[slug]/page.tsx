@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
@@ -89,6 +90,9 @@ export default function OrganizationPage() {
           It does not exist, or you are not a member. Ask an owner for an
           invitation.
         </p>
+        <p>
+          <Link href="/organizations">Back to your organizations</Link>
+        </p>
       </>
     );
   }
@@ -102,6 +106,10 @@ export default function OrganizationPage() {
 
   const mine = organization.role;
   const canInvite = mine === 'owner' || mine === 'admin';
+  // The last owner cannot leave or step down (ADR-010), so do not offer it.
+  const soleOwner =
+    mine === 'owner' &&
+    (members ?? []).filter((m) => m.role === 'owner').length <= 1;
 
   function report(
     ok: boolean,
@@ -247,7 +255,7 @@ export default function OrganizationPage() {
                       {dateFormat.format(new Date(member.joinedAt))}
                     </span>
                   </span>
-                  {canManage || (self && mine === 'owner') ? (
+                  {canManage || (self && mine === 'owner' && !soleOwner) ? (
                     <label>
                       <span className="muted">Role </span>
                       <select
@@ -266,7 +274,7 @@ export default function OrganizationPage() {
                   ) : (
                     <span className="role">{member.role}</span>
                   )}
-                  {canManage || self ? (
+                  {canManage || (self && !soleOwner) ? (
                     <button
                       className="button danger small"
                       type="button"
