@@ -130,6 +130,7 @@ model Project {
   status String @default("active")
   createdByUserId String @map("created_by_user_id") @db.Uuid
   version BigInt @default(1)
+  nextTaskNumber Int @default(1) @map("next_task_number")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   members ProjectMembership[]
@@ -148,4 +149,40 @@ model ProjectMembership {
   @@id([projectId, userId])
   @@index([organizationId, userId])
   @@map("project_memberships")
+}
+model WorkflowState {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  key String @db.VarChar(32)
+  label String @db.VarChar(50)
+  category String
+  position Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@unique([organizationId, projectId, id], map: "workflow_states_scope_key")
+  @@unique([projectId, key])
+  @@map("workflow_states")
+}
+model Task {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  number Int
+  title String @db.VarChar(200)
+  description String @default("") @db.VarChar(20000)
+  stateId String @map("state_id") @db.Uuid
+  priority String @default("none")
+  assigneeUserId String? @map("assignee_user_id") @db.Uuid
+  dueAt DateTime? @map("due_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  version BigInt @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  @@unique([organizationId, id])
+  @@unique([projectId, number])
+  @@index([organizationId, projectId, stateId, number])
+  @@index([organizationId, assigneeUserId])
+  @@index([organizationId, dueAt])
+  @@map("tasks")
 }
