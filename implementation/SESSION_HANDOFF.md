@@ -1,9 +1,9 @@
-﻿# Atlas session handoff
+# Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
 **Milestone:** M0 foundation implemented; Docker exit gates remain open.
 **Branch:** main.
-**Implementation commit:** Initial foundation commit being recorded; see Git history.
+**Implementation commit:** `d7c4134fbf2be33f455ab8226fbc2b3b995f1b3c` (foundation; subsequent commit updates handoff and whitespace).
 **Deployments:** None; no paid resources provisioned.
 
 ## Repository and changed files

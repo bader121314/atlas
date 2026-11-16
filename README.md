@@ -1,8 +1,11 @@
 # Atlas — Engineering Blueprint v1.0
 
-**Date:** 2026-11-16  
-**Status:** M0 foundation implemented; local Docker validation pending. Product features remain design requirements.  
-**Owner:** Bader Altemane  
+**Date:** 2026-11-16
+
+**Status:** M0 foundation implemented; local Docker validation pending. Product features remain design requirements.
+
+**Owner:** Bader Altemane
+
 **Product:** Multi-tenant collaborative work management SaaS.
 
 ## Run the M0 workspace locally
