@@ -8,7 +8,11 @@ on every change.
 
 **Status:** milestones M0 (foundation) and M1 (identity, organizations,
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
-M2 adds projects and tasks. Not deployed; no production-readiness claims.
+M2 (projects and tasks) is nearly complete. Not deployed; no production-readiness claims.
+
+| Task board                                        | Task with comments and history                  |
+| ------------------------------------------------- | ----------------------------------------------- |
+| ![Task board](docs/screenshots/16-task-board.png) | ![Task page](docs/screenshots/17-task-page.png) |
 
 | Sign in                                   | Organization owner                                       |
 | ----------------------------------------- | -------------------------------------------------------- |
@@ -25,6 +29,10 @@ M2 adds projects and tasks. Not deployed; no production-readiness claims.
   HMAC digests in HttpOnly cookies; exact-Origin checks on every write; Redis
   rate limits that fail closed; an append-only audit log written in the same
   transaction as each change.
+- **Projects and tasks:** projects with organization-wide or private
+  visibility and per-project roles; numbered tasks with status, priority,
+  assignee and due date on a board or list; comments; a change history; and
+  edit-conflict detection so two people never silently overwrite each other.
 - **Isolation:** outsiders get the same 404 as for an organization that does
   not exist; composite foreign keys and triggers stop cross-tenant links even
   if application code is wrong.
