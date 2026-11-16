@@ -6,6 +6,29 @@
 **Implementation commit:** `d7c4134fbf2be33f455ab8226fbc2b3b995f1b3c` (foundation; subsequent commit updates handoff and whitespace).
 **Deployments:** None; no paid resources provisioned.
 
+## Installation continuation — 2026-11-16
+
+User authorized installing WSL and Docker Desktop. Installation is now verified:
+
+- Docker Desktop 4.99.0 at `C:\Program Files\Docker\Docker`.
+- Docker CLI 29.9.3 and Compose v5.7.0.
+- WSL 3.0.5.0 with kernel 6.18.58.1-1.
+- VirtualMachinePlatform enabled successfully; Windows reports RestartNeeded=True.
+- AMD Ryzen 7 5800H firmware virtualization and second-level address translation
+  both report True. No BIOS change is needed based on this check.
+
+**Next action: user must restart Windows.** No automatic restart was initiated.
+Docker engine is not running yet; containers, migrations and integration tests
+remain unverified. After restart, start Docker Desktop, verify `docker info`, then
+continue the remaining M0 gates. Do not reinstall Docker or WSL unnecessarily.
+
+Diagnostic logs: `C:\Users\17176\atlas-wsl-package.log` (Successfully installed),
+`C:\Users\17176\atlas-virtualization-setup.log` (feature setup and firmware check),
+and `C:\ProgramData\DockerDesktop\install-log-admin.txt`.
+Docker installer hash matched the official winget manifest. Earlier slow WSL
+fallback downloads in the user's Temp directory are no longer needed.
+Earlier validation results below describe the original implementation session.
+
 ## Repository and changed files
 
 Initially only Atlas_Codex_Engineering_Blueprint_v1.zip existed. Its `atlas/`

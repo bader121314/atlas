@@ -1,4 +1,8 @@
+import 'reflect-metadata';
 import { expect, it } from 'vitest';
+import { Test } from '@nestjs/testing';
+import { AppModule as ApiModule } from '../../apps/api/src/app.module';
+import { AppModule as WorkerModule } from '../../apps/worker/src/app.module';
 import { Client } from 'pg';
 import { createClient } from 'redis';
 import { parseEnvironment } from '../../packages/config/src';
@@ -26,3 +30,25 @@ it('applies the baseline to PostgreSQL and reaches Redis', async () => {
     if (redis.isOpen) await redis.quit();
   }
 });
+
+it.each([
+  [ApiModule, 'api'],
+  [WorkerModule, 'worker'],
+] as const)(
+  'reports readiness with live dependencies (%s)',
+  async (appModule, service) => {
+    const module = await Test.createTestingModule({
+      imports: [appModule],
+    }).compile();
+    const app = module.createNestApplication();
+    app.setGlobalPrefix('v1');
+    await app.listen(0, '127.0.0.1');
+    try {
+      const response = await fetch((await app.getUrl()) + '/v1/health/ready');
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ status: 'ok', service });
+    } finally {
+      await app.close();
+    }
+  },
+);
