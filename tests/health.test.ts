@@ -26,7 +26,7 @@ it.each([
         status: 'ok',
         service,
       });
-      const missing = await fetch(base + '/v1/organizations');
+      const missing = await fetch(base + '/v1/not-implemented');
       expect(missing.status).toBe(404);
       expect(missing.headers.get('content-type')).toContain(
         'application/problem+json',

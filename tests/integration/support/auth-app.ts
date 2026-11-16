@@ -35,6 +35,10 @@ export class CapturingMailer extends Mailer {
 }
 
 type App = ReturnType<TestingModule['createNestApplication']>;
+interface RequestOptions {
+  body?: unknown;
+  cookie?: string;
+}
 
 /**
  * Starts the real API module against the CI database and Redis with a
@@ -63,18 +67,28 @@ export async function startAuthApp() {
   app.setGlobalPrefix('v1');
   app.useGlobalFilters(new ProblemFilter());
   await app.listen(0, '127.0.0.1');
-  const base = (await app.getUrl()) + '/v1/auth';
+  const root = (await app.getUrl()) + '/v1';
 
+  /** Calls `/v1/auth{path}`. */
   function request(
     method: string,
     path: string,
-    options: { body?: unknown; cookie?: string } = {},
+    options: RequestOptions = {},
+  ): Promise<Response> {
+    return api(method, `/auth${path}`, options);
+  }
+
+  /** Calls `/v1{path}` with the allowed Origin and optional session cookie. */
+  function api(
+    method: string,
+    path: string,
+    options: RequestOptions = {},
   ): Promise<Response> {
     const headers: Record<string, string> = { origin: ORIGIN };
     if (options.cookie) headers.cookie = options.cookie;
     if (options.body !== undefined)
       headers['content-type'] = 'application/json';
-    return fetch(base + path, {
+    return fetch(root + path, {
       method,
       headers,
       ...(options.body === undefined
@@ -122,5 +136,5 @@ export async function startAuthApp() {
     }
   }
 
-  return { mailer, request, email, verifiedAccount, login, close };
+  return { mailer, request, api, email, verifiedAccount, login, close };
 }

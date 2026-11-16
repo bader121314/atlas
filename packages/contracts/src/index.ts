@@ -64,6 +64,66 @@ export const sessionListResponseSchema = z
   .strict();
 export type SessionListResponse = z.infer<typeof sessionListResponseSchema>;
 
+export const organizationSlugSchema = z
+  .string()
+  .min(3)
+  .max(63)
+  .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/);
+
+export const createOrganizationRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    slug: organizationSlugSchema,
+  })
+  .strict();
+export type CreateOrganizationRequest = z.infer<
+  typeof createOrganizationRequestSchema
+>;
+
+export const updateOrganizationRequestSchema = z
+  .object({ name: z.string().trim().min(1).max(100) })
+  .strict();
+export type UpdateOrganizationRequest = z.infer<
+  typeof updateOrganizationRequestSchema
+>;
+
+const organizationRole = z.enum(['owner', 'admin', 'member', 'guest']);
+
+export const organizationSchema = z
+  .object({
+    id: z.uuid(),
+    slug: z.string(),
+    name: z.string(),
+    role: organizationRole,
+    createdAt: z.iso.datetime(),
+  })
+  .strict();
+export type Organization = z.infer<typeof organizationSchema>;
+
+export const organizationListResponseSchema = z
+  .object({ organizations: z.array(organizationSchema) })
+  .strict();
+export type OrganizationListResponse = z.infer<
+  typeof organizationListResponseSchema
+>;
+
+export const memberListResponseSchema = z
+  .object({
+    members: z.array(
+      z
+        .object({
+          userId: z.uuid(),
+          displayName: z.string(),
+          email: z.string(),
+          role: organizationRole,
+          joinedAt: z.iso.datetime(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type MemberListResponse = z.infer<typeof memberListResponseSchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z

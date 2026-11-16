@@ -5,7 +5,9 @@ export interface HttpRequest {
   body: unknown;
   /** Socket address; proxy headers are not trusted until configured. */
   ip?: string;
+  params?: Record<string, string | undefined>;
   auth?: AuthContext;
+  tenant?: TenantContext;
 }
 
 export interface HttpResponse {
@@ -15,6 +17,13 @@ export interface HttpResponse {
 export interface AuthContext {
   sessionId: string;
   user: { id: string; email: string; displayName: string };
+}
+
+/** Resolved by TenantGuard from the route, never from client-supplied ids. */
+export interface TenantContext {
+  organizationId: string;
+  slug: string;
+  role: string;
 }
 
 export function header(request: HttpRequest, name: string): string | undefined {

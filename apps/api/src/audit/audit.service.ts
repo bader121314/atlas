@@ -13,7 +13,9 @@ export type AuditAction =
   | 'auth.password_reset.requested'
   | 'auth.password_reset.completed'
   | 'auth.session.revoked'
-  | 'auth.sessions.revoked_others';
+  | 'auth.sessions.revoked_others'
+  | 'org.created'
+  | 'org.updated';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {
@@ -27,7 +29,7 @@ export interface AuditEvent {
   action: AuditAction;
   actorUserId?: string | null;
   organizationId?: string | null;
-  target?: { type: 'user' | 'session'; id: string };
+  target?: { type: 'user' | 'session' | 'organization'; id: string };
   /** Small, non-sensitive facts only: never passwords, tokens or emails. */
   metadata?: Record<string, MetadataValue>;
   request?: RequestMeta;
