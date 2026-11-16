@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 
-**Status:** M0 complete and verified in CI. M1 in progress: accounts, sessions, rate limits and audit log (ADR-011 to ADR-014), and organizations with database- and API-level tenant isolation (ADR-010, ADR-015). Product features remain design requirements.
+**Status:** M0 complete and verified in CI. M1 in progress: accounts, sessions, rate limits and audit log (ADR-011 to ADR-014), organizations with database- and API-level tenant isolation (ADR-010, ADR-015), and web pages for all of it (ADR-017). Product features remain design requirements.
 
 **Owner:** Bader Altemane
 
@@ -26,7 +26,9 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Web: [localhost:3000](http://localhost:3000). API liveness/readiness:
+Web: [localhost:3000](http://localhost:3000). Open it at exactly the address in
+`WEB_ORIGIN`; sign up there and follow the verification link printed in the
+API's terminal. The web app proxies `/api/*` to the API (ADR-017). API liveness/readiness:
 `http://127.0.0.1:3001/v1/health/live` and `/v1/health/ready`.
 Worker exposes the same health routes on port 3002; it processes no jobs yet.
 Web liveness is `/health/live`. Readiness returns 503 if PostgreSQL or Redis is
@@ -60,6 +62,7 @@ pnpm test
 pnpm build
 pnpm smoke:dev # Uses ports 3000/3101/3102; stops its own processes afterwards.
 pnpm test:integration # Requires running PostgreSQL/Redis and db:migrate first.
+# Browser smoke test with screenshots: runs in CI (.github/workflows/ui-smoke.yml).
 pnpm audit --prod --audit-level high
 ```
 

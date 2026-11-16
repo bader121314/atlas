@@ -1,7 +1,7 @@
 # Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
-**Milestone:** M0 complete in CI; M1 backend complete; web UI and exit demo remain.
+**Milestone:** M0 complete in CI; M1 backend and web UI complete; exit write-up remains.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
 **Deployments:** none; no paid resources provisioned.
@@ -74,7 +74,7 @@ routes must declare `@RequirePermission`; policy matrix in
 (memberships beyond owners inserted directly until invitations exist). Test
 helper now exposes `api.api(method, path)` for any `/v1` route.
 
-**Done (PR #8, branch `m1/invitations`):** ADR-016. Invite/list/revoke
+**Merged (PR #8):** ADR-016. Invite/list/revoke
 under `/v1/organizations/{slug}/invitations`, accept at
 `/v1/invitations/accept` (email must match), role change and removal/leave
 under `/{slug}/members/{userId}`. Admins cannot create or touch admins or
@@ -83,14 +83,23 @@ violations return 409; removal sets `state = 'removed'`. Tests:
 `tests/integration/invitations.test.ts`, extended policy unit tests. CI: 51
 unit + 55 integration tests.
 
+**Done (PR #9, branch `m1/web-ui`):** ADR-017. Next.js pages for signup,
+login, verify-email, forgot/reset password, organizations (list, create,
+detail with members, invitations, role changes, leave), accept invitation and
+account sessions. `/api/*` is proxied to the API. Plain CSS in
+`app/globals.css`. Browser smoke test `.github/workflows/ui-smoke.yml` +
+`scripts/ui-smoke.cjs` (3 users, 13 screenshots, uploaded as artifact).
+Anti-CSRF token deliberately deferred (see ADR-017).
+
 **Next, in order:**
 
-1. Anti-CSRF token alongside the Origin check, once web forms exist.
-2. Web UI: signup, verify, login, organization switcher, invite and members.
-3. Smaller follow-ups: change password while signed in, email notice after
+1. Smaller follow-ups: change password while signed in, email notice after
    a reset, request IDs in audit events, step-up auth for ownership
    transfer, suspend/unsuspend members.
-4. M1 exit demo: 2 organizations and 3 accounts proving isolation.
+2. M1 exit: write up the 2-organization / 3-account isolation demo (the
+   smoke test and integration tests already exercise it), README screenshots,
+   then mark M1 complete.
+3. Trusted-proxy client addresses before any deployment (ADR-017).
 
 ## Environment and versions
 

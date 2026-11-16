@@ -75,18 +75,7 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/pw/node_modules
           API_LOG: api.log
           SCREENSHOT_DIR: screenshots
-          PREVIEW_DIR: previews
         run: node scripts/ui-smoke.cjs
-      - name: Print screenshot previews (temporary review aid)
-        if: always()
-        run: |
-          for f in previews/*.jpg; do
-            [ -f "$f" ] || continue
-            echo "BEGIN-IMAGE $(basename "$f" .jpg)"
-            base64 -w 0 "$f"
-            echo
-            echo "END-IMAGE"
-          done
       - name: Server logs on failure
         if: failure()
         run: tail -n 100 api.log web.log

@@ -41,16 +41,6 @@ async function shot(page, name) {
     path: path.join(OUT, `${name}.png`),
     fullPage: true,
   });
-  if (process.env.PREVIEW_DIR) {
-    fs.mkdirSync(process.env.PREVIEW_DIR, { recursive: true });
-    await page.screenshot({
-      path: path.join(process.env.PREVIEW_DIR, `${name}.jpg`),
-      fullPage: true,
-      type: 'jpeg',
-      quality: 55,
-      scale: 'css',
-    });
-  }
   console.log(`screenshot ${name}`);
 }
 
