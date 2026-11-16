@@ -76,6 +76,16 @@ jobs:
           API_LOG: api.log
           SCREENSHOT_DIR: screenshots
         run: node scripts/ui-smoke.cjs
+      - name: Print screenshot previews (temporary review aid)
+        if: always()
+        run: |
+          for f in screenshots/*.png; do
+            [ -f "$f" ] || continue
+            echo "BEGIN-IMAGE $(basename "$f" .png)"
+            convert "$f" -resize 900x -quality 72 jpg:- | base64 -w 0
+            echo
+            echo "END-IMAGE"
+          done
       - name: Server logs on failure
         if: failure()
         run: tail -n 100 api.log web.log
