@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { Test } from '@nestjs/testing';
-import type { INestApplication } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Client } from 'pg';
 import { AppModule } from '../../apps/api/src/app.module';
@@ -24,7 +24,7 @@ const mailer = new CapturingMailer();
 const db = new Client({
   connectionString: parseEnvironment(process.env).DATABASE_URL,
 });
-let app: INestApplication;
+let app: ReturnType<TestingModule['createNestApplication']>;
 let base: string;
 const run = randomUUID().slice(0, 8);
 const emails: string[] = [];
