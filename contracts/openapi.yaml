@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Atlas implemented M0 API
+  title: Atlas implemented API
   version: 0.0.0
-  description: Only these infrastructure routes are implemented. Product routes remain in openapi-starter.yaml as design requirements.
+  description: Only the routes below are implemented. Product routes remain in openapi-starter.yaml as design requirements. State-changing requests must send an Origin header equal to the configured web origin, otherwise 403.
 servers:
   - url: /v1
 paths:
@@ -39,7 +39,91 @@ paths:
                   type: { type: string }
                   title: { type: string }
                   status: { type: integer, const: 503 }
+  /auth/signup:
+    post:
+      operationId: signup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignupRequest' }
+      responses:
+        '202':
+          description: Accepted. Identical whether or not the email already has an account; a verification email is sent only for new accounts.
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /auth/verify-email:
+    post:
+      operationId: verifyEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token]
+              properties:
+                token: { type: string, maxLength: 128 }
+      responses:
+        '204': { description: Email verified }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /auth/login:
+    post:
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '204':
+          description: Signed in. Sets the HttpOnly session cookie.
+          headers:
+            Set-Cookie: { schema: { type: string } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401':
+          description: Unknown email, wrong password, unverified or disabled account; indistinguishable by design.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /auth/logout:
+    post:
+      operationId: logout
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Session revoked and cookie cleared }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /auth/session:
+    get:
+      operationId: getSession
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: The signed-in user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '401': { $ref: '#/components/responses/Problem' }
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: atlas_session
+      description: Opaque session token. Named __Host-atlas_session in production.
+  responses:
+    Problem:
+      description: RFC 9457 problem response without internal details
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
   schemas:
     Health:
       type: object
@@ -48,3 +132,38 @@ components:
       properties:
         status: { type: string, const: ok }
         service: { type: string, enum: [api, worker, web] }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+    SignupRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, displayName]
+      properties:
+        email: { type: string, format: email, maxLength: 320 }
+        password: { type: string, minLength: 12, maxLength: 128 }
+        displayName: { type: string, minLength: 1, maxLength: 100 }
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 320 }
+        password: { type: string, minLength: 1, maxLength: 128 }
+    Session:
+      type: object
+      additionalProperties: false
+      required: [user]
+      properties:
+        user:
+          type: object
+          additionalProperties: false
+          required: [id, email, displayName]
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string }
+            displayName: { type: string }

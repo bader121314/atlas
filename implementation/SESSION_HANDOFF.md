@@ -1,7 +1,7 @@
 # Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
-**Milestone:** M0 complete in CI; M1 in progress (database foundation).
+**Milestone:** M0 complete in CI; M1 in progress (schema and sessions done).
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
 **Deployments:** none; no paid resources provisioned.
@@ -30,31 +30,34 @@ was low on free disk space. CI covers PostgreSQL/Redis, so this is not blocking.
 
 ### M1 — in progress
 
-**Done (branch `m1/identity-schema`, PR pending):** migration
-`20261116120000_m1_identity_organizations` and ADR-010. Tables: users,
-sessions, verification_tokens, organizations, organization_memberships,
-invitations. Database-enforced rules: active-owner invariant (deferred
-triggers), composite tenant FK for inviters, immutable `organization_id`,
-no ownership via invitation, one outstanding invitation per email, 32-byte
-token digests only, normalized unique emails. Covered by
-`tests/integration/identity-tenancy.test.ts`; the same scenarios were also
-checked by hand against PostgreSQL 16.
+**Merged (PR #2):** migration `20261116120000_m1_identity_organizations`,
+ADR-010. Database-enforced active-owner invariant, composite tenant FK for
+inviters, immutable `organization_id`, no ownership via invitation, one
+outstanding invitation per email, 32-byte token digests, normalized emails.
+Tests: `tests/integration/identity-tenancy.test.ts`.
+
+**Done (PR #3, branch `m1/auth-sessions`):** ADR-011. Routes under `/v1/auth`:
+signup (202 for new and existing emails), verify-email, login (uniform 401),
+logout, session. Argon2id via `node:crypto`, opaque 256-bit tokens with HMAC
+digests, HttpOnly SameSite=Lax cookie, global exact-Origin guard on writes,
+development console mail transport. Tests: `tests/auth-primitives.test.ts`
+(unit) and `tests/integration/auth-flow.test.ts`. CI: 20 unit + 20
+integration tests passing.
 
 **Next, in order:**
 
-1. Auth primitives in a shared package: Argon2id password hashing, 256-bit
-   opaque tokens, HMAC-SHA256 digests with a server secret
-   (`SESSION_SECRET`, documented by name only), unit tests.
-2. API: signup with email verification (Mailpit locally), login, logout,
-   session revocation; HttpOnly Secure SameSite cookies; uniform responses to
-   resist account enumeration; rate limiting.
-3. CSRF: exact Origin check plus token on cookie-authenticated writes.
-4. Tenant-aware request context and deny-by-default membership policy guard;
-   organization creation/switching; negative cross-tenant HTTP tests.
-5. Invitations and membership management (accept, revoke, change role, remove)
-   with audit events for sensitive changes; `audit_events` table.
-6. OpenAPI for all new routes; contract tests.
-7. Web UI: signup, login, organization switcher, invite and member screens.
+1. Rate limiting with Redis (per IP and per account on login, signup,
+   verify-email) with 429 responses; resend-verification endpoint.
+2. Password reset (single-use digest token, uniform responses, revoke all
+   sessions on reset); session list and revoke-all.
+3. `audit_events` table and audit entries for login, logout, password reset,
+   membership and invitation changes.
+4. Tenant request context and deny-by-default membership guard; organization
+   create/list/switch; negative cross-tenant HTTP tests.
+5. Invitations and membership management (accept, revoke, role change,
+   removal) on top of the ADR-010 constraints.
+6. Anti-CSRF token alongside the Origin check, once web forms exist.
+7. Web UI: signup, verify, login, organization switcher, invite and members.
 8. M1 exit demo: 2 organizations and 3 accounts proving isolation.
 
 ## Environment and versions
@@ -66,12 +69,17 @@ together with typescript-eslint. GitHub Actions warns that checkout/setup-node
 and pnpm action v4 target Node 20; bump when convenient.
 
 Env names: NODE_ENV, API_PORT, WORKER_PORT, DATABASE_URL, REDIS_URL,
-POSTGRES_USER, POSTGRES_DB, POSTGRES_PASSWORD, MINIO_ROOT_USER,
-MINIO_ROOT_PASSWORD. Never commit values.
+SESSION_SECRET, WEB_ORIGIN, POSTGRES_USER, POSTGRES_DB, POSTGRES_PASSWORD,
+MINIO_ROOT_USER, MINIO_ROOT_PASSWORD. Never commit values.
 
 ## Standing decisions and limits
 
 - SQL migrations are authoritative; keep `schema.prisma` in sync by hand.
+- Repositories use parameterized SQL via `pg` (ADR-011). In tests, inject
+  Nest dependencies with explicit `@Inject(...)`; do not rely on emitted
+  decorator metadata.
+- Commits are authored as Bader; no AI attribution in commits, PRs or repo
+  files outside `AGENTS.md` and `implementation/`.
 - Shared packages build before consumers; restart `pnpm dev` after editing them.
 - MinIO community distribution changed; the local image builds from a pinned
   upstream release. Choose maintained storage before M5.
