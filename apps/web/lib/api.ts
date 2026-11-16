@@ -3,6 +3,7 @@
 export interface ApiResult<T> {
   status: number;
   ok: boolean;
+  /** Parsed body of a successful (2xx) response; always undefined otherwise. */
   data: T | undefined;
 }
 
@@ -28,7 +29,9 @@ export async function api<T = unknown>(
   }
   const text = await response.text();
   let data: T | undefined;
-  if (text) {
+  // Error responses carry an RFC 9457 problem body, never the requested data,
+  // so only successful responses populate `data`.
+  if (response.ok && text) {
     try {
       data = JSON.parse(text) as T;
     } catch {
