@@ -1,0 +1,89 @@
+name: UI smoke
+on:
+  pull_request:
+    paths:
+      [
+        'apps/web/**',
+        'apps/api/**',
+        'packages/**',
+        'scripts/ui-smoke.cjs',
+        '.github/workflows/ui-smoke.yml',
+      ]
+  push:
+    branches: [main]
+    paths:
+      [
+        'apps/web/**',
+        'apps/api/**',
+        'packages/**',
+        'scripts/ui-smoke.cjs',
+        '.github/workflows/ui-smoke.yml',
+      ]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.7-alpine
+        env:
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: ephemeral-ci-only
+          POSTGRES_DB: atlas
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U atlas -d atlas" --health-interval 5s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7.4.7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://atlas:ephemeral-ci-only@127.0.0.1:5432/atlas
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ephemeral-ci-only-session-secret-0123456789
+      WEB_ORIGIN: http://127.0.0.1:3000
+      API_PORT: '3001'
+      NEXT_TELEMETRY_DISABLED: '1'
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm db:migrate
+      - run: pnpm build
+      - name: Install Playwright (smoke test only, not a project dependency)
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Start API and web
+        run: |
+          node apps/api/dist/main.js > api.log 2>&1 &
+          (cd apps/web && npx next start --hostname 127.0.0.1 --port 3000) > web.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:3001/v1/health/live >/dev/null 2>&1 &&
+            curl -fsS http://127.0.0.1:3000/health/live >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo 'services did not start'; cat api.log web.log; exit 1
+      - name: Drive the browser
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+          API_LOG: api.log
+          SCREENSHOT_DIR: screenshots
+        run: node scripts/ui-smoke.cjs
+      - name: Server logs on failure
+        if: failure()
+        run: tail -n 100 api.log web.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
