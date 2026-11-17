@@ -119,7 +119,9 @@ access, lockfile is authoritative), so M4 uses what is installed.
    window and pruning (ADR-028).
 2. Done (PR #26): Server-Sent Events per project with guard rechecks,
    Redis fan-out per instance, Last-Event-ID replay and resync (ADR-029).
-3. Web: live board, list and task page updates; reconnect handling.
+3. Done (PR #27): live project and task pages (`useProjectEvents`), a
+   status indicator, and on the task page a prompt instead of replacing text
+   being typed. The smoke job now runs the worker.
 4. Presence (ephemeral, Redis with expiry) on the task page.
 5. In-app notifications (assignment, mention, comment on watched task) and
    the email worker.

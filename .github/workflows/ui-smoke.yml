@@ -63,13 +63,15 @@ jobs:
       - name: Start API and web
         run: |
           node apps/api/dist/main.js > api.log 2>&1 &
+          node apps/worker/dist/main.js > worker.log 2>&1 &
           (cd apps/web && npx next start --hostname 127.0.0.1 --port 3000) > web.log 2>&1 &
           for i in $(seq 1 60); do
             curl -fsS http://127.0.0.1:3001/v1/health/live >/dev/null 2>&1 &&
+            curl -fsS http://127.0.0.1:3002/v1/health/live >/dev/null 2>&1 &&
             curl -fsS http://127.0.0.1:3000/health/live >/dev/null 2>&1 && exit 0
             sleep 1
           done
-          echo 'services did not start'; cat api.log web.log; exit 1
+          echo 'services did not start'; cat api.log web.log worker.log; exit 1
       - name: Drive the browser
         env:
           NODE_PATH: ${{ runner.temp }}/pw/node_modules
@@ -78,7 +80,7 @@ jobs:
         run: node scripts/ui-smoke.cjs
       - name: Server logs on failure
         if: failure()
-        run: tail -n 100 api.log web.log
+        run: tail -n 100 api.log web.log worker.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
