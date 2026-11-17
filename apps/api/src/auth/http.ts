@@ -3,8 +3,10 @@ export interface HttpRequest {
   method: string;
   headers: Record<string, string | string[] | undefined>;
   body: unknown;
-  /** Socket address; proxy headers are not trusted until configured. */
+  /** Client address; X-Forwarded-For counts only from TRUST_PROXY proxies. */
   ip?: string;
+  /** Set by the request logging middleware; echoed as X-Request-Id. */
+  requestId?: string;
   params?: Record<string, string | undefined>;
   auth?: AuthContext;
   tenant?: TenantContext;
