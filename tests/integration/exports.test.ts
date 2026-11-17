@@ -61,6 +61,15 @@ async function setup() {
 describe('task exports', () => {
   it('builds a CSV in the background for the requester only', async () => {
     const { owner, slug, base, run, start, download } = await setup();
+    const today = new Date().toISOString().slice(0, 10);
+    await fx.call(owner, 'POST', `${base}/tasks/1/time`, {
+      minutes: 90,
+      spentOn: today,
+    });
+    await fx.call(owner, 'POST', `${base}/tasks/1/time`, {
+      minutes: 15,
+      spentOn: today,
+    });
     const requested = await start(owner);
     expect(requested.status).toBe(201);
     expect(requested.json.status).toBe('queued');
@@ -80,10 +89,13 @@ describe('task exports', () => {
     );
     const text = await file.text();
     expect(text.split('\r\n')[0]).toBe(
-      'Key,Title,Status,Priority,Assignee,Due,Labels,Milestone,Parent,Created,Completed',
+      'Key,Title,Status,Priority,Assignee,Due,Labels,Milestone,Parent,Created,Completed,Start,Time logged (minutes)',
     );
     expect(text).toContain('EXP-1,"Survey, phase 1",To do,none');
     expect(text).toContain("EXP-2,'=cmd|calc");
+    const rows = text.split('\r\n');
+    expect(rows[1]?.endsWith(',105')).toBe(true);
+    expect(rows[2]?.endsWith(',0')).toBe(true);
 
     // Another editor cannot see or fetch it; viewers cannot export at all.
     const member = await fx.join(slug, owner, 'member');

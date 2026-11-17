@@ -35,7 +35,7 @@ returns `email` for older clients.
   default; the security review lists it.
 - Digests run hourly in the worker; with several workers, `SKIP LOCKED`
   prevents duplicates, but digest timing drifts by up to an hour.
-- Time totals are not yet in exports or webhooks.
+- Time totals are in task exports (PR #62) but not in webhooks.
 
 ## Remaining M9 candidates
 
