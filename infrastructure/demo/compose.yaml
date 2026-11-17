@@ -91,6 +91,8 @@ services:
       args:
         API_ORIGIN: http://api:3001
         STORAGE_PUBLIC_ORIGIN: https://${FILES_HOST:?run setup.sh}
+    environment:
+      STORAGE_PUBLIC_ORIGIN: https://${FILES_HOST:?run setup.sh}
     depends_on: [api]
     restart: unless-stopped
 

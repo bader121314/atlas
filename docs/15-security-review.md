@@ -11,7 +11,7 @@ threat, the control and where it is tested. Open items are at the end.
 | Authentication    | Credential theft, session fixation                                 | Argon2id; opaque 256-bit tokens stored as HMAC digests; HttpOnly, SameSite=Lax, `__Host-` cookies in production; password reset signs out every device; rate limits fail closed                                                                                                                                   | `auth-flow`, `account-security`, `rate-limits` tests                                             |
 | CSRF              | Forged writes from other sites                                     | Exact-Origin check on cookie-authenticated writes; bearer-token requests carry no ambient credentials                                                                                                                                                                                                             | `auth-flow`, `api-tokens` tests                                                                  |
 | API tokens        | Over-broad script access                                           | Scoped, per organization, expiring, hashed; tenant task routes only; settings, members, exports and token management are session-only                                                                                                                                                                             | `api-tokens` test                                                                                |
-| XSS               | Script injection through task content                              | React escapes all rendered text; no `dangerouslySetInnerHTML`; content security policy (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`); uploads always download as attachments with a checked type                                                                                          | smoke test checks the policy; `attachments` test checks disposition                              |
+| XSS               | Script injection through task content                              | React escapes all rendered text; no `dangerouslySetInnerHTML`; content security policy with a per-request script nonce (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, ADR-064); uploads always download as attachments with a checked type                                                 | smoke test checks the policy; `attachments` test checks disposition                              |
 | File uploads      | Malware, disguised executables, oversized files                    | Type allowlist; magic-byte check; scanner step with quarantine; 10 MB limit; size verified after upload; type-bound upload URLs; rejected files deleted                                                                                                                                                           | `attachments`, `file-types` tests                                                                |
 | SSRF              | Webhooks reaching internal services or cloud metadata              | https only; private, loopback, link-local, CGNAT, ULA and mapped addresses refused before saving and after DNS; connection pinned to the checked address; no redirects                                                                                                                                            | `webhooks`, `webhooks-security` tests                                                            |
 | Webhook integrity | Forged or replayed deliveries                                      | HMAC-SHA256 over timestamp and body; receivers reject old timestamps and repeated event ids; secrets sealed with AES-256-GCM                                                                                                                                                                                      | `webhooks-security`, `examples` tests                                                            |
@@ -30,16 +30,13 @@ threat, the control and where it is tested. Open items are at the end.
 
 ## Open items
 
-1. **Inline scripts in the content security policy.** Next.js needs inline
-   scripts for hydration; moving to per-request nonces removes
-   `'unsafe-inline'`.
-2. **Storage credentials.** S3 signing uses an IAM user's keys; switch to
+1. **Storage credentials.** S3 signing uses an IAM user's keys; switch to
    task-role credentials with session tokens (ADR-043).
-3. **Real malware scanning.** Replace the scanner stub with ClamAV or the
+2. **Real malware scanning.** Replace the scanner stub with ClamAV or the
    provider's scan before accepting untrusted uploads in production.
-4. **Instant revocation.** Event streams recheck access every 30 seconds.
-5. **Provisioning domains.** SCIM is limited to verified domains once an
+3. **Instant revocation.** Event streams recheck access every 30 seconds.
+4. **Provisioning domains.** SCIM is limited to verified domains once an
    organization has one (ADR-057); organizations without one can still
    provision any address, as invitations can.
-6. **Manual testing.** An external penetration test and a screen reader
+5. **Manual testing.** An external penetration test and a screen reader
    pass are still to be done.
