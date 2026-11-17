@@ -114,9 +114,9 @@ resource "aws_ecs_task_definition" "app" {
     operating_system_family = "LINUX"
   }
   container_definitions = jsonencode([{
-    name                   = each.key
-    image                  = "${aws_ecr_repository.atlas[each.key].repository_url}:${var.image_tag}"
-    essential              = true
+    name      = each.key
+    image     = "${aws_ecr_repository.atlas[each.key].repository_url}:${var.image_tag}"
+    essential = true
     # Next.js writes its cache at run time; the API and worker need no disk.
     readonlyRootFilesystem = each.key != "web"
     portMappings           = [{ name = each.key, containerPort = each.value.port, protocol = "tcp" }]
