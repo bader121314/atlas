@@ -148,9 +148,8 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 
 ### Next (M9 backlog and carry-overs)
 
-1. Multiple assignees (carry-over since M2): `task_assignees` table, API
-   list on tasks, filters matching any assignee, notifications for added
-   assignees, board and task page UI.
+1. Done (PR #53): multiple assignees with a primary kept in sync by a
+   trigger, filters on anyone, notifications for people added (ADR-046).
 2. Then pick M9 items with an ADR each (docs/08): notification preferences
    and digests, workload view, time tracking, public share views.
 

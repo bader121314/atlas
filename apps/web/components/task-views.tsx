@@ -130,7 +130,9 @@ export function TableView({
                 {priorityLabel(task.priority)}
               </td>
               <td>
-                {task.assignee?.displayName ?? (
+                {task.assignees.length > 0 ? (
+                  task.assignees.map((a) => a.displayName).join(', ')
+                ) : (
                   <span className="muted">Unassigned</span>
                 )}
               </td>

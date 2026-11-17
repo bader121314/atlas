@@ -1139,6 +1139,14 @@ paths:
         '400': { description: Wrong current password or weak new one }
         '401': { description: Not signed in }
         '429': { $ref: '#/components/responses/TooManyRequests' }
+  /organizations/{slug}/projects/{key}/tasks/{number}/assignees:
+    put:
+      operationId: setTaskAssignees
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { userIds } (0-10, unique, each able to open the project). The current primary stays primary if kept, otherwise the first becomes primary; newly added people are notified. Returns the task with assignee and assignees. ADR-046.'
+      responses:
+        '200': { description: The updated task }
+        '400': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:

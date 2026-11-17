@@ -40,6 +40,7 @@ interface TaskRow {
   state_position: number;
   assignee_user_id: string | null;
   assignee_name: string | null;
+  assignees: { userId: string; displayName: string }[];
   parent_number: number | null;
   labels: Label[];
   milestone_id: string | null;
@@ -61,6 +62,12 @@ const TASK_SELECT = `
       FROM task_labels tl JOIN labels l ON l.id = tl.label_id
       WHERE tl.task_id = t.id
     ), '[]'::json) AS labels,
+    COALESCE((
+      SELECT json_agg(json_build_object('userId', a.user_id, 'displayName', au.display_name)
+        ORDER BY a.user_id = t.assignee_user_id DESC, a.added_at, a.user_id)
+      FROM task_assignees a JOIN users au ON au.id = a.user_id
+      WHERE a.task_id = t.id
+    ), '[]'::json) AS assignees,
     COALESCE((
       SELECT jsonb_object_agg(v.field_id::text, COALESCE(
         to_jsonb(v.value_text), to_jsonb(v.value_number), to_jsonb(v.value_date::text)))
@@ -105,6 +112,7 @@ function toTask(row: TaskRow, projectKey: string): Task {
       row.milestone_id && row.milestone_title
         ? { id: row.milestone_id, title: row.milestone_title }
         : null,
+    assignees: row.assignees,
     fields: row.fields,
     version: Number(row.version),
     createdAt: row.created_at.toISOString(),
@@ -134,6 +142,11 @@ function diff(before: TaskRow, after: TaskRow): Changes {
     ['state', before.state_key, after.state_key],
     ['priority', before.priority, after.priority],
     ['assignee', before.assignee_user_id, after.assignee_user_id],
+    [
+      'assignees',
+      before.assignees.map((a) => a.displayName).join(', ') || null,
+      after.assignees.map((a) => a.displayName).join(', ') || null,
+    ],
     ['dueAt', iso(before.due_at), iso(after.due_at)],
     [
       'parent',
@@ -194,8 +207,17 @@ export class TasksService {
     if (query.state) add('s.key = ?', query.state);
     if (query.assignee === 'none')
       conditions.push('t.assignee_user_id IS NULL');
-    else if (query.assignee === 'me') add('t.assignee_user_id = ?', userId);
-    else if (query.assignee) add('t.assignee_user_id = ?', query.assignee);
+    // Matches any assignee, not only the primary one (ADR-046).
+    else if (query.assignee === 'me')
+      add(
+        'EXISTS (SELECT 1 FROM task_assignees a WHERE a.task_id = t.id AND a.user_id = ?)',
+        userId,
+      );
+    else if (query.assignee)
+      add(
+        'EXISTS (SELECT 1 FROM task_assignees a WHERE a.task_id = t.id AND a.user_id = ?)',
+        query.assignee,
+      );
     if (query.priority) add('t.priority = ?', query.priority);
     if (query.label) {
       add(
@@ -474,6 +496,64 @@ export class TasksService {
    * Replaces a task's labels. Labels must belong to the organization; the
    * change bumps the task version and is recorded like any other edit.
    */
+  /**
+   * Replaces the task's assignees (ADR-046). The current primary stays
+   * primary if kept; otherwise the first listed becomes primary. Newly added
+   * people are passed to the notifier.
+   */
+  async setAssignees(
+    tenant: TenantContext,
+    project: ProjectContext,
+    number: number,
+    userId: string,
+    userIds: string[],
+  ): Promise<Task> {
+    return this.database.transaction(async (client) => {
+      await this.requireActiveProject(client, tenant, project);
+      const before = await this.find(client, tenant, project, number);
+      if (!before) throw new NotFoundException();
+      await client.query('SELECT 1 FROM tasks WHERE id = $1 FOR UPDATE', [
+        before.id,
+      ]);
+      for (const id of userIds) {
+        await this.requireAssignable(client, tenant, project, id);
+      }
+      const primary =
+        before.assignee_user_id && userIds.includes(before.assignee_user_id)
+          ? before.assignee_user_id
+          : (userIds[0] ?? null);
+      // The trigger adds the primary and removes a replaced one.
+      await client.query(
+        `UPDATE tasks SET assignee_user_id = $2, version = version + 1, updated_at = now()
+         WHERE id = $1`,
+        [before.id, primary],
+      );
+      await client.query(
+        `DELETE FROM task_assignees WHERE task_id = $1 AND NOT (user_id = ANY($2::uuid[]))`,
+        [before.id, userIds],
+      );
+      await client.query(
+        `INSERT INTO task_assignees (organization_id, project_id, task_id, user_id)
+         SELECT $1, $2, $3, unnest($4::uuid[]) ON CONFLICT DO NOTHING`,
+        [tenant.organizationId, project.id, before.id, userIds],
+      );
+      const row = await this.find(client, tenant, project, number);
+      if (!row) throw new Error('task vanished after assigning');
+      const had = new Set(before.assignees.map((a) => a.userId));
+      await this.activity.record(client, {
+        organizationId: tenant.organizationId,
+        projectId: project.id,
+        taskId: row.id,
+        actorUserId: userId,
+        action: 'task.updated',
+        changes: diff(before, row),
+        aggregateVersion: Number(row.version),
+        assigned: userIds.filter((id) => !had.has(id)),
+      });
+      return toTask(row, project.key);
+    });
+  }
+
   async setLabels(
     tenant: TenantContext,
     project: ProjectContext,
