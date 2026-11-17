@@ -337,12 +337,7 @@ export default function TaskPage() {
       <div className="task-layout section">
         <div>
           {canWrite ? (
-            <form
-              className="form"
-              style={{ maxWidth: 'none' }}
-              onSubmit={saveText}
-              key={task.version}
-            >
+            <form className="form wide" onSubmit={saveText} key={task.version}>
               <div className="field">
                 <label htmlFor="title">Title</label>
                 <input
@@ -371,9 +366,7 @@ export default function TaskPage() {
           ) : (
             <>
               <h1>{task.title}</h1>
-              <p style={{ whiteSpace: 'pre-wrap' }}>
-                {task.description || 'No description.'}
-              </p>
+              <p className="prewrap">{task.description || 'No description.'}</p>
             </>
           )}
 
@@ -455,7 +448,7 @@ export default function TaskPage() {
                   {entry.deleted ? (
                     <p className="muted">This comment was deleted.</p>
                   ) : (
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{entry.body}</p>
+                    <p className="prewrap">{entry.body}</p>
                   )}
                   {!entry.deleted &&
                   (entry.author.userId === user.id ||
@@ -472,11 +465,7 @@ export default function TaskPage() {
               ))}
             </ul>
             {canComment ? (
-              <form
-                className="form"
-                style={{ maxWidth: 'none' }}
-                onSubmit={comment}
-              >
+              <form className="form wide" onSubmit={comment}>
                 <div className="field">
                   <label htmlFor="comment">Add a comment</label>
                   <textarea
@@ -590,13 +579,8 @@ export default function TaskPage() {
             />
           </div>
           {labels.length > 0 ? (
-            <fieldset
-              className="checks"
-              style={{ border: 0, padding: 0, margin: 0 }}
-            >
-              <legend style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
-                Labels
-              </legend>
+            <fieldset className="checks plain">
+              <legend>Labels</legend>
               {labels.map((label) => (
                 <label key={label.id}>
                   <input

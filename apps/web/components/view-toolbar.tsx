@@ -196,7 +196,7 @@ export function ViewToolbar({
           <label htmlFor="viewName">Save this view as</label>
           <input id="viewName" name="viewName" required maxLength={60} />
         </div>
-        <label className="checks" style={{ flexDirection: 'row' }}>
+        <label className="checks inline">
           <span>
             <input type="checkbox" name="viewShared" /> Share with the project
           </span>

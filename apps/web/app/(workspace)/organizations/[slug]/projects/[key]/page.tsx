@@ -249,7 +249,7 @@ export default function ProjectPage() {
       {canWrite ? (
         <form className="inline-form section" onSubmit={addTask}>
           {error ? <Notice tone="error">{error}</Notice> : null}
-          <div className="field" style={{ flex: 1 }}>
+          <div className="field fill">
             <label htmlFor="taskTitle">New task</label>
             <input id="taskTitle" name="taskTitle" required maxLength={200} />
           </div>
@@ -306,7 +306,7 @@ export default function ProjectPage() {
       ) : view === 'board' ? (
         <div className="board">
           {moveError ? (
-            <div style={{ gridColumn: '1 / -1' }}>
+            <div className="span-all">
               <Notice tone="error">{moveError}</Notice>
             </div>
           ) : null}
@@ -363,9 +363,7 @@ export default function ProjectPage() {
         <ul className="rows">
           {tasks.map((task) => (
             <li key={task.id}>
-              <span className="muted" style={{ width: '5.5rem' }}>
-                {task.key}
-              </span>
+              <span className="muted key-cell">{task.key}</span>
               <Link className="grow title" href={href(task)}>
                 {task.title}
               </Link>

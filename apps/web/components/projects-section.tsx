@@ -108,7 +108,7 @@ export function ProjectsSection({
               maxLength={10}
               pattern="[A-Za-z][A-Za-z0-9]{1,9}"
               aria-describedby="projectKey-hint"
-              style={{ textTransform: 'uppercase', width: '8rem' }}
+              className="key-input"
             />
             <span className="hint" id="projectKey-hint">
               Prefix for task keys, e.g. NW-12

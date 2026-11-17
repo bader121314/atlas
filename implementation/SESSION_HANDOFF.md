@@ -116,8 +116,9 @@ Read `docs/08` M3 and the deferrals in `docs/10`. In order:
    from the project's 3.10 on long union types; keep them on one line.
 5. Done (PR #21): custom fields (text, number, date, choice list) with typed
    value columns and validation; values shown in the table view (ADR-026).
-6. Design system pass: shared components, consistent spacing, WCAG checks;
-   extend the browser smoke test to multiple viewports.
+6. Done (PR #22): colour and spacing tokens, contrast unit test, axe-core
+   audit on every smoke screenshot, phone and tablet layout checks
+   (ADR-027).
 7. Carry-overs: trusted-proxy client addresses before deployment, request IDs
    in audit events, change password while signed in, multiple assignees,
    OpenAPI client generation and contract tests.
