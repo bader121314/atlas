@@ -11,6 +11,8 @@ import { LabelsService } from './labels.service';
 import { ProjectGuard } from './project.guard';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { StatesController } from './states.controller';
+import { StatesService } from './states.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 
@@ -22,6 +24,7 @@ import { TasksService } from './tasks.service';
     CommentsController,
     LabelsController,
     TaskLabelsController,
+    StatesController,
   ],
   providers: [
     ProjectsService,
@@ -30,6 +33,7 @@ import { TasksService } from './tasks.service';
     ActivityService,
     CommentsService,
     LabelsService,
+    StatesService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
