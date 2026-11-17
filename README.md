@@ -8,8 +8,10 @@ on every change.
 
 **Status:** milestones M0 (foundation) and M1 (identity, organizations,
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
-M2 (projects and tasks) is complete too; see the
-[M2 exit report](docs/10-m2-exit-report.md). Not deployed; no production-readiness claims.
+M2 (projects and tasks) and M3 (views, planning and accessibility) are
+complete too; see the [M2](docs/10-m2-exit-report.md) and
+[M3](docs/11-m3-exit-report.md) exit reports. Not deployed; no
+production-readiness claims.
 
 | Task board                                        | Task with comments and history                  |
 | ------------------------------------------------- | ----------------------------------------------- |
@@ -34,6 +36,13 @@ M2 (projects and tasks) is complete too; see the
   visibility and per-project roles; numbered tasks with status, priority,
   assignee and due date on a board or list; comments; a change history; and
   edit-conflict detection so two people never silently overwrite each other.
+- **Views and planning:** custom workflow states; drag-and-drop board with a
+  keyboard alternative; list, table and calendar views with filters and
+  saved views; task dependencies with loop protection; milestones with
+  progress; custom fields (text, number, date, choice list).
+- **Accessibility:** keyboard shortcuts and a skip link; colour tokens checked
+  against WCAG contrast minimums; an axe-core audit of every page the
+  browser test visits, at phone, tablet and desktop widths.
 - **Isolation:** outsiders get the same 404 as for an organization that does
   not exist; composite foreign keys and triggers stop cross-tenant links even
   if application code is wrong.
@@ -42,9 +51,9 @@ M2 (projects and tasks) is complete too; see the
 and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
 Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
 
-**How it is verified:** 79 unit tests and 74 integration tests against real
+**How it is verified:** 122 unit tests and 87 integration tests against real
 PostgreSQL and Redis, plus a browser test that drives three users through
-signup, invitations and removal. Design decisions are recorded as ADRs in
+signup, invitations, projects, tasks and views, and audits accessibility. Design decisions are recorded as ADRs in
 [`docs/adrs`](docs/adrs).
 
 **Owner:** Bader Altemane
@@ -141,6 +150,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Milestones, dependencies and acceptance](docs/08-milestones.md)
 - [M1 exit report](docs/09-m1-exit-report.md)
 - [M2 exit report](docs/10-m2-exit-report.md)
+- [M3 exit report](docs/11-m3-exit-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
