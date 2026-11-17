@@ -265,3 +265,15 @@ model Milestone {
   @@unique([organizationId, projectId, id], map: "milestones_scope_key")
   @@map("milestones")
 }
+model SavedView {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  ownerUserId String @map("owner_user_id") @db.Uuid
+  name String @db.VarChar(60)
+  shared Boolean @default(false)
+  config Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([organizationId, projectId])
+  @@map("saved_views")
+}

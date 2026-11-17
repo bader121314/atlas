@@ -89,6 +89,7 @@ export async function startFixtures() {
       );
       for (const table of [
         'outbox_events',
+        'saved_views',
         'activity_events',
         'task_comments',
         'task_labels',

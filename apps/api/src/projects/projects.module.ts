@@ -17,6 +17,8 @@ import { StatesController } from './states.controller';
 import { StatesService } from './states.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
+import { ViewsController } from './views.controller';
+import { ViewsService } from './views.service';
 
 @Module({
   imports: [DatabaseModule, AuditModule, AuthModule, OrganizationsModule],
@@ -28,6 +30,7 @@ import { TasksService } from './tasks.service';
     TaskLabelsController,
     StatesController,
     PlanningController,
+    ViewsController,
   ],
   providers: [
     ProjectsService,
@@ -38,6 +41,7 @@ import { TasksService } from './tasks.service';
     LabelsService,
     StatesService,
     PlanningService,
+    ViewsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
