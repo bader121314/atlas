@@ -1,0 +1,133 @@
+# Atlas on one small server for a free public demo (ADR-062).
+# Run through ./setup.sh, which writes .env next to this file:
+#   docker compose --env-file .env up -d --build
+name: atlas-demo
+
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://atlas:${POSTGRES_PASSWORD:?run setup.sh}@postgres:5432/atlas
+  REDIS_URL: redis://redis:6379
+  SESSION_SECRET: ${SESSION_SECRET:?run setup.sh}
+  WEB_ORIGIN: https://${APP_HOST:?run setup.sh}
+  # Caddy, then the web server's proxy, sit in front of the API (ADR-040).
+  TRUST_PROXY: '2'
+  METRICS_TOKEN: ${METRICS_TOKEN:-}
+  WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:?run setup.sh}
+  SSO_SECRET_KEY: ${SSO_SECRET_KEY:?run setup.sh}
+  STORAGE_ENDPOINT: https://${FILES_HOST:?run setup.sh}
+  STORAGE_BUCKET: atlas
+  STORAGE_ACCESS_KEY: atlas-demo
+  STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:?run setup.sh}
+  # No email service in the free demo: nothing is sent, sign-ups are closed
+  # and visitors use the shared demo account.
+  MAIL_DISABLED: 'true'
+  SIGNUPS_CLOSED: 'true'
+  DEMO_EMAIL: demo@atlas.example
+  DEMO_PASSWORD: ${DEMO_PASSWORD:?run setup.sh}
+
+x-build: &build
+  context: ../..
+  dockerfile: infrastructure/docker/Dockerfile
+
+services:
+  postgres:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_USER: atlas
+      POSTGRES_DB: atlas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run setup.sh}
+    volumes: ['postgres-data:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U atlas -d atlas']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  minio:
+    build: { context: ../local/minio }
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: atlas-demo
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:?run setup.sh}
+    volumes: ['minio-data:/data']
+    restart: unless-stopped
+
+  migrate:
+    build: { <<: *build, target: migrate }
+    environment: *app-env
+    depends_on: { postgres: { condition: service_healthy } }
+    restart: 'no'
+
+  api:
+    build: { <<: *build, target: api }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+
+  worker:
+    build: { <<: *build, target: worker }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+
+  web:
+    build:
+      <<: *build
+      target: web
+      args:
+        API_ORIGIN: http://api:3001
+        STORAGE_PUBLIC_ORIGIN: https://${FILES_HOST:?run setup.sh}
+    depends_on: [api]
+    restart: unless-stopped
+
+  # Creates the bucket and the demo organization once the API is up.
+  # Re-running it resets only the demo password (scripts/demo-seed.mjs).
+  seed:
+    build: { <<: *build, target: migrate }
+    environment:
+      <<: *app-env
+      ATLAS_API: http://api:3001/v1
+    command:
+      [
+        'sh',
+        '-c',
+        'node scripts/ensure-bucket.mjs && node scripts/demo-seed.mjs',
+      ]
+    depends_on:
+      api: { condition: service_healthy }
+      caddy: { condition: service_started }
+    restart: 'no'
+
+  # HTTPS with automatic Let's Encrypt certificates for both host names.
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      APP_HOST: ${APP_HOST:?run setup.sh}
+      FILES_HOST: ${FILES_HOST:?run setup.sh}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web, minio]
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  minio-data:
+  caddy-data:
+  caddy-config:

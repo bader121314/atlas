@@ -29,6 +29,12 @@ export default function SignupPage() {
       return;
     }
     setState('idle');
+    if (result.status === 403) {
+      setError(
+        'New accounts are closed on this demo. Sign in with the demo account shown on the sign-in page.',
+      );
+      return;
+    }
     setError(
       describeFailure(
         result.status,

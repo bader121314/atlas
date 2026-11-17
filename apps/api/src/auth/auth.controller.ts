@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   HttpCode,
+  NotFoundException,
   Inject,
   Post,
   Req,
@@ -64,12 +65,26 @@ export class AuthController {
     @Inject(RateLimitService) private readonly limits: RateLimitService,
   ) {}
 
+  /**
+   * A public demo's shared account (ADR-062), set per deployment with
+   * DEMO_EMAIL and DEMO_PASSWORD; 404 everywhere else.
+   */
+  @Get('demo')
+  demo(): { email: string; password: string } {
+    const email = process.env.DEMO_EMAIL;
+    const password = process.env.DEMO_PASSWORD;
+    if (!email || !password) throw new NotFoundException();
+    return { email, password };
+  }
+
   @Post('signup')
   @HttpCode(202)
   async signup(
     @Body() body: unknown,
     @Req() request: HttpRequest,
   ): Promise<void> {
+    // Deployments without email delivery cannot verify new accounts.
+    if (process.env.SIGNUPS_CLOSED === 'true') throw new ForbiddenException();
     await this.limits.consume([
       { rule: 'signupPerIp', subject: clientIp(request) },
     ]);

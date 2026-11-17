@@ -66,6 +66,24 @@ jobs:
           docker run --rm --entrypoint test atlas-worker -f apps/worker/dist/main.js
           docker run --rm --entrypoint test atlas-web -d .next
           docker images --format '{{.Repository}} {{.Size}}' | grep atlas-
+      - name: Check the free demo setup (ADR-062)
+        env:
+          APP_HOST: atlas.example.test
+          FILES_HOST: files.example.test
+          POSTGRES_PASSWORD: ci-only
+          SESSION_SECRET: ci-only-session-secret-0123456789abcdef
+          WEBHOOK_SECRET_KEY: ci-only-webhook-key-0123456789abcdef
+          SSO_SECRET_KEY: ci-only-sso-key-0123456789abcdef0123
+          STORAGE_SECRET_KEY: ci-only-storage
+          DEMO_PASSWORD: ci-only
+        run: |
+          docker compose -f infrastructure/demo/compose.yaml config -q
+          docker run --rm -v "$PWD/infrastructure/demo/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            -e APP_HOST -e FILES_HOST caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile
+          bash -n infrastructure/demo/setup.sh
+          bash -n .devcontainer/setup.sh
+          docker run --rm atlas-migrate node -e "require('./packages/shared/dist/index.js').ObjectStore.prototype.ensureBucket || process.exit(1)"
+          docker run --rm atlas-migrate test -f scripts/ensure-bucket.mjs -a -f scripts/demo-seed.mjs
   terraform:
     # The AWS stacks parse and validate without credentials (ADR-043).
     runs-on: ubuntu-latest

@@ -77,6 +77,9 @@ function amzDate(now: Date): string {
 
 function location(settings: StorageSettings, key: string) {
   const url = new URL(settings.endpoint);
+  // An empty key addresses the bucket itself (ensureBucket).
+  if (key === '' && settings.style !== 'virtual')
+    return { origin: url.origin, host: url.host, uri: `/${settings.bucket}` };
   const path = key.split('/').map(encodeRfc3986).join('/');
   return settings.style === 'virtual'
     ? {
@@ -221,6 +224,19 @@ export class ObjectStore {
     );
     if (!response.ok) throw new Error(`storage GET ${response.status}`);
     return new Uint8Array(await response.arrayBuffer());
+  }
+
+  /** Creates the bucket if it does not exist (self-hosted storage). */
+  async ensureBucket(): Promise<'exists' | 'created'> {
+    const url = (method: 'HEAD' | 'PUT') =>
+      presign(this.settings, { method, key: '', expiresSeconds: 60 });
+    const head = await fetch(url('HEAD'), { method: 'HEAD' });
+    if (head.ok) return 'exists';
+    if (head.status !== 404)
+      throw new Error(`storage HEAD bucket ${head.status}`);
+    const created = await fetch(url('PUT'), { method: 'PUT' });
+    if (!created.ok) throw new Error(`storage PUT bucket ${created.status}`);
+    return 'created';
   }
 
   async remove(key: string): Promise<void> {

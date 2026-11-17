@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AuthShell } from '../../components/auth-shell';
 import { Field, Notice, safeNext, value } from '../../components/form';
@@ -13,6 +13,14 @@ function LoginForm() {
   const params = useSearchParams();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [demo, setDemo] = useState<{ email: string; password: string }>();
+
+  // A public demo shares one account (ADR-062); elsewhere this is a 404.
+  useEffect(() => {
+    void api<{ email: string; password: string }>('/auth/demo').then((r) =>
+      setDemo(r.data),
+    );
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,6 +54,31 @@ function LoginForm() {
     <>
       <form className="form" onSubmit={submit}>
         {error ? <Notice tone="error">{error}</Notice> : null}
+        {demo ? (
+          <Notice>
+            <p>
+              This is a public demo with fictional data. Sign in as{' '}
+              <strong>{demo.email}</strong> with the password{' '}
+              <code>{demo.password}</code>. Anyone can see and change the demo,
+              so do not enter anything private.
+            </p>
+            <button
+              className="button secondary small"
+              type="button"
+              onClick={(event) => {
+                const form = event.currentTarget.form;
+                const set = (name: string, text: string) => {
+                  const input = form?.elements.namedItem(name);
+                  if (input instanceof HTMLInputElement) input.value = text;
+                };
+                set('email', demo.email);
+                set('password', demo.password);
+              }}
+            >
+              Fill in the demo account
+            </button>
+          </Notice>
+        ) : null}
         <Field label="Email" name="email" type="email" autoComplete="email" />
         <Field
           label="Password"
