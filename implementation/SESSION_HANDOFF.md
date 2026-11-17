@@ -177,8 +177,12 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     for tests only).
 19. Done (PR #71): task edits kept while offline and saved when back
     online, with version checks (ADR-061).
-20. Next: final M9 report (docs/20 update, README). Billing waits for a
-    decision on Stripe test mode (deferred by the user for now).
+20. Done (PR #72): M9 report for the third batch, README.
+21. Remaining M9 items need approval or hosted services: billing (Stripe
+    test mode asked, deferred), multi-region recovery, a search index
+    service, SAML, the hosted demo. Next without approval: polish and
+    hardening (domain re-verification, ending password sessions when SSO
+    becomes required, project member management screen).
 
 ## Environment and versions
 
