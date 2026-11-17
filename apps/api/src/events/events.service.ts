@@ -6,9 +6,10 @@ import { DatabaseService } from '../database.service';
 /** Most events replayed on reconnect before asking for a full refetch. */
 export const REPLAY_LIMIT = 200;
 
-export type Replay =
-  | { kind: 'events'; events: ProjectEvent[] }
-  | { kind: 'resync' };
+export interface Replay {
+  /** Missed events in order, or undefined when the browser must refetch. */
+  events?: ProjectEvent[];
+}
 
 @Injectable()
 export class EventsService {
@@ -21,7 +22,7 @@ export class EventsService {
    * Ordered by publication time, so an event committed late is still
    * replayed; the boundary is inclusive and the caller drops ids it has
    * already sent. An unknown or pruned cursor, or too many missed events,
-   * answers `resync`: the browser refetches instead.
+   * returns no events: the stream sends `resync` and the browser refetches.
    */
   async replay(
     tenant: TenantContext,
@@ -50,17 +51,16 @@ export class EventsService {
        LIMIT $4`,
       [tenant.organizationId, project.id, lastEventId, REPLAY_LIMIT + 1],
     );
-    if (result.rows.length > REPLAY_LIMIT) return { kind: 'resync' };
+    if (result.rows.length > REPLAY_LIMIT) return {};
     if (result.rows.length === 0) {
       const known = await this.database.pool.query(
         `SELECT 1 FROM outbox_events WHERE id = $3 AND organization_id = $1
            AND project_id = $2 AND published_at IS NOT NULL`,
         [tenant.organizationId, project.id, lastEventId],
       );
-      if (!known.rowCount) return { kind: 'resync' };
+      if (!known.rowCount) return {};
     }
     return {
-      kind: 'events',
       events: result.rows.map((row) => ({
         id: row.id,
         type: row.event_type,

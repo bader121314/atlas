@@ -6,6 +6,13 @@ import { projectChannel, projectEventSchema } from '@atlas/contracts';
 import type { ProjectEvent } from '@atlas/contracts';
 
 type Listener = (event: ProjectEvent) => void;
+
+function buildSubscriber() {
+  return createClient({
+    url: parseEnvironment(process.env).REDIS_URL,
+    socket: { reconnectStrategy: (n: number) => Math.min(n * 100, 2000) },
+  });
+}
 const RECENT_LIMIT = 2000;
 
 /**
@@ -18,7 +25,7 @@ export class EventBus implements OnApplicationShutdown {
   private readonly logger = new Logger('EventBus');
   private readonly listeners = new Map<string, Set<Listener>>();
   private readonly recent = new Set<string>();
-  private subscriber: ReturnType<typeof createClient> | undefined;
+  private subscriber: ReturnType<typeof buildSubscriber> | undefined;
   private starting: Promise<void> | undefined;
 
   /** Starts listening for one project; resolves once Redis is subscribed. */
@@ -69,10 +76,7 @@ export class EventBus implements OnApplicationShutdown {
 
   private start(): Promise<void> {
     this.starting ??= (async () => {
-      const client = createClient({
-        url: parseEnvironment(process.env).REDIS_URL,
-        socket: { reconnectStrategy: (n: number) => Math.min(n * 100, 2000) },
-      });
+      const client = buildSubscriber();
       client.on('error', () => this.logger.error('event subscription error'));
       await client.connect();
       await client.pSubscribe('atlas:events:*', (message, channel) =>

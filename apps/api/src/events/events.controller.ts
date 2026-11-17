@@ -129,8 +129,8 @@ export class EventsController {
     );
     if (lastEventId) {
       const replay = await this.events.replay(tenant, project, lastEventId);
-      if (replay.kind === 'resync') response.write(frame('resync', {}));
-      else replay.events.forEach(send);
+      if (replay.events) replay.events.forEach(send);
+      else response.write(frame('resync', {}));
     }
     replaying = false;
     buffered.forEach(send);
