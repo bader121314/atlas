@@ -845,6 +845,24 @@ paths:
         '200': { description: The updated task }
         '400': { $ref: '#/components/responses/Problem' }
         '404': { description: Unknown task, or a field of another project }
+  /organizations/{slug}/projects/{key}/events:
+    get:
+      operationId: streamProjectEvents
+      security: [{ sessionCookie: [] }]
+      description: 'Server-Sent Events (ADR-029). Frames: `task` (id is the event id; data is { id, type, organizationId, projectId, taskId, version, actorUserId, occurredAt }), `ready` after any replay, `resync` when missed events cannot be replayed (refetch), `revoked` when access ends (the stream closes). Send Last-Event-ID to replay events missed in the last 24 hours. Any project role.'
+      parameters:
+        - name: Last-Event-ID
+          in: header
+          required: false
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: An open event stream
+          content:
+            text/event-stream: { schema: { type: string } }
+        '401': { description: Not signed in }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+        '503': { description: Event delivery is unavailable; retry }
 components:
   parameters:
     Slug:

@@ -3,6 +3,12 @@ import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { DatabaseModule } from '../database.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { EventBus } from '../events/event-bus.service';
+import {
+  EventStreamSettings,
+  EventsController,
+} from '../events/events.controller';
+import { EventsService } from '../events/events.service';
 import { ActivityService } from './activity.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
@@ -34,6 +40,7 @@ import { ViewsService } from './views.service';
     PlanningController,
     ViewsController,
     FieldsController,
+    EventsController,
   ],
   providers: [
     ProjectsService,
@@ -46,6 +53,9 @@ import { ViewsService } from './views.service';
     PlanningService,
     ViewsService,
     FieldsService,
+    EventBus,
+    EventsService,
+    EventStreamSettings,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
