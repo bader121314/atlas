@@ -10,6 +10,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["API_ORIGIN", "STORAGE_ENDPOINT", "STORAGE_PUBLIC_ORIGIN"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
