@@ -182,7 +182,9 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo. Next without approval: polish and
     hardening (domain re-verification, ending password sessions when SSO
-    becomes required, project member management screen).
+    becomes required).
+22. Done (PR #73): project member management screen with guest label
+    scopes.
 
 ## Environment and versions
 
