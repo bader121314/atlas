@@ -77,6 +77,7 @@ model OrganizationMembership {
   userId String @map("user_id") @db.Uuid
   role String
   state String @default("active")
+  weeklyCapacityMinutes Int? @map("weekly_capacity_minutes")
   joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -177,6 +178,7 @@ model Task {
   parentTaskId String? @map("parent_task_id") @db.Uuid
   milestoneId String? @map("milestone_id") @db.Uuid
   startAt DateTime? @map("start_at") @db.Timestamptz(6)
+  estimateMinutes Int? @map("estimate_minutes")
   dueAt DateTime? @map("due_at") @db.Timestamptz(6)
   completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
   createdByUserId String @map("created_by_user_id") @db.Uuid

@@ -266,6 +266,13 @@ export const createTaskRequestSchema = z
     priority: priority.default('none'),
     assigneeId: z.uuid().nullable().default(null),
     startAt: z.iso.datetime({ offset: true }).nullable().default(null),
+    estimateMinutes: z
+      .number()
+      .int()
+      .min(1)
+      .max(60000)
+      .nullable()
+      .default(null),
     dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
     parentNumber: parentNumber.default(null),
     milestoneId: z.uuid().nullable().default(null),
@@ -282,6 +289,7 @@ export const updateTaskRequestSchema = z
     priority: priority.optional(),
     assigneeId: z.uuid().nullable().optional(),
     startAt: z.iso.datetime({ offset: true }).nullable().optional(),
+    estimateMinutes: z.number().int().min(1).max(60000).nullable().optional(),
     dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
     parentNumber: parentNumber.optional(),
     milestoneId: z.uuid().nullable().optional(),
@@ -338,6 +346,8 @@ export const taskSchema = z
     ),
     /** When work is planned to begin (ADR-052); never after dueAt. */
     startAt: z.iso.datetime().nullable(),
+    /** Expected effort in minutes (ADR-054). */
+    estimateMinutes: z.number().int().nullable(),
     dueAt: z.iso.datetime().nullable(),
     completedAt: z.iso.datetime().nullable(),
     parent: z
@@ -1062,6 +1072,9 @@ export const workloadSchema = z
           displayName: z.string(),
           overdue: z.number().int(),
           weeks: z.array(z.number().int()),
+          /** Estimated minutes of open work due each week (ADR-054). */
+          weekMinutes: z.array(z.number().int()),
+          capacityMinutes: z.number().int().nullable(),
           later: z.number().int(),
           noDueDate: z.number().int(),
           total: z.number().int(),
@@ -1071,6 +1084,12 @@ export const workloadSchema = z
   })
   .strict();
 export type Workload = z.infer<typeof workloadSchema>;
+
+export const capacityRequestSchema = z
+  .object({
+    weeklyMinutes: z.number().int().min(0).max(10080).nullable(),
+  })
+  .strict();
 
 /** Time logged against a task (ADR-049). */
 export const logTimeRequestSchema = z

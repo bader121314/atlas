@@ -18,6 +18,11 @@ describe('durations', () => {
     expect(parseDuration(text)).toBeUndefined();
   });
 
+  it('accepts larger values when allowed', () => {
+    expect(parseDuration('40h', 60000)).toBe(2400);
+    expect(parseDuration('40h')).toBeUndefined();
+  });
+
   it('formats', () => {
     expect([0, 45, 120, 135].map(formatDuration)).toEqual([
       '0m',

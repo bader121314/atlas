@@ -104,4 +104,85 @@ describe('workload', () => {
         .status,
     ).toBe(400);
   });
+
+  it('totals estimates per week against capacity, shared between assignees', async () => {
+    const owner = await fx.account('owner');
+    const slug = await fx.organization(owner);
+    const a = await fx.join(slug, owner, 'member');
+    const b = await fx.join(slug, owner, 'member');
+    const c = await fx.join(slug, owner, 'member');
+    const base = `/organizations/${slug}/projects/CAP`;
+    await fx.call(owner, 'POST', `/organizations/${slug}/projects`, {
+      key: 'CAP',
+      name: 'Capacity',
+    });
+    const soon = new Date(Date.now() + 86_400_000).toISOString();
+    await fx.call(owner, 'POST', `${base}/tasks`, {
+      title: 'Solo',
+      assigneeId: a.id,
+      dueAt: soon,
+      estimateMinutes: 600,
+    });
+    const shared = await fx.call(owner, 'POST', `${base}/tasks`, {
+      title: 'Pair',
+      assigneeId: a.id,
+      dueAt: soon,
+      estimateMinutes: 240,
+    });
+    expect(shared.json).toMatchObject({ estimateMinutes: 240 });
+    expect(
+      (
+        await fx.call(owner, 'PUT', `${base}/tasks/2/assignees`, {
+          userIds: [a.id, b.id],
+        })
+      ).status,
+    ).toBe(200);
+
+    const capacity = (
+      who: typeof owner,
+      id: string,
+      weeklyMinutes: number | null,
+    ) =>
+      fx.call(who, 'PUT', `/organizations/${slug}/workload/capacity/${id}`, {
+        weeklyMinutes,
+      });
+    expect((await capacity(a, a.id, 480)).status).toBe(200);
+    expect((await capacity(owner, c.id, 1200)).status).toBe(200);
+    // Members set only their own; bad values and strangers are refused.
+    expect((await capacity(a, b.id, 600)).status).toBe(403);
+    expect((await capacity(a, a.id, 20000)).status).toBe(400);
+    const stranger = await fx.account('stranger');
+    await fx.organization(stranger);
+    expect((await capacity(owner, stranger.id, 60)).status).toBe(404);
+
+    const view = (
+      await fx.call(owner, 'GET', `/organizations/${slug}/workload?weeks=3`)
+    ).json as {
+      weekStarts: string[];
+      people: (Person & {
+        weekMinutes: number[];
+        capacityMinutes: number | null;
+      })[];
+    };
+    const sum = (list: number[]) => list.reduce((n, x) => n + x, 0);
+    const personA = view.people.find((p) => p.userId === a.id);
+    expect(personA?.capacityMinutes).toBe(480);
+    expect(sum(personA?.weekMinutes ?? [])).toBe(720);
+    expect(
+      sum(view.people.find((p) => p.userId === b.id)?.weekMinutes ?? []),
+    ).toBe(120);
+    // Someone with a capacity and no work still appears.
+    expect(view.people.find((p) => p.userId === c.id)).toMatchObject({
+      capacityMinutes: 1200,
+      total: 0,
+    });
+    expect(
+      (
+        await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+          version: 1,
+          estimateMinutes: 0,
+        })
+      ).status,
+    ).toBe(400);
+  });
 });
