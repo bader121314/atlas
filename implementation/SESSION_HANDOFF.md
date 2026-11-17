@@ -157,7 +157,9 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
    (ADR-049).
 5. Done (PR #57): public read-only share links with strict data fences
    (ADR-050).
-6. Next: M9 exit report (docs/20), then pick M10 scope from the roadmap.
+6. Done (PR #58): M9 progress report (docs/20).
+7. Next M9 items: enterprise audit log export, a timeline (Gantt) view
+   with milestones, then installable PWA basics.
 
 ## Environment and versions
 
