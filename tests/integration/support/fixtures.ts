@@ -79,10 +79,14 @@ export async function startFixtures() {
       ...(body === undefined ? {} : { body }),
     });
     const text = await response.text();
+    const headers: Record<string, string> = {};
+    response.headers.forEach((value, name) => {
+      headers[name] = value;
+    });
     return {
       status: response.status,
       json: text ? JSON.parse(text) : undefined,
-      headers: Object.fromEntries(response.headers),
+      headers,
     };
   }
 
