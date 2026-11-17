@@ -545,6 +545,16 @@ export const projectEventSchema = z
   .strict();
 export type ProjectEvent = z.infer<typeof projectEventSchema>;
 
+/** People viewing a task now (ADR-030). */
+export const presenceSchema = z
+  .object({
+    viewers: z.array(
+      z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    ),
+  })
+  .strict();
+export type Presence = z.infer<typeof presenceSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

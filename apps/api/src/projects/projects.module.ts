@@ -3,6 +3,7 @@ import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { DatabaseModule } from '../database.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { RateLimitModule } from '../rate-limit/rate-limit.module';
 import { EventBus } from '../events/event-bus.service';
 import {
   EventStreamSettings,
@@ -18,6 +19,8 @@ import { LabelsController, TaskLabelsController } from './labels.controller';
 import { LabelsService } from './labels.service';
 import { PlanningController } from './planning.controller';
 import { PlanningService } from './planning.service';
+import { PresenceController } from './presence.controller';
+import { PresenceService } from './presence.service';
 import { ProjectGuard } from './project.guard';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
@@ -29,7 +32,13 @@ import { ViewsController } from './views.controller';
 import { ViewsService } from './views.service';
 
 @Module({
-  imports: [DatabaseModule, AuditModule, AuthModule, OrganizationsModule],
+  imports: [
+    DatabaseModule,
+    AuditModule,
+    AuthModule,
+    OrganizationsModule,
+    RateLimitModule,
+  ],
   controllers: [
     ProjectsController,
     TasksController,
@@ -41,6 +50,7 @@ import { ViewsService } from './views.service';
     ViewsController,
     FieldsController,
     EventsController,
+    PresenceController,
   ],
   providers: [
     ProjectsService,
@@ -56,6 +66,7 @@ import { ViewsService } from './views.service';
     EventBus,
     EventsService,
     EventStreamSettings,
+    PresenceService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
