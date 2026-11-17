@@ -61,10 +61,12 @@ The whole stack also runs in containers:
 - **Work:** projects (organization-wide or private) with per-project roles;
   tasks with custom statuses, priority, assignees, due date, labels, subtasks,
   dependencies with loop protection, milestones and custom fields; board,
-  list, table and calendar views with filters and saved views.
+  list, table and calendar views with filters and saved views; time
+  tracking and a team workload view.
 - **Collaboration:** comments, field-level history, live updates over
   Server-Sent Events with replay after a dropped connection, presence,
-  notifications in an inbox and by email.
+  notifications in an inbox and by email with per-kind muting and daily
+  digests, and expiring public read-only links for people outside the team.
 - **Files, search and numbers:** uploads straight to object storage, held in
   quarantine until their content is checked; full-text search in any
   language that never reveals private projects; project analytics; CSV
@@ -109,7 +111,7 @@ webhooks and rule runs, each exactly once or deduplicated by event id. See
 
 Every pull request runs, on GitHub Actions:
 
-- 187 unit tests and 135 integration tests against real PostgreSQL and
+- 205 unit tests and 143 integration tests against real PostgreSQL and
   Redis, including negative tests for every tenant-scoped route;
 - a browser test that drives three users through signup, invitations,
   projects, views, live updates, uploads, notifications, search and exports
@@ -167,6 +169,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Runbooks](docs/runbooks)
 - [Case study](docs/18-case-study.md)
 - [M8 exit report](docs/19-m8-exit-report.md)
+- [M9 progress report](docs/20-m9-progress-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
