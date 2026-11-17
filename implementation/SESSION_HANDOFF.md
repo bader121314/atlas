@@ -105,8 +105,8 @@ add new tables to its cleanup list).
 
 Read `docs/08` M3 and the deferrals in `docs/10`. In order:
 
-1. Custom workflow states per project (add, rename, reorder, delete with
-   task migration) and optional transition rules.
+1. Done (PR #17): custom workflow states with safe deletion (ADR-022).
+   Transition rules stay on the backlog.
 2. Board drag-and-drop with keyboard support and rollback on 409.
 3. Task dependencies (blocks/blocked by) with cycle detection in the
    database, and milestones.

@@ -368,6 +368,23 @@ export const activitySchema = z
   .strict();
 export type Activity = z.infer<typeof activitySchema>;
 
+const stateCategory = z.enum(['todo', 'in_progress', 'done']);
+export const createStateRequestSchema = z
+  .object({ label: z.string().trim().min(1).max(50), category: stateCategory })
+  .strict();
+export const updateStateRequestSchema = z
+  .object({
+    label: z.string().trim().min(1).max(50).optional(),
+    category: stateCategory.optional(),
+  })
+  .strict();
+export const reorderStatesRequestSchema = z
+  .object({ stateIds: z.array(z.uuid()).min(1).max(50) })
+  .strict();
+export const deleteStateQuerySchema = z
+  .object({ moveTo: z.uuid().optional() })
+  .strict();
+
 export const sessionResponseSchema = z
   .object({
     user: z

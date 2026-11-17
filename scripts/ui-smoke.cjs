@@ -165,7 +165,10 @@ const pages = [];
     await alice.getByRole('link', { name: new RegExp(title) }).waitFor();
   }
   await alice.getByRole('link', { name: /Chart the harbour/ }).click();
-  await alice.getByLabel('Status').selectOption({ label: 'In progress' });
+  await alice.waitForURL(/\/tasks\/1$/);
+  await alice
+    .getByLabel('Status', { exact: true })
+    .selectOption({ label: 'In progress' });
   await alice.getByText('Status changed.').waitFor();
   await alice.getByLabel('Assignee').selectOption({ label: 'Alice Rahman' });
   await alice.getByText('Assignee changed.').waitFor();
@@ -181,6 +184,9 @@ const pages = [];
     .getByText('Chart the harbour')
     .waitFor();
   await shot(alice, '11b-board');
+  await alice.getByLabel('New status').fill('In review');
+  await alice.getByRole('button', { name: 'Add status' }).click();
+  await alice.getByRole('region', { name: 'In review' }).waitFor();
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 
