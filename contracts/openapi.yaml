@@ -780,6 +780,31 @@ paths:
       responses:
         '204': { description: Deleted }
         '404': { description: Unknown milestone }
+  /organizations/{slug}/projects/{key}/views:
+    get:
+      operationId: listSavedViews
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          { description: "The caller's views and the project's shared views" }
+    post:
+      operationId: createSavedView
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name (1-60), shared?, config { layout (board | list | table | calendar), filters? { state, assignee, priority, label, milestone }, sort? { field, direction } }.'
+      responses:
+        '201': { description: Created }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409':
+          { description: Name already used by the caller, or 50-view limit }
+  /organizations/{slug}/projects/{key}/views/{id}:
+    delete:
+      operationId: deleteSavedView
+      security: [{ sessionCookie: [] }]
+      description: Owner, or a project manager for shared views.
+      responses:
+        '204': { description: Deleted }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: "Unknown, or someone else's private view" }
 components:
   parameters:
     Slug:
