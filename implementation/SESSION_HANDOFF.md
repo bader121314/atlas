@@ -143,14 +143,14 @@ to builds (they are fixed at build time in Next.js).
 
 Read `docs/08` M8. Suggested order:
 
-1. Demo seed: a script (`pnpm demo:seed`) that creates a demo organization
+1. Done (PR #49): demo seed (`pnpm demo:seed`) that creates a demo organization
    with realistic projects, tasks, comments, labels, milestones and custom
    fields through SQL, plus one demo account whose password is printed
    once; no personal data.
-2. README rewrite for evaluators: what it is, a two-minute tour, screenshots
+2. Done (PR #50): README rewrite for evaluators: what it is, a two-minute tour, screenshots
    from the smoke run (refresh `docs/screenshots`), architecture diagram
    (Mermaid in markdown), how it is tested, honest limitations.
-3. `docs/18-case-study.md`: problem, constraints, key decisions with ADR
+3. Done (PR #50): `docs/18-case-study.md`: problem, constraints, key decisions with ADR
    links, what went wrong and how it was caught (the starved export job,
    the Turbo env filter, parameter type inference), results.
 4. Carry-overs: multiple assignees, mentions.
