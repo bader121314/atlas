@@ -8,6 +8,7 @@ import { useShell } from '../../../components/app-shell';
 import { Notice, value } from '../../../components/form';
 import { api, describeFailure } from '../../../lib/api';
 import type { Organization } from '../../../lib/api';
+import { useT } from '../../../lib/i18n';
 
 function suggestSlug(name: string): string {
   return name
@@ -18,6 +19,7 @@ function suggestSlug(name: string): string {
 }
 
 export default function OrganizationsPage() {
+  const t = useT();
   const router = useRouter();
   const { user, organizations, refreshOrganizations } = useShell();
   const [slug, setSlug] = useState('');
@@ -45,19 +47,22 @@ export default function OrganizationsPage() {
         ? 'That web address is taken. Choose another.'
         : describeFailure(
             result.status,
-            'Use 3–63 lowercase letters, numbers or hyphens for the web address.',
+            t(
+              'Use 3–63 lowercase letters, numbers or hyphens for the web address.',
+            ),
           ),
     );
   }
 
   return (
     <>
-      <h1>Your organizations</h1>
+      <h1>{t('Your organizations')}</h1>
       <p className="muted">Signed in as {user.email}</p>
       {organizations.length === 0 ? (
         <p>
-          You are not part of any organization yet. Create one below, or open an
-          invitation link someone sent you.
+          {t(
+            'You are not part of any organization yet. Create one below, or open an invitation link someone sent you.',
+          )}
         </p>
       ) : (
         <ul className="rows">
@@ -77,11 +82,11 @@ export default function OrganizationsPage() {
       )}
 
       <section className="section" aria-labelledby="create-heading">
-        <h2 id="create-heading">Create an organization</h2>
+        <h2 id="create-heading">{t('Create an organization')}</h2>
         <form className="form" onSubmit={create}>
           {error ? <Notice tone="error">{error}</Notice> : null}
           <div className="field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">{t('Name')}</label>
             <input
               id="name"
               name="name"
@@ -93,7 +98,7 @@ export default function OrganizationsPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="slug">Web address</label>
+            <label htmlFor="slug">{t('Web address')}</label>
             <input
               id="slug"
               name="slug"
@@ -114,7 +119,7 @@ export default function OrganizationsPage() {
             </span>
           </div>
           <button className="button" type="submit" disabled={busy}>
-            {busy ? 'Creating…' : 'Create organization'}
+            {busy ? t('Creating…') : t('Create organization')}
           </button>
         </form>
       </section>

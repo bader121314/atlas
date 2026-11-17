@@ -14,6 +14,7 @@ import { SsoSection } from '../../../../components/sso-section';
 import { WebhooksSection } from '../../../../components/webhooks-section';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
+import { useT } from '../../../../lib/i18n';
 
 type Role = Organization['role'];
 
@@ -50,6 +51,7 @@ function assignable(mine: Role): Role[] {
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
 export default function OrganizationPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const { user, refreshOrganizations } = useShell();
@@ -91,13 +93,14 @@ export default function OrganizationPage() {
   if (missing) {
     return (
       <>
-        <h1>Organization not found</h1>
+        <h1>{t('Organization not found')}</h1>
         <p>
-          It does not exist, or you are not a member. Ask an owner for an
-          invitation.
+          {t(
+            'It does not exist, or you are not a member. Ask an owner for an invitation.',
+          )}
         </p>
         <p>
-          <Link href="/organizations">Back to your organizations</Link>
+          <Link href="/organizations">{t('Back to your organizations')}</Link>
         </p>
       </>
     );
@@ -105,7 +108,7 @@ export default function OrganizationPage() {
   if (!organization) {
     return (
       <p className="muted" role="status">
-        Loading…
+        {t('Loading…')}
       </p>
     );
   }
@@ -237,7 +240,7 @@ export default function OrganizationPage() {
     <>
       <h1>{organization.name}</h1>
       <p className="muted">
-        Your role here is <span className="role">{mine}</span>
+        {t('Your role here is {role}', { role: t(mine) })}
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
@@ -254,13 +257,13 @@ export default function OrganizationPage() {
             className="button secondary small"
             href={`/organizations/${slug}/time`}
           >
-            Time report
+            {t('Time report')}
           </Link>
         </p>
       ) : null}
 
       <section className="section" aria-labelledby="members-heading">
-        <h2 id="members-heading">Members</h2>
+        <h2 id="members-heading">{t('Members')}</h2>
         {members ? (
           <ul className="rows">
             {members.map((member) => {
@@ -281,7 +284,7 @@ export default function OrganizationPage() {
                   </span>
                   {canManage || (self && mine === 'owner' && !soleOwner) ? (
                     <label>
-                      <span className="muted">Role </span>
+                      <span className="muted">{t('Role')} </span>
                       <select
                         value={member.role}
                         onChange={(event) =>
@@ -304,7 +307,7 @@ export default function OrganizationPage() {
                       type="button"
                       onClick={() => void remove(member)}
                     >
-                      {self ? 'Leave' : 'Remove'}
+                      {self ? t('Leave') : t('Remove')}
                     </button>
                   ) : null}
                 </li>
@@ -312,22 +315,22 @@ export default function OrganizationPage() {
             })}
           </ul>
         ) : (
-          <p className="muted">Guests cannot see the member list.</p>
+          <p className="muted">{t('Guests cannot see the member list.')}</p>
         )}
       </section>
 
       {canInvite ? (
         <section className="section" aria-labelledby="invite-heading">
-          <h2 id="invite-heading">Invite someone</h2>
+          <h2 id="invite-heading">{t('Invite someone')}</h2>
           <form className="inline-form" onSubmit={invite}>
             <Field
-              label="Email"
+              label={t('Email')}
               name="inviteEmail"
               type="email"
               autoComplete="off"
             />
             <div className="field">
-              <label htmlFor="inviteRole">Role</label>
+              <label htmlFor="inviteRole">{t('Role')}</label>
               <select id="inviteRole" name="inviteRole" defaultValue="member">
                 {assignable(mine)
                   .filter((role) => role !== 'owner')
@@ -339,12 +342,12 @@ export default function OrganizationPage() {
               </select>
             </div>
             <button className="button" type="submit">
-              Send invitation
+              {t('Send invitation')}
             </button>
           </form>
           {invitations && invitations.length > 0 ? (
             <>
-              <h3 className="section">Waiting for a reply</h3>
+              <h3 className="section">{t('Waiting for a reply')}</h3>
               <ul className="rows">
                 {invitations.map((invitation) => (
                   <li key={invitation.id}>
@@ -363,7 +366,7 @@ export default function OrganizationPage() {
                         type="button"
                         onClick={() => void revoke(invitation)}
                       >
-                        Revoke
+                        {t('Revoke')}
                       </button>
                     ) : null}
                   </li>
@@ -376,19 +379,19 @@ export default function OrganizationPage() {
 
       {mine === 'owner' || mine === 'admin' ? (
         <section className="section" aria-labelledby="settings-heading">
-          <h2 id="settings-heading">Settings</h2>
+          <h2 id="settings-heading">{t('Settings')}</h2>
           <form
             className="inline-form"
             onSubmit={rename}
             key={organization.name}
           >
             <Field
-              label="Organization name"
+              label={t('Organization name')}
               name="orgName"
               defaultValue={organization.name}
             />
             <button className="button secondary" type="submit">
-              Save name
+              {t('Save name')}
             </button>
           </form>
         </section>
@@ -397,23 +400,24 @@ export default function OrganizationPage() {
         <>
           <WebhooksSection slug={slug} />
           <section className="section" aria-labelledby="audit-heading">
-            <h2 id="audit-heading">Audit and usage</h2>
+            <h2 id="audit-heading">{t('Audit and usage')}</h2>
             <p className="muted">
-              Who changed members, projects, tokens and links, and how much the
-              organization uses each month.
+              {t(
+                'Who changed members, projects, tokens and links, and how much the organization uses each month.',
+              )}
             </p>
             <p>
               <Link
                 className="button secondary small"
                 href={`/organizations/${slug}/audit`}
               >
-                Open the audit log
+                {t('Open the audit log')}
               </Link>{' '}
               <Link
                 className="button secondary small"
                 href={`/organizations/${slug}/usage`}
               >
-                See usage
+                {t('See usage')}
               </Link>
             </p>
           </section>

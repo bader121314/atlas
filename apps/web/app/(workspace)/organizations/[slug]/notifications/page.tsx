@@ -7,6 +7,7 @@ import { Notice } from '../../../../../components/form';
 import { api, describeFailure } from '../../../../../lib/api';
 import type { AppNotification } from '../../../../../lib/api';
 import { PushToggle } from '../../../../../components/push-toggle';
+import { useT } from '../../../../../lib/i18n';
 
 const when = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -46,6 +47,7 @@ function describe(item: AppNotification): string {
 }
 
 export default function NotificationsPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [items, setItems] = useState<AppNotification[]>();
@@ -79,7 +81,9 @@ export default function NotificationsPage() {
       body,
     });
     setError(
-      result.ok ? '' : describeFailure(result.status, 'Could not mark read.'),
+      result.ok
+        ? ''
+        : describeFailure(result.status, t('Could not mark read.')),
     );
     window.dispatchEvent(new Event('atlas:notifications'));
     await load();
@@ -106,10 +110,10 @@ export default function NotificationsPage() {
   if (missing) {
     return (
       <>
-        <h1>Organization not found</h1>
-        <p>It does not exist, or you are not a member.</p>
+        <h1>{t('Organization not found')}</h1>
+        <p>{t('It does not exist, or you are not a member.')}</p>
         <p>
-          <Link href="/organizations">Your organizations</Link>
+          <Link href="/organizations">{t('Your organizations')}</Link>
         </p>
       </>
     );
@@ -119,10 +123,10 @@ export default function NotificationsPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> /
-        Notifications
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Notifications')}
       </p>
-      <h1>Notifications</h1>
+      <h1>{t('Notifications')}</h1>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <div className="inline-form">
         <label className="checks inline">
@@ -131,7 +135,7 @@ export default function NotificationsPage() {
             checked={unreadOnly}
             onChange={(event) => setUnreadOnly(event.target.checked)}
           />
-          Unread only
+          {t('Unread only')}
         </label>
         <button
           className="button secondary small"
@@ -139,12 +143,12 @@ export default function NotificationsPage() {
           disabled={unread === 0}
           onClick={() => void markRead({ all: true })}
         >
-          Mark all read
+          {t('Mark all read')}
         </button>
       </div>
       {items === undefined ? (
         <p className="muted" role="status">
-          Loading…
+          {t('Loading…')}
         </p>
       ) : items.length === 0 ? (
         <p className="muted">
@@ -176,9 +180,9 @@ export default function NotificationsPage() {
       )}
       {prefs === undefined ? null : (
         <section className="section" aria-labelledby="prefs-heading">
-          <h2 id="prefs-heading">Preferences</h2>
+          <h2 id="prefs-heading">{t('Preferences')}</h2>
           <fieldset className="checks plain">
-            <legend>Notify me when</legend>
+            <legend>{t('Notify me when')}</legend>
             {KINDS.map(([kind, label]) => (
               <label key={kind}>
                 <input
@@ -197,7 +201,7 @@ export default function NotificationsPage() {
             ))}
           </fieldset>
           <fieldset className="checks plain section">
-            <legend>Email</legend>
+            <legend>{t('Email')}</legend>
             {MODES.map(([mode, label]) => (
               <label key={mode}>
                 <input

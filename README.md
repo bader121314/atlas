@@ -90,6 +90,8 @@ HTTPS on one free cloud server; see the
 - **Accounts and security:** email verification, password reset and change,
   session management, rate limits, an audit log owners can export, content
   security policy; see the [security review](docs/15-security-review.md).
+- **Arabic:** the whole interface in Arabic with a right-to-left layout,
+  switchable per person (ADR-063).
 - **Enterprise:** single sign-on with OpenID Connect, SCIM provisioning,
   verified email domains, label-scoped guest access and usage metering.
 - **Accessibility:** keyboard shortcuts and a skip link, WCAG contrast checks

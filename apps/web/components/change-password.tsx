@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 /** Change the password while signed in; other devices are signed out. */
 export function ChangePasswordSection({
@@ -11,6 +12,7 @@ export function ChangePasswordSection({
 }: {
   onChanged: () => void;
 }) {
+  const t = useT();
   const [message, setMessage] = useState<{
     tone: 'info' | 'error';
     text: string;
@@ -21,7 +23,7 @@ export function ChangePasswordSection({
     const form = event.currentTarget;
     const next = value(form, 'newPassword');
     if (next !== value(form, 'confirmPassword')) {
-      setMessage({ tone: 'error', text: 'The new passwords do not match.' });
+      setMessage({ tone: 'error', text: t('The new passwords do not match.') });
       return;
     }
     const result = await api('/auth/password', {
@@ -35,7 +37,7 @@ export function ChangePasswordSection({
       form.reset();
       setMessage({
         tone: 'info',
-        text: 'Password changed. Your other devices are signed out.',
+        text: t('Password changed. Your other devices are signed out.'),
       });
       onChanged();
     } else {
@@ -43,7 +45,9 @@ export function ChangePasswordSection({
         tone: 'error',
         text: describeFailure(
           result.status,
-          'Check your current password. The new one needs at least 12 characters.',
+          t(
+            'Check your current password. The new one needs at least 12 characters.',
+          ),
         ),
       });
     }
@@ -51,11 +55,11 @@ export function ChangePasswordSection({
 
   return (
     <section className="section" aria-labelledby="password-heading">
-      <h2 id="password-heading">Change password</h2>
+      <h2 id="password-heading">{t('Change password')}</h2>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <form className="form" onSubmit={submit}>
         <div className="field">
-          <label htmlFor="currentPassword">Current password</label>
+          <label htmlFor="currentPassword">{t('Current password')}</label>
           <input
             id="currentPassword"
             name="currentPassword"
@@ -65,7 +69,7 @@ export function ChangePasswordSection({
           />
         </div>
         <div className="field">
-          <label htmlFor="newPassword">New password</label>
+          <label htmlFor="newPassword">{t('New password')}</label>
           <input
             id="newPassword"
             name="newPassword"
@@ -76,7 +80,7 @@ export function ChangePasswordSection({
           />
         </div>
         <div className="field">
-          <label htmlFor="confirmPassword">New password again</label>
+          <label htmlFor="confirmPassword">{t('New password again')}</label>
           <input
             id="confirmPassword"
             name="confirmPassword"
@@ -87,7 +91,7 @@ export function ChangePasswordSection({
           />
         </div>
         <button className="button secondary" type="submit">
-          Change password
+          {t('Change password')}
         </button>
       </form>
     </section>

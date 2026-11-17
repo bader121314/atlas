@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice } from './form';
+import { useT } from '../lib/i18n';
 
 interface TaskExport {
   id: string;
@@ -19,6 +20,7 @@ const when = new Intl.DateTimeFormat(undefined, {
 
 /** Ask for a CSV of the project's tasks; download it while it lasts. */
 export function ExportsSection({ base }: { base: string }) {
+  const t = useT();
   const [items, setItems] = useState<TaskExport[]>([]);
   const [error, setError] = useState('');
 
@@ -55,18 +57,19 @@ export function ExportsSection({ base }: { base: string }) {
 
   return (
     <section className="section" aria-labelledby="exports-heading">
-      <h2 id="exports-heading">Export</h2>
+      <h2 id="exports-heading">{t('Export')}</h2>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <p className="muted">
-        A spreadsheet (CSV) of every task in this project. Only you can download
-        it, for 24 hours.
+        {t(
+          'A spreadsheet (CSV) of every task in this project. Only you can download it, for 24 hours.',
+        )}
       </p>
       <button
         className="button secondary"
         type="button"
         onClick={() => void request()}
       >
-        Export tasks as CSV
+        {t('Export tasks as CSV')}
       </button>
       {items.length > 0 ? (
         <ul className="rows section">

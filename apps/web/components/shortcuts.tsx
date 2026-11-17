@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from 'react';
 import { ignoresShortcuts, resolveKey } from '../lib/shortcuts';
 import type { Shortcut } from '../lib/shortcuts';
+import { useT } from '../lib/i18n';
 
 interface Registry {
   register: (id: string, shortcuts: Shortcut[]) => () => void;
@@ -29,6 +30,7 @@ export function ShortcutProvider({
   global: Shortcut[];
   children: ReactNode;
 }) {
+  const t = useT();
   const [groups, setGroups] = useState<Record<string, Shortcut[]>>({});
   const dialog = useRef<HTMLDialogElement>(null);
   const pending = useRef('');
@@ -95,7 +97,7 @@ export function ShortcutProvider({
         className="shortcut-dialog"
         aria-labelledby="shortcuts-heading"
       >
-        <h2 id="shortcuts-heading">Keyboard shortcuts</h2>
+        <h2 id="shortcuts-heading">{t('Keyboard shortcuts')}</h2>
         <dl className="shortcut-list">
           {bindings.map((b) => (
             <div key={b.keys}>
@@ -110,7 +112,7 @@ export function ShortcutProvider({
         </dl>
         <form method="dialog">
           <button className="button secondary" type="submit">
-            Close
+            {t('Close')}
           </button>
         </form>
       </dialog>
@@ -126,6 +128,7 @@ export function useShortcuts(id: string, shortcuts: Shortcut[]): void {
 
 /** Opens the shortcut list, for people who do not know about "?". */
 export function ShortcutHint() {
+  const t = useT();
   return (
     <button
       className="button secondary small"
@@ -135,7 +138,7 @@ export function ShortcutHint() {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))
       }
     >
-      Shortcuts
+      {t('Shortcuts')}
     </button>
   );
 }

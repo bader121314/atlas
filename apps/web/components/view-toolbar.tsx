@@ -6,6 +6,7 @@ import { PRIORITIES, api, describeFailure, priorityLabel } from '../lib/api';
 import type { Label, Milestone, WorkflowState } from '../lib/api';
 import { Notice } from './form';
 import type { Sort } from './task-views';
+import { useT } from '../lib/i18n';
 
 export const LAYOUTS = [
   'board',
@@ -67,6 +68,7 @@ export function ViewToolbar({
   onFilters: (filters: Filters) => void;
   onViewsChanged: () => Promise<void>;
 }) {
+  const t = useT();
   const [error, setError] = useState('');
   const set = (name: keyof Filters, value: string) =>
     onFilters(compact({ ...filters, [name]: value || undefined }));
@@ -88,7 +90,7 @@ export function ViewToolbar({
         ? ''
         : result.status === 409
           ? 'You already have a view with that name.'
-          : describeFailure(result.status, 'The view could not be saved.'),
+          : describeFailure(result.status, t('The view could not be saved.')),
     );
     if (result.ok) form.reset();
     await onViewsChanged();
@@ -125,7 +127,7 @@ export function ViewToolbar({
   return (
     <div className="section">
       {views.length > 0 ? (
-        <ul className="chips" aria-label="Saved views">
+        <ul className="chips" aria-label={t('Saved views')}>
           {views.map((view) => (
             <li key={view.id}>
               <button type="button" onClick={() => onApply(view.config)}>
@@ -145,7 +147,7 @@ export function ViewToolbar({
           ))}
         </ul>
       ) : null}
-      <div className="filters" role="group" aria-label="Filters">
+      <div className="filters" role="group" aria-label={t('Filters')}>
         {select(
           'state',
           'Status',
@@ -192,23 +194,24 @@ export function ViewToolbar({
             type="button"
             onClick={() => onFilters({})}
           >
-            Clear filters
+            {t('Clear filters')}
           </button>
         ) : null}
       </div>
       <form className="inline-form" onSubmit={save}>
         {error ? <Notice tone="error">{error}</Notice> : null}
         <div className="field">
-          <label htmlFor="viewName">Save this view as</label>
+          <label htmlFor="viewName">{t('Save this view as')}</label>
           <input id="viewName" name="viewName" required maxLength={60} />
         </div>
         <label className="checks inline">
           <span>
-            <input type="checkbox" name="viewShared" /> Share with the project
+            <input type="checkbox" name="viewShared" />{' '}
+            {t('Share with the project')}
           </span>
         </label>
         <button className="button secondary" type="submit">
-          Save view
+          {t('Save view')}
         </button>
       </form>
     </div>

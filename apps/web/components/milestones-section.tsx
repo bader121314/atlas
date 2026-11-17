@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { Milestone } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 const day = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
@@ -16,6 +17,7 @@ export function MilestonesSection({
   base: string;
   canManage: boolean;
 }) {
+  const t = useT();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [error, setError] = useState('');
 
@@ -42,7 +44,10 @@ export function MilestonesSection({
     setError(
       result.ok
         ? ''
-        : describeFailure(result.status, 'The milestone could not be created.'),
+        : describeFailure(
+            result.status,
+            t('The milestone could not be created.'),
+          ),
     );
     if (result.ok) form.reset();
     await load();
@@ -66,10 +71,10 @@ export function MilestonesSection({
   if (milestones.length === 0 && !canManage) return null;
   return (
     <section className="section" aria-labelledby="milestones-heading">
-      <h2 id="milestones-heading">Milestones</h2>
+      <h2 id="milestones-heading">{t('Milestones')}</h2>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {milestones.length === 0 ? (
-        <p className="muted">No milestones yet.</p>
+        <p className="muted">{t('No milestones yet.')}</p>
       ) : null}
       <ul className="rows">
         {milestones.map((m) => (
@@ -77,7 +82,7 @@ export function MilestonesSection({
             <span className="grow">
               <span className="title">{m.title}</span>
               {m.status === 'closed' ? (
-                <span className="muted"> (closed)</span>
+                <span className="muted"> {t('(closed)')}</span>
               ) : null}
               <br />
               <span className="muted">
@@ -97,14 +102,14 @@ export function MilestonesSection({
                   type="button"
                   onClick={() => void toggle(m)}
                 >
-                  {m.status === 'open' ? 'Close' : 'Reopen'}
+                  {m.status === 'open' ? t('Close') : t('Reopen')}
                 </button>
                 <button
                   className="button danger small"
                   type="button"
                   onClick={() => void remove(m)}
                 >
-                  Delete
+                  {t('Delete')}
                 </button>
               </>
             ) : null}
@@ -114,7 +119,7 @@ export function MilestonesSection({
       {canManage ? (
         <form className="inline-form section" onSubmit={create}>
           <div className="field">
-            <label htmlFor="milestoneTitle">New milestone</label>
+            <label htmlFor="milestoneTitle">{t('New milestone')}</label>
             <input
               id="milestoneTitle"
               name="milestoneTitle"
@@ -123,11 +128,11 @@ export function MilestonesSection({
             />
           </div>
           <div className="field">
-            <label htmlFor="milestoneDue">Due date</label>
+            <label htmlFor="milestoneDue">{t('Due date')}</label>
             <input id="milestoneDue" name="milestoneDue" type="date" />
           </div>
           <button className="button secondary" type="submit">
-            Add milestone
+            {t('Add milestone')}
           </button>
         </form>
       ) : null}

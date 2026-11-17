@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useT } from '../lib/i18n';
 
 type State = 'unsupported' | 'unavailable' | 'off' | 'on' | 'blocked';
 
@@ -15,6 +16,7 @@ function keyBytes(base64url: string): ArrayBuffer {
 
 /** Turns browser notifications on or off for this device (ADR-060). */
 export function PushToggle() {
+  const t = useT();
   const [state, setState] = useState<State>();
   const [publicKey, setPublicKey] = useState<string>();
 
@@ -75,10 +77,10 @@ export function PushToggle() {
   if (state === undefined || state === 'unsupported') return null;
   return (
     <fieldset className="checks plain section">
-      <legend>This device</legend>
+      <legend>{t('This device')}</legend>
       {state === 'unavailable' ? (
         <p className="muted">
-          Browser notifications are not set up on this server.
+          {t('Browser notifications are not set up on this server.')}
         </p>
       ) : state === 'blocked' ? (
         <p className="muted">

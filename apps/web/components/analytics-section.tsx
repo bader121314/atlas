@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useT } from '../lib/i18n';
 
 interface Analytics {
   total: number;
@@ -28,6 +29,7 @@ export function AnalyticsSection({
   base: string;
   refreshKey: number;
 }) {
+  const t = useT();
   const [data, setData] = useState<Analytics>();
 
   useEffect(() => {
@@ -42,26 +44,26 @@ export function AnalyticsSection({
   const percent = Math.round((data.done / data.total) * 100);
   return (
     <section className="section" aria-labelledby="numbers-heading">
-      <h2 id="numbers-heading">Project numbers</h2>
+      <h2 id="numbers-heading">{t('Project numbers')}</h2>
       <dl className="stats">
         <div>
-          <dt>Done</dt>
+          <dt>{t('Done')}</dt>
           <dd>
             {data.done} of {data.total} ({percent}%)
           </dd>
         </div>
         <div>
-          <dt>Overdue</dt>
+          <dt>{t('Overdue')}</dt>
           <dd className={data.overdue > 0 ? 'priority-high' : undefined}>
             {data.overdue}
           </dd>
         </div>
         <div>
-          <dt>Open and unassigned</dt>
+          <dt>{t('Open and unassigned')}</dt>
           <dd>{data.unassigned}</dd>
         </div>
         <div>
-          <dt>Typical time to finish</dt>
+          <dt>{t('Typical time to finish')}</dt>
           <dd>
             {data.medianLeadDays === null
               ? 'Not enough finished tasks'
@@ -71,11 +73,11 @@ export function AnalyticsSection({
       </dl>
       <div className="numbers-grid">
         <table className="tasks-table">
-          <caption>Tasks by status</caption>
+          <caption>{t('Tasks by status')}</caption>
           <thead>
             <tr>
-              <th scope="col">Status</th>
-              <th scope="col">Tasks</th>
+              <th scope="col">{t('Status')}</th>
+              <th scope="col">{t('Tasks')}</th>
             </tr>
           </thead>
           <tbody>
@@ -88,12 +90,12 @@ export function AnalyticsSection({
           </tbody>
         </table>
         <table className="tasks-table trend">
-          <caption>Created and finished per week</caption>
+          <caption>{t('Created and finished per week')}</caption>
           <thead>
             <tr>
-              <th scope="col">Week of</th>
-              <th scope="col">Created</th>
-              <th scope="col">Finished</th>
+              <th scope="col">{t('Week of')}</th>
+              <th scope="col">{t('Created')}</th>
+              <th scope="col">{t('Finished')}</th>
             </tr>
           </thead>
           <tbody>
@@ -124,11 +126,11 @@ export function AnalyticsSection({
         </table>
         {data.openByAssignee.length > 0 ? (
           <table className="tasks-table">
-            <caption>Open tasks by assignee</caption>
+            <caption>{t('Open tasks by assignee')}</caption>
             <thead>
               <tr>
-                <th scope="col">Person</th>
-                <th scope="col">Open</th>
+                <th scope="col">{t('Person')}</th>
+                <th scope="col">{t('Open')}</th>
               </tr>
             </thead>
             <tbody>

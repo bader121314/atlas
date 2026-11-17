@@ -7,8 +7,10 @@ import type { FormEvent } from 'react';
 import { AuthShell } from '../../components/auth-shell';
 import { Field, Notice, safeNext, value } from '../../components/form';
 import { api, describeFailure } from '../../lib/api';
+import { useT } from '../../lib/i18n';
 
 function LoginForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [busy, setBusy] = useState(false);
@@ -38,14 +40,18 @@ function LoginForm() {
     setBusy(false);
     if (result.status === 403) {
       setError(
-        'Your organization requires single sign-on. Use "Sign in with single sign-on" below.',
+        t(
+          'Your organization requires single sign-on. Use "Sign in with single sign-on" below.',
+        ),
       );
       return;
     }
     setError(
       describeFailure(
         result.status,
-        'Email or password is incorrect, or the email has not been verified yet.',
+        t(
+          'Email or password is incorrect, or the email has not been verified yet.',
+        ),
       ),
     );
   }
@@ -57,10 +63,10 @@ function LoginForm() {
         {demo ? (
           <Notice>
             <p>
-              This is a public demo with fictional data. Sign in as{' '}
-              <strong>{demo.email}</strong> with the password{' '}
-              <code>{demo.password}</code>. Anyone can see and change the demo,
-              so do not enter anything private.
+              {t(
+                'This is a public demo with fictional data. Sign in as {email} with the password {password}. Anyone can see and change the demo, so do not enter anything private.',
+                { email: demo.email, password: demo.password },
+              )}
             </p>
             <button
               className="button secondary small"
@@ -75,37 +81,44 @@ function LoginForm() {
                 set('password', demo.password);
               }}
             >
-              Fill in the demo account
+              {t('Fill in the demo account')}
             </button>
           </Notice>
         ) : null}
-        <Field label="Email" name="email" type="email" autoComplete="email" />
         <Field
-          label="Password"
+          label={t('Email')}
+          name="email"
+          type="email"
+          autoComplete="email"
+        />
+        <Field
+          label={t('Password')}
           name="password"
           type="password"
           autoComplete="current-password"
         />
         <button className="button" type="submit" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('Signing in…') : t('Sign in')}
         </button>
       </form>
       <p className="switch">
-        <Link href="/forgot-password">Forgot your password?</Link>
+        <Link href="/forgot-password">{t('Forgot your password?')}</Link>
       </p>
       <p>
-        <Link href="/login/sso">Sign in with single sign-on</Link>
+        <Link href="/login/sso">{t('Sign in with single sign-on')}</Link>
       </p>
       <p>
-        New to Atlas? <Link href="/signup">Create an account</Link>
+        {t('New to Atlas?')}{' '}
+        <Link href="/signup">{t('Create an account')}</Link>
       </p>
     </>
   );
 }
 
 export default function LoginPage() {
+  const t = useT();
   return (
-    <AuthShell title="Sign in">
+    <AuthShell title={t('Sign in')}>
       <Suspense>
         <LoginForm />
       </Suspense>

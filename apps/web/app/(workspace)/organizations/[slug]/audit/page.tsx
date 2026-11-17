@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../../../../../lib/api';
+import { useT } from '../../../../../lib/i18n';
 
 interface AuditEvent {
   id: string;
@@ -43,6 +44,7 @@ function isoDay(date: Date): string {
 
 /** The organization's audit log for owners and admins (ADR-051). */
 export default function AuditPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const [action, setAction] = useState('');
   const [items, setItems] = useState<AuditEvent[]>([]);
@@ -84,11 +86,12 @@ export default function AuditPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> / Audit log
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Audit log')}
       </p>
-      <h1>Audit log</h1>
+      <h1>{t('Audit log')}</h1>
       {status === 403 ? (
-        <p>Only owners and admins can read the audit log.</p>
+        <p>{t('Only owners and admins can read the audit log.')}</p>
       ) : (
         <>
           <p className="muted">
@@ -97,7 +100,7 @@ export default function AuditPage() {
             each person&apos;s own account.
           </p>
           <div className="field">
-            <label htmlFor="auditFilter">Show</label>
+            <label htmlFor="auditFilter">{t('Show')}</label>
             <select
               id="auditFilter"
               value={action}
@@ -111,27 +114,26 @@ export default function AuditPage() {
             </select>
           </div>
           {items.length === 0 && status === 200 ? (
-            <p>Nothing recorded yet.</p>
+            <p>{t('Nothing recorded yet.')}</p>
           ) : null}
-          {items.length > 0 ? (
-            // Focusable so keyboard users can scroll a wide table.
+          {items.length > 0 ? ( // Focusable so keyboard users can scroll a wide table.
             <div
               className="table-wrap section"
               tabIndex={0}
               role="region"
-              aria-label="Audit events"
+              aria-label={t('Audit events')}
             >
               <table className="tasks-table">
                 <caption className="visually-hidden">
-                  Audit events, newest first
+                  {t('Audit events, newest first')}
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col">When</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">By</th>
-                    <th scope="col">Details</th>
-                    <th scope="col">Network</th>
+                    <th scope="col">{t('When')}</th>
+                    <th scope="col">{t('Action')}</th>
+                    <th scope="col">{t('By')}</th>
+                    <th scope="col">{t('Details')}</th>
+                    <th scope="col">{t('Network')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,18 +158,19 @@ export default function AuditPage() {
               type="button"
               onClick={() => void load(next)}
             >
-              Show older events
+              {t('Show older events')}
             </button>
           ) : null}
           <section className="section" aria-labelledby="audit-export-heading">
-            <h2 id="audit-export-heading">Download</h2>
+            <h2 id="audit-export-heading">{t('Download')}</h2>
             <p className="muted">
-              A CSV of every event in the range (UTC days, up to a year). The
-              download is recorded in the log.
+              {t(
+                'A CSV of every event in the range (UTC days, up to a year). The download is recorded in the log.',
+              )}
             </p>
             <form className="inline-form" onSubmit={download}>
               <div className="field">
-                <label htmlFor="auditFrom">From</label>
+                <label htmlFor="auditFrom">{t('From')}</label>
                 <input
                   id="auditFrom"
                   name="from"
@@ -179,7 +182,7 @@ export default function AuditPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="auditTo">To</label>
+                <label htmlFor="auditTo">{t('To')}</label>
                 <input
                   id="auditTo"
                   name="to"
@@ -189,7 +192,7 @@ export default function AuditPage() {
                 />
               </div>
               <button className="button secondary" type="submit">
-                Download CSV
+                {t('Download CSV')}
               </button>
             </form>
           </section>

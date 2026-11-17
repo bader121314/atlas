@@ -1,5 +1,7 @@
 // Thin client for the same-origin API proxy. Responses are typed by caller;
 // the server validates everything, so the UI never trusts its own checks.
+import { tr } from './i18n';
+
 export interface ApiResult<T> {
   status: number;
   ok: boolean;
@@ -45,11 +47,13 @@ export async function api<T = unknown>(
 export function describeFailure(status: number, fallback: string): string {
   switch (status) {
     case 0:
-      return 'Atlas could not be reached. Check your connection and try again.';
+      return tr(
+        'Atlas could not be reached. Check your connection and try again.',
+      );
     case 429:
-      return 'Too many attempts. Wait a few minutes, then try again.';
+      return tr('Too many attempts. Wait a few minutes, then try again.');
     case 503:
-      return 'Atlas is temporarily unavailable. Try again shortly.';
+      return tr('Atlas is temporarily unavailable. Try again shortly.');
     default:
       return fallback;
   }
@@ -158,7 +162,9 @@ export const PRIORITIES: Task['priority'][] = [
 
 /** Same priority words everywhere in the interface. */
 export function priorityLabel(priority: Task['priority']): string {
-  return priority === 'none'
-    ? 'No priority'
-    : priority.charAt(0).toUpperCase() + priority.slice(1);
+  return tr(
+    priority === 'none'
+      ? 'No priority'
+      : priority.charAt(0).toUpperCase() + priority.slice(1),
+  );
 }

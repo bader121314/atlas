@@ -9,6 +9,7 @@ import { Notice } from '../../../../../components/form';
 import { api, describeFailure } from '../../../../../lib/api';
 import type { Organization } from '../../../../../lib/api';
 import { formatDuration, parseDuration } from '../../../../../lib/duration';
+import { useT } from '../../../../../lib/i18n';
 
 interface Person {
   userId: string;
@@ -37,6 +38,7 @@ function level(count: number): string {
 }
 
 export default function WorkloadPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const [data, setData] = useState<{
     weekStarts: string[];
@@ -81,7 +83,9 @@ export default function WorkloadPage() {
     if (minutes === undefined) {
       setMessage({
         tone: 'error',
-        text: 'Enter hours per week like 30h or 37h 30m, or leave it empty to clear it.',
+        text: t(
+          'Enter hours per week like 30h or 37h 30m, or leave it empty to clear it.',
+        ),
       });
       return;
     }
@@ -91,10 +95,10 @@ export default function WorkloadPage() {
     );
     setMessage(
       result.ok
-        ? { tone: 'info', text: 'Capacity saved.' }
+        ? { tone: 'info', text: t('Capacity saved.') }
         : {
             tone: 'error',
-            text: describeFailure(result.status, 'Capacity was not saved.'),
+            text: describeFailure(result.status, t('Capacity was not saved.')),
           },
     );
     await load();
@@ -103,9 +107,10 @@ export default function WorkloadPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> / Workload
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Workload')}
       </p>
-      <h1>Workload</h1>
+      <h1>{t('Workload')}</h1>
       <p className="muted">
         Open tasks assigned to each person, by the week they are due, across the
         projects you can open. Where tasks have estimates, each week also shows
@@ -117,35 +122,35 @@ export default function WorkloadPage() {
         <p>Guests cannot see the team&apos;s workload.</p>
       ) : !data ? (
         <p className="muted" role="status">
-          Loading…
+          {t('Loading…')}
         </p>
       ) : data.people.length === 0 ? (
         <p className="muted">
-          Nobody has open assigned tasks or a capacity yet.
+          {t('Nobody has open assigned tasks or a capacity yet.')}
         </p>
       ) : (
         <div
           className="table-wrap"
           tabIndex={0}
           role="region"
-          aria-label="Workload table"
+          aria-label={t('Workload table')}
         >
           <table className="tasks-table workload">
             <caption className="visually-hidden">
-              Open tasks per person and week
+              {t('Open tasks per person and week')}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Person</th>
-                <th scope="col">Overdue</th>
+                <th scope="col">{t('Person')}</th>
+                <th scope="col">{t('Overdue')}</th>
                 {data.weekStarts.map((w) => (
                   <th key={w} scope="col">
                     Week of {week.format(new Date(`${w}T00:00:00Z`))}
                   </th>
                 ))}
-                <th scope="col">Later</th>
-                <th scope="col">No date</th>
-                <th scope="col">Total</th>
+                <th scope="col">{t('Later')}</th>
+                <th scope="col">{t('No date')}</th>
+                <th scope="col">{t('Total')}</th>
               </tr>
             </thead>
             <tbody>
@@ -198,11 +203,11 @@ export default function WorkloadPage() {
       )}
       {status === 200 ? (
         <section className="section" aria-labelledby="capacity-heading">
-          <h2 id="capacity-heading">Weekly capacity</h2>
+          <h2 id="capacity-heading">{t('Weekly capacity')}</h2>
           <form className="inline-form" onSubmit={(e) => void saveCapacity(e)}>
             {admin ? (
               <div className="field">
-                <label htmlFor="capacityPerson">Person</label>
+                <label htmlFor="capacityPerson">{t('Person')}</label>
                 <select
                   id="capacityPerson"
                   name="person"
@@ -220,17 +225,17 @@ export default function WorkloadPage() {
             )}
             <div className="field">
               <label htmlFor="capacityHours">
-                {admin ? 'Hours per week' : 'Your hours per week'}
+                {admin ? t('Hours per week') : t('Your hours per week')}
               </label>
               <input
                 id="capacityHours"
                 name="hours"
-                placeholder="e.g. 30h"
+                placeholder={t('e.g. 30h')}
                 autoComplete="off"
               />
             </div>
             <button className="button secondary" type="submit">
-              Save capacity
+              {t('Save capacity')}
             </button>
           </form>
         </section>

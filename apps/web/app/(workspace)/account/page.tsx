@@ -5,6 +5,7 @@ import { useShell } from '../../../components/app-shell';
 import { ChangePasswordSection } from '../../../components/change-password';
 import { Notice } from '../../../components/form';
 import { api, describeFailure } from '../../../lib/api';
+import { useT } from '../../../lib/i18n';
 
 interface Session {
   id: string;
@@ -45,6 +46,7 @@ function device(userAgent: string | null): string {
 }
 
 export default function AccountPage() {
+  const t = useT();
   const { user } = useShell();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [message, setMessage] = useState<{
@@ -67,12 +69,12 @@ export default function AccountPage() {
     });
     setMessage(
       result.ok
-        ? { tone: 'info', text: 'That device is signed out.' }
+        ? { tone: 'info', text: t('That device is signed out.') }
         : {
             tone: 'error',
             text: describeFailure(
               result.status,
-              'That device could not be signed out.',
+              t('That device could not be signed out.'),
             ),
           },
     );
@@ -85,12 +87,12 @@ export default function AccountPage() {
     });
     setMessage(
       result.ok
-        ? { tone: 'info', text: 'Every other device is signed out.' }
+        ? { tone: 'info', text: t('Every other device is signed out.') }
         : {
             tone: 'error',
             text: describeFailure(
               result.status,
-              'Other devices could not be signed out.',
+              t('Other devices could not be signed out.'),
             ),
           },
     );
@@ -101,7 +103,7 @@ export default function AccountPage() {
 
   return (
     <>
-      <h1>Your account</h1>
+      <h1>{t('Your account')}</h1>
       <p>
         {user.displayName}
         <br />
@@ -110,7 +112,7 @@ export default function AccountPage() {
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <ChangePasswordSection onChanged={() => void load()} />
       <section className="section" aria-labelledby="sessions-heading">
-        <h2 id="sessions-heading">Where you are signed in</h2>
+        <h2 id="sessions-heading">{t('Where you are signed in')}</h2>
         <ul className="rows">
           {sessions.map((session) => (
             <li key={session.id}>
@@ -133,7 +135,7 @@ export default function AccountPage() {
                   type="button"
                   onClick={() => void signOutDevice(session)}
                 >
-                  Sign out
+                  {t('Sign out')}
                 </button>
               )}
             </li>

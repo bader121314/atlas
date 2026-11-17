@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useT } from '../../../lib/i18n';
 
 interface Shared {
   project: { key: string; name: string };
@@ -33,6 +34,7 @@ const PRIORITY: Record<string, string> = {
 
 /** Read-only view of a project's tasks for anyone with the link (ADR-050). */
 export default function SharedProjectPage() {
+  const t = useT();
   const { token } = useParams<{ token: string }>();
   const [data, setData] = useState<Shared>();
   const [missing, setMissing] = useState(false);
@@ -49,17 +51,18 @@ export default function SharedProjectPage() {
   if (missing)
     return (
       <>
-        <h1>This link does not work</h1>
+        <h1>{t('This link does not work')}</h1>
         <p>
-          It may have expired or been revoked. Ask the person who shared it for
-          a new one.
+          {t(
+            'It may have expired or been revoked. Ask the person who shared it for a new one.',
+          )}
         </p>
       </>
     );
   if (!data)
     return (
       <p className="muted" role="status">
-        Loading…
+        {t('Loading…')}
       </p>
     );
 
@@ -69,7 +72,7 @@ export default function SharedProjectPage() {
 
   return (
     <>
-      <p className="muted">Shared from Atlas, read only</p>
+      <p className="muted">{t('Shared from Atlas, read only')}</p>
       <h1>
         {data.project.key} {data.project.name}
       </h1>
@@ -78,7 +81,7 @@ export default function SharedProjectPage() {
         {data.truncated ? ' (the first 500)' : ''}. This link works until{' '}
         {date.format(new Date(data.expiresAt))}.
       </p>
-      {data.tasks.length === 0 ? <p>No tasks yet.</p> : null}
+      {data.tasks.length === 0 ? <p>{t('No tasks yet.')}</p> : null}
       {states.map((state) => {
         const tasks = data.tasks.filter((t) => t.state === state);
         const id = `state-${states.indexOf(state)}`;

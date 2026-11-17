@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Endpoint {
   id: string;
@@ -37,6 +38,7 @@ const when = new Intl.DateTimeFormat(undefined, {
 
 /** Owners and admins send signed events to other systems (ADR-036). */
 export function WebhooksSection({ slug }: { slug: string }) {
+  const t = useT();
   const base = `/organizations/${slug}/webhooks`;
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [open, setOpen] = useState<string>();
@@ -110,11 +112,12 @@ export function WebhooksSection({ slug }: { slug: string }) {
 
   return (
     <section className="section" aria-labelledby="webhooks-heading">
-      <h2 id="webhooks-heading">Webhooks</h2>
+      <h2 id="webhooks-heading">{t('Webhooks')}</h2>
       <p className="muted">
-        Atlas sends a signed POST to each address when the chosen events happen.
-        Verify the <code>X-Atlas-Signature</code> header with the endpoint
-        secret.
+        {t(
+          'Atlas sends a signed POST to each address when the chosen events happen. Verify the {header} header with the endpoint secret.',
+          { header: 'X-Atlas-Signature' },
+        )}
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {secret ? (
@@ -128,7 +131,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
             type="button"
             onClick={() => setSecret(undefined)}
           >
-            I have saved it
+            {t('I have saved it')}
           </button>
         </Notice>
       ) : null}
@@ -156,14 +159,14 @@ export function WebhooksSection({ slug }: { slug: string }) {
                 }}
                 aria-expanded={open === endpoint.id}
               >
-                Deliveries
+                {t('Deliveries')}
               </button>
               <button
                 className="button secondary small"
                 type="button"
                 onClick={() => void act(endpoint, '/ping', 'POST')}
               >
-                Send test
+                {t('Send test')}
               </button>
               <button
                 className="button secondary small"
@@ -174,7 +177,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
                   })
                 }
               >
-                {endpoint.status === 'active' ? 'Pause' : 'Resume'}
+                {endpoint.status === 'active' ? t('Pause') : t('Resume')}
               </button>
               <button
                 className="button danger small"
@@ -184,20 +187,20 @@ export function WebhooksSection({ slug }: { slug: string }) {
                     void act(endpoint, '', 'DELETE');
                 }}
               >
-                Delete
+                {t('Delete')}
               </button>
             </span>
             {open === endpoint.id ? (
               <table className="tasks-table">
-                <caption>Recent deliveries</caption>
+                <caption>{t('Recent deliveries')}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Event</th>
-                    <th scope="col">Result</th>
-                    <th scope="col">Attempts</th>
-                    <th scope="col">Created</th>
+                    <th scope="col">{t('Event')}</th>
+                    <th scope="col">{t('Result')}</th>
+                    <th scope="col">{t('Attempts')}</th>
+                    <th scope="col">{t('Created')}</th>
                     <th scope="col">
-                      <span className="visually-hidden">Actions</span>
+                      <span className="visually-hidden">{t('Actions')}</span>
                     </th>
                   </tr>
                 </thead>
@@ -227,7 +230,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
                             )
                           }
                         >
-                          Send again
+                          {t('Send again')}
                         </button>
                       </td>
                     </tr>
@@ -240,7 +243,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
       </ul>
       <form className="form section" onSubmit={create}>
         <div className="field">
-          <label htmlFor="webhookUrl">Endpoint address (https)</label>
+          <label htmlFor="webhookUrl">{t('Endpoint address (https)')}</label>
           <input
             id="webhookUrl"
             name="webhookUrl"
@@ -250,7 +253,9 @@ export function WebhooksSection({ slug }: { slug: string }) {
           />
         </div>
         <div className="field">
-          <label htmlFor="webhookDescription">Description (optional)</label>
+          <label htmlFor="webhookDescription">
+            {t('Description (optional)')}
+          </label>
           <input
             id="webhookDescription"
             name="webhookDescription"
@@ -258,7 +263,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
           />
         </div>
         <fieldset className="checks plain">
-          <legend>Events</legend>
+          <legend>{t('Events')}</legend>
           {EVENTS.map(([key, label]) => (
             <label key={key}>
               <input
@@ -271,7 +276,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
           ))}
         </fieldset>
         <button className="button secondary" type="submit">
-          Add webhook
+          {t('Add webhook')}
         </button>
       </form>
     </section>
