@@ -4,7 +4,7 @@
 
 Each milestone is a deployable, reviewable vertical slice. Maintain the _full scope_ in backlog, even while staging the release. Implement foundation and core product before optional advanced capabilities. No dates are hard commitments. Every phase ends with automated evidence, user-flow demo, handoff update, and architecture/documentation changes.
 
-**Progress:** M0 and M1 complete (see `docs/09-m1-exit-report.md`); M2 next.
+**Progress:** M0, M1 and M2 complete (see `docs/09` and `docs/10`); M3 next.
 
 ## M0 — Specification and developer environment
 
