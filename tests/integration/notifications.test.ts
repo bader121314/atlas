@@ -86,6 +86,21 @@ describe('notifications', () => {
     expect(items[0]?.actor).toBeTruthy();
     expect(await count(member)).toBe(1);
     expect(await inbox(owner)).toEqual([]);
+
+    // Creating a task already assigned notifies too; changing other fields does not.
+    await fx.call(owner, 'POST', `${base}/tasks`, {
+      title: 'Map reefs',
+      assigneeId: member.id,
+    });
+    await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+      version: 2,
+      priority: 'high',
+    });
+    expect(await notify()).toBe(1);
+    expect((await inbox(member)).map((i) => i.task.title)).toEqual([
+      'Map reefs',
+      'Survey the bay',
+    ]);
   });
 
   it('tells the reporter, assignee and earlier commenters about comments', async () => {
