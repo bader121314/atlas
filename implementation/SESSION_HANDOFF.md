@@ -123,26 +123,33 @@ Storage settings: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`,
 job runs the S3 test double from `packages/shared/dist/testing/fake-s3.js`.
 Worker jobs each have their own busy flag (a shared one starved exports).
 
-### M6 — next (automation and integrations)
+### M6 — complete
 
-Read `docs/08` M6. In order:
+PRs #36–#40 (ADR-036 to ADR-039); exit report `docs/14-m6-exit-report.md`.
+Worker loops: outbox dispatcher, notifier, email, attachment checks,
+exports, webhook planner and sender, automations, recurrences. Each outbox
+consumer has its own `*_at` marker; pruning waits for all of them.
+Settings added: `WEBHOOK_SECRET_KEY` (and development-only
+`WEBHOOK_ALLOW_HTTP`, `WEBHOOK_ALLOWED_HOSTS`).
 
-1. Done (PR #36): signed outbound webhooks planned from the outbox, SSRF
-   checks before saving and after DNS, retries, pausing, delivery history,
-   replay and ping; admin UI on the organization page (ADR-036).
-2. Done (PR #37): scoped personal API tokens (tasks:read, tasks:write),
-   bearer auth on tenant routes only, scope checks in ProjectGuard, audit,
-   management UI on the organization page (ADR-037).
-3. Done (PR #38): automation rules run by the worker from the outbox, once
-   per (rule, event), with depth and self-trigger loop protection, savepoint
-   rollback per rule, simulation, and a manager section on the project page
-   (ADR-038).
-4. Done (PR #39): recurring tasks created by the worker, one per
-   occurrence without catching up; hourly rule quota per organization
-   (ADR-039).
-5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
-   change password while signed in, multiple assignees, OpenAPI client
-   generation and contract tests, mentions.
+### M7 — next (hardening, staging, observability)
+
+Read `docs/08` M7 and `docs/06`. No cloud credentials are available here,
+so infrastructure work is code plus validation (`terraform validate` is not
+installed; keep modules small and documented). Suggested order:
+
+1. Request IDs end to end (header in and out, in logs and audit events) and
+   structured JSON logs; trusted-proxy client addresses (carry-over).
+2. Metrics endpoint (Prometheus text format, no dependency) for HTTP,
+   worker loops and outbox lag; health details for readiness.
+3. Dockerfiles for web, API and worker; a compose file for a full local
+   stack; CI builds the images.
+4. Terraform skeleton for AWS (VPC, RDS, ElastiCache, S3, ECS services,
+   ALB, CloudFront) with variables and no secrets; runbooks for deploy,
+   rollback, backup and restore.
+5. Security review notes and a small load test script (no dependency).
+6. Carry-overs: change password while signed in, multiple assignees,
+   mentions.
 
 ## Environment and versions
 
