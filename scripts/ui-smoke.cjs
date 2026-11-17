@@ -133,6 +133,17 @@ const pages = [];
   const bobEmail = `bob-${run}@example.test`;
   const carolEmail = `carol-${run}@example.test`;
 
+  // Security headers on every page.
+  const page = await alice.request.get(`${BASE}/login`);
+  const csp = page.headers()['content-security-policy'] ?? '';
+  for (const rule of [
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "default-src 'self'",
+  ]) {
+    if (!csp.includes(rule))
+      throw new Error(`content security policy lacks ${rule}`);
+  }
   await alice.goto(`${BASE}/login`);
   await shot(alice, '01-login');
   await alice.goto(`${BASE}/signup`);
@@ -427,6 +438,33 @@ const pages = [];
       await shot(page, `16-${label}-${name}`);
       await noSidewaysScroll(page, `16-${label}-${name}`);
     }
+  }
+
+  // Load baseline: 10 seconds of task-list reads as Alice, through the web
+  // server's proxy as browsers use it (ADR-044).
+  const cookies = await alice.context().cookies();
+  const session = cookies.find((c) => c.name.includes('atlas_session'));
+  const { spawnSync } = require('node:child_process');
+  const load = spawnSync(
+    process.execPath,
+    [
+      path.join(__dirname, 'load-test.mjs'),
+      '--url',
+      `${BASE}/api/organizations/${slug}/projects/COAST/tasks`,
+      '--header',
+      `Cookie: ${session.name}=${session.value}`,
+      '--concurrency',
+      '10',
+      '--seconds',
+      '10',
+      '--max-p95-ms',
+      '1000',
+    ],
+    { encoding: 'utf8' },
+  );
+  console.log(load.stdout.trim());
+  if (load.status !== 0) {
+    violations.push(`load test failed: ${load.stdout} ${load.stderr}`);
   }
 
   await browser.close();

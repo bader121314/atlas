@@ -17,7 +17,9 @@ WORKDIR /app
 FROM base AS build
 # The web server's proxy target is fixed when Next.js builds its routes.
 ARG API_ORIGIN=http://127.0.0.1:3001
-ENV API_ORIGIN=$API_ORIGIN
+# Storage origin browsers upload to, for the content security policy.
+ARG STORAGE_PUBLIC_ORIGIN=
+ENV API_ORIGIN=$API_ORIGIN STORAGE_PUBLIC_ORIGIN=$STORAGE_PUBLIC_ORIGIN
 COPY . .
 RUN pnpm install --frozen-lockfile && pnpm build
 

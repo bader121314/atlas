@@ -149,7 +149,8 @@ installed; keep modules small and documented). Suggested order:
 4. Done (PR #44): Terraform for AWS (VPC, ECS Fargate with Service Connect,
    RDS, ElastiCache, S3, ALB, Secrets Manager, alarms) validated in CI;
    runbooks for deploy, rollback, backup and restore, outbox lag (ADR-043).
-5. Security review notes and a small load test script (no dependency).
+5. Done (PR #45): security review (`docs/15`), content security policy and
+   permissions policy, load test script run in the smoke job (`docs/16`).
 6. Carry-overs: change password while signed in, multiple assignees,
    mentions.
 
