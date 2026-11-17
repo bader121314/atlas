@@ -54,6 +54,11 @@ export function sortTasks(tasks: Task[], sort: Sort): Task[] {
   });
 }
 
+function ariaSort(active: boolean, sort: Sort) {
+  if (!active) return 'none';
+  return sort.direction === 'asc' ? 'ascending' : 'descending';
+}
+
 const COLUMNS: { field: SortField; label: string }[] = [
   { field: 'number', label: 'Key' },
   { field: 'title', label: 'Title' },
@@ -90,13 +95,7 @@ export function TableView({
                 <th
                   key={column.field}
                   scope="col"
-                  aria-sort={
-                    active
-                      ? sort.direction === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : 'none'
-                  }
+                  aria-sort={ariaSort(active, sort)}
                 >
                   <button
                     type="button"
@@ -145,6 +144,12 @@ export function TableView({
       </table>
     </div>
   );
+}
+
+function undatedText(count: number): string {
+  return count === 1
+    ? '1 task has no due date and is not shown.'
+    : `${count} tasks have no due date and are not shown.`;
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -225,12 +230,7 @@ export function CalendarView({
           </div>
         ))}
       </div>
-      {undated > 0 ? (
-        <p className="muted">
-          {undated} {undated === 1 ? 'task has' : 'tasks have'} no due date and{' '}
-          {undated === 1 ? 'is' : 'are'} not shown.
-        </p>
-      ) : null}
+      {undated > 0 ? <p className="muted">{undatedText(undated)}</p> : null}
     </section>
   );
 }
