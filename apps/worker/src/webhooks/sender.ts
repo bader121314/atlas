@@ -5,6 +5,7 @@ import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
 import type { Pool } from 'pg';
 import { isPublicAddress, openSecret, signWebhook } from '@atlas/shared';
+import { countUsage } from '../usage';
 
 export const MAX_ATTEMPTS = 8;
 /** Failed attempts in a row before an endpoint is paused. */
@@ -110,6 +111,7 @@ export function post(
 
 interface Due {
   id: string;
+  organization_id: string;
   endpoint_id: string;
   event_id: string;
   event_type: string;
@@ -133,7 +135,7 @@ export async function deliverBatch(
   try {
     await client.query('BEGIN');
     const due = await client.query<Due>(
-      `SELECT d.id, d.endpoint_id, d.event_id, d.event_type, d.payload, d.attempts,
+      `SELECT d.id, d.organization_id, d.endpoint_id, d.event_id, d.event_type, d.payload, d.attempts,
               e.url, e.secret_sealed
        FROM webhook_deliveries d
        JOIN webhook_endpoints e ON e.organization_id = d.organization_id AND e.id = d.endpoint_id
@@ -175,6 +177,11 @@ export async function deliverBatch(
         await client.query(
           'UPDATE webhook_endpoints SET consecutive_failures = 0 WHERE id = $1',
           [delivery.endpoint_id],
+        );
+        await countUsage(
+          client,
+          delivery.organization_id,
+          'webhook_deliveries',
         );
         result.delivered += 1;
         continue;

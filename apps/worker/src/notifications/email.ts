@@ -1,4 +1,5 @@
 import type { Pool } from 'pg';
+import { countUsage } from '../usage';
 
 export interface MailMessage {
   to: string;
@@ -71,8 +72,8 @@ export async function emailBatch(
          AND ($1::uuid IS NULL OR organization_id = $1)`,
       [options.organizationId ?? null],
     );
-    const rows = await client.query<PendingRow>(
-      `SELECT n.id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name,
+    const rows = await client.query<PendingRow & { organization_id: string }>(
+      `SELECT n.id, n.organization_id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name,
               a.display_name AS actor_name, o.slug, p.key AS project_key,
               t.number, t.title, s.email_mode
        FROM notifications n
@@ -115,6 +116,7 @@ export async function emailBatch(
         `UPDATE notifications SET email_status = 'sent' WHERE id = $1`,
         [row.id],
       );
+      await countUsage(client, row.organization_id, 'notification_emails');
       result.sent += 1;
     }
     await client.query('COMMIT');
@@ -216,6 +218,7 @@ export async function digestBatch(
          WHERE organization_id = $1 AND user_id = $2`,
         [person.organization_id, person.user_id],
       );
+      await countUsage(client, person.organization_id, 'notification_emails');
       sent += 1;
     }
     await client.query('COMMIT');

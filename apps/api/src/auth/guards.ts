@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { UsageService } from '../usage/usage.service';
 import { AuthService } from './auth.service';
 import { sessionCookieName } from './cookies';
 import {
@@ -46,6 +47,7 @@ export class SessionGuard implements CanActivate {
   constructor(
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(UsageService) private readonly usage: UsageService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -62,6 +64,8 @@ export class SessionGuard implements CanActivate {
         ? await this.auth.authenticateApiToken(bearer)
         : undefined;
       if (!caller) throw new UnauthorizedException();
+      if (caller.token)
+        this.usage.count(caller.token.organizationId, 'api_requests');
       request.auth = caller;
       return true;
     }

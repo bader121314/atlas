@@ -422,6 +422,9 @@ const pages = [];
   await alice.goto(`${BASE}/organizations/${slug}/audit`);
   await alice.getByText('share_link.created').waitFor();
   await shot(alice, '11n-audit-log');
+  await alice.goto(`${BASE}/organizations/${slug}/usage`);
+  await alice.getByRole('heading', { name: 'By month' }).waitFor();
+  await shot(alice, '11q-usage');
   // Workload with an estimate against a weekly capacity.
   await alice.goto(`${BASE}/organizations/${slug}/workload`);
   await alice.getByLabel('Hours per week').fill('30h');

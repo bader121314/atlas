@@ -21,6 +21,7 @@ export const ORGANIZATION_ACTIONS = [
   'webhooks.manage',
   'audit.read',
   'scim.manage',
+  'usage.read',
 ] as const;
 export type OrganizationAction = (typeof ORGANIZATION_ACTIONS)[number];
 
@@ -38,6 +39,7 @@ const GRANTS: Record<OrganizationAction, readonly OrganizationRole[]> = {
   'audit.read': ['owner', 'admin'],
   // SCIM tokens add and remove members without review (ADR-055).
   'scim.manage': ['owner'],
+  'usage.read': ['owner', 'admin'],
 };
 
 export function isOrganizationRole(value: string): value is OrganizationRole {

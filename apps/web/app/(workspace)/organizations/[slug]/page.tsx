@@ -395,16 +395,25 @@ export default function OrganizationPage() {
         <>
           <WebhooksSection slug={slug} />
           <section className="section" aria-labelledby="audit-heading">
-            <h2 id="audit-heading">Audit log</h2>
+            <h2 id="audit-heading">Audit and usage</h2>
             <p className="muted">
-              Who changed members, projects, tokens and links, and when.
+              Who changed members, projects, tokens and links, and how much the
+              organization uses each month.
             </p>
-            <Link
-              className="button secondary small"
-              href={`/organizations/${slug}/audit`}
-            >
-              Open the audit log
-            </Link>
+            <p>
+              <Link
+                className="button secondary small"
+                href={`/organizations/${slug}/audit`}
+              >
+                Open the audit log
+              </Link>{' '}
+              <Link
+                className="button secondary small"
+                href={`/organizations/${slug}/usage`}
+              >
+                See usage
+              </Link>
+            </p>
           </section>
         </>
       ) : null}
