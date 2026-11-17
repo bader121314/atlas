@@ -27,7 +27,7 @@ CMD ["pnpm", "db:migrate"]
 
 FROM build AS prod-deps
 # Drop development dependencies, reusing the store from the install above.
-RUN pnpm install --prod --frozen-lockfile --offline
+RUN CI=true pnpm install --prod --frozen-lockfile --offline
 
 FROM node:24.22.0-bookworm-slim AS runtime
 ENV NODE_ENV=production \
