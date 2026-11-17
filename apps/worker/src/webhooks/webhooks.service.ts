@@ -8,6 +8,7 @@ import { parseEnvironment } from '@atlas/config';
 import { webhookSettings } from '@atlas/shared';
 import { planBatch } from './planner';
 import { deliverBatch } from './sender';
+import { tracked } from '../metrics';
 
 const TICK_MS = 1000;
 
@@ -32,7 +33,7 @@ export class WebhooksService
       if (this.busy.has(name)) return;
       this.busy.add(name);
       try {
-        await run();
+        await tracked(`webhook_${name}`, run);
       } catch {
         this.logger.error(`webhook ${name} failed; retrying`);
       } finally {

@@ -41,3 +41,5 @@ export {
   requestLogging,
   trustProxySetting,
 } from './request-context';
+export { Counter, Histogram, Registry, metricsAuthorized } from './metrics';
+export type { GaugeReading } from './metrics';

@@ -7,6 +7,8 @@ import {
 import { checkDependencies } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database.module';
+import { MetricsController } from './metrics/metrics.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 @Controller('health')
@@ -24,7 +26,7 @@ export class HealthController {
   }
 }
 @Module({
-  imports: [AuthModule, OrganizationsModule, ProjectsModule],
-  controllers: [HealthController],
+  imports: [AuthModule, OrganizationsModule, ProjectsModule, DatabaseModule],
+  controllers: [HealthController, MetricsController],
 })
 export class AppModule {}

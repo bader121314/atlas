@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
 import { runRecurrences } from '../recurrences/scheduler';
 import { runAutomations } from './engine';
+import { tracked } from '../metrics';
 
 /** Runs automation rules (ADR-038) and recurring tasks (ADR-039). */
 @Injectable()
@@ -27,7 +28,10 @@ export class AutomationsService
     this.timer = setInterval(() => {
       if (this.busy) return;
       this.busy = true;
-      Promise.all([runRecurrences(pool), runAutomations(pool)])
+      Promise.all([
+        tracked('recurrences', () => runRecurrences(pool)),
+        tracked('automations', () => runAutomations(pool)),
+      ])
         .catch(() => this.logger.error('automations failed; retrying'))
         .finally(() => {
           this.busy = false;
