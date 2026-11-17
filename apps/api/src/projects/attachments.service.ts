@@ -110,8 +110,9 @@ export class AttachmentsService {
       `WITH new AS (SELECT gen_random_uuid() AS id)
        INSERT INTO attachments (id, organization_id, project_id, task_id,
          uploaded_by_user_id, filename, content_type, size_bytes, storage_key)
-       SELECT new.id, $1, $2, $3, $4, $5, $6, $7,
-         $1::text || '/' || $2::text || '/' || $3::text || '/' || new.id::text
+       SELECT new.id, $1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6, $7,
+         $1::uuid::text || '/' || $2::uuid::text || '/' || $3::uuid::text
+           || '/' || new.id::text
        FROM new
        RETURNING id`,
       [

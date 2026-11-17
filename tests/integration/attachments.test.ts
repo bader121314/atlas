@@ -71,7 +71,7 @@ async function setup() {
     const put = await fetch(target.url, {
       method: 'PUT',
       headers: target.headers,
-      body,
+      body: new Uint8Array(body),
     });
     expect(put.status).toBe(200);
     const done = await fx.call(
@@ -198,7 +198,7 @@ describe('attachments', () => {
     const wrong = await fetch(created.upload.url, {
       method: 'PUT',
       headers: { 'content-type': 'text/html' },
-      body: PNG,
+      body: new Uint8Array(PNG),
     });
     expect(wrong.status).toBe(403);
   });
