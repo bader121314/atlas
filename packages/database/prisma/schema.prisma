@@ -174,6 +174,7 @@ model Task {
   priority String @default("none")
   assigneeUserId String? @map("assignee_user_id") @db.Uuid
   parentTaskId String? @map("parent_task_id") @db.Uuid
+  milestoneId String? @map("milestone_id") @db.Uuid
   dueAt DateTime? @map("due_at") @db.Timestamptz(6)
   completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
   createdByUserId String @map("created_by_user_id") @db.Uuid
@@ -242,4 +243,25 @@ model TaskLabel {
   @@id([taskId, labelId])
   @@index([organizationId, labelId])
   @@map("task_labels")
+}
+model TaskDependency {
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  blockerTaskId String @map("blocker_task_id") @db.Uuid
+  blockedTaskId String @map("blocked_task_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@id([blockerTaskId, blockedTaskId])
+  @@index([blockedTaskId], map: "task_dependencies_blocked_idx")
+  @@map("task_dependencies")
+}
+model Milestone {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  title String @db.VarChar(100)
+  dueAt DateTime? @map("due_at") @db.Timestamptz(6)
+  status String @default("open")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@unique([organizationId, projectId, id], map: "milestones_scope_key")
+  @@map("milestones")
 }

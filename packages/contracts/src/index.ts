@@ -259,6 +259,7 @@ export const createTaskRequestSchema = z
     assigneeId: z.uuid().nullable().default(null),
     dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
     parentNumber: parentNumber.default(null),
+    milestoneId: z.uuid().nullable().default(null),
   })
   .strict();
 export type CreateTaskRequest = z.infer<typeof createTaskRequestSchema>;
@@ -273,6 +274,7 @@ export const updateTaskRequestSchema = z
     assigneeId: z.uuid().nullable().optional(),
     dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
     parentNumber: parentNumber.optional(),
+    milestoneId: z.uuid().nullable().optional(),
   })
   .strict();
 export type UpdateTaskRequest = z.infer<typeof updateTaskRequestSchema>;
@@ -286,6 +288,7 @@ export const taskQuerySchema = z
     assignee: z.union([z.uuid(), z.enum(['me', 'none'])]).optional(),
     priority: priority.optional(),
     label: z.uuid().optional(),
+    milestone: z.union([z.uuid(), z.literal('none')]).optional(),
     parent: z
       .union([z.coerce.number().int().positive(), z.literal('none')])
       .optional(),
@@ -326,6 +329,10 @@ export const taskSchema = z
       .strict()
       .nullable(),
     labels: z.array(labelSchema),
+    milestone: z
+      .object({ id: z.uuid(), title: z.string() })
+      .strict()
+      .nullable(),
     version: z.number().int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -384,6 +391,47 @@ export const reorderStatesRequestSchema = z
 export const deleteStateQuerySchema = z
   .object({ moveTo: z.uuid().optional() })
   .strict();
+
+export const dependencyRequestSchema = z
+  .object({ blockerNumber: z.number().int().positive() })
+  .strict();
+const taskRef = z
+  .object({
+    number: z.number().int(),
+    key: z.string(),
+    title: z.string(),
+    done: z.boolean(),
+  })
+  .strict();
+export const dependenciesResponseSchema = z
+  .object({ blockedBy: z.array(taskRef), blocking: z.array(taskRef) })
+  .strict();
+export type DependenciesResponse = z.infer<typeof dependenciesResponseSchema>;
+
+export const milestoneRequestSchema = z
+  .object({
+    title: z.string().trim().min(1).max(100),
+    dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
+  })
+  .strict();
+export const updateMilestoneRequestSchema = z
+  .object({
+    title: z.string().trim().min(1).max(100).optional(),
+    dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
+    status: z.enum(['open', 'closed']).optional(),
+  })
+  .strict();
+export const milestoneSchema = z
+  .object({
+    id: z.uuid(),
+    title: z.string(),
+    dueAt: z.iso.datetime().nullable(),
+    status: z.enum(['open', 'closed']),
+    taskCount: z.number().int(),
+    doneCount: z.number().int(),
+  })
+  .strict();
+export type Milestone = z.infer<typeof milestoneSchema>;
 
 export const sessionResponseSchema = z
   .object({

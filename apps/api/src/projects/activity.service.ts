@@ -6,7 +6,9 @@ export type ActivityAction =
   | 'task.updated'
   | 'comment.created'
   | 'comment.edited'
-  | 'comment.deleted';
+  | 'comment.deleted'
+  | 'dependency.added'
+  | 'dependency.removed';
 
 type Scalar = string | number | boolean | null;
 export type Changes = Record<string, Scalar | { from: Scalar; to: Scalar }>;
