@@ -42,6 +42,8 @@ interface TaskRow {
   assignee_name: string | null;
   parent_number: number | null;
   labels: Label[];
+  milestone_id: string | null;
+  milestone_title: string | null;
 }
 
 const TASK_SELECT = `
@@ -51,6 +53,7 @@ const TASK_SELECT = `
     s.category AS state_category, s.position AS state_position,
     t.assignee_user_id, u.display_name AS assignee_name,
     pt.number AS parent_number,
+    t.milestone_id, ms.title AS milestone_title,
     COALESCE((
       SELECT json_agg(json_build_object('id', l.id, 'name', l.name, 'color', l.color)
         ORDER BY lower(l.name))
@@ -60,7 +63,8 @@ const TASK_SELECT = `
   FROM tasks t
   JOIN workflow_states s ON s.id = t.state_id
   LEFT JOIN users u ON u.id = t.assignee_user_id
-  LEFT JOIN tasks pt ON pt.id = t.parent_task_id`;
+  LEFT JOIN tasks pt ON pt.id = t.parent_task_id
+  LEFT JOIN milestones ms ON ms.id = t.milestone_id`;
 
 function toTask(row: TaskRow, projectKey: string): Task {
   return {
@@ -91,6 +95,10 @@ function toTask(row: TaskRow, projectKey: string): Task {
             key: `${projectKey}-${row.parent_number}`,
           },
     labels: row.labels,
+    milestone:
+      row.milestone_id && row.milestone_title
+        ? { id: row.milestone_id, title: row.milestone_title }
+        : null,
     version: Number(row.version),
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
@@ -125,6 +133,7 @@ function diff(before: TaskRow, after: TaskRow): Changes {
       before.parent_number === null ? null : String(before.parent_number),
       after.parent_number === null ? null : String(after.parent_number),
     ],
+    ['milestone', before.milestone_title, after.milestone_title],
     [
       'labels',
       before.labels.map((l) => l.name).join(', ') || null,
@@ -187,6 +196,8 @@ export class TasksService {
         query.label,
       );
     }
+    if (query.milestone === 'none') conditions.push('t.milestone_id IS NULL');
+    else if (query.milestone) add('t.milestone_id = ?', query.milestone);
     if (query.parent === 'none') conditions.push('t.parent_task_id IS NULL');
     else if (query.parent !== undefined) add('pt.number = ?', query.parent);
     if (query.after !== undefined) add('t.number > ?', query.after);
@@ -247,14 +258,17 @@ export class TasksService {
               project,
               input.parentNumber,
             );
+      if (input.milestoneId) {
+        await this.requireMilestone(client, tenant, project, input.milestoneId);
+      }
       const category = await this.categoryOf(client, stateId);
       await client
         .query(
           `INSERT INTO tasks (organization_id, project_id, number, title,
            description, state_id, priority, assignee_user_id, due_at,
-           completed_at, created_by_user_id, parent_task_id)
+           completed_at, created_by_user_id, parent_task_id, milestone_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-           CASE WHEN $10 THEN now() END, $11, $12)`,
+           CASE WHEN $10 THEN now() END, $11, $12, $13)`,
           [
             tenant.organizationId,
             project.id,
@@ -268,6 +282,7 @@ export class TasksService {
             category === 'done',
             userId,
             parentId,
+            input.milestoneId,
           ],
         )
         .catch(rejectInvalidParent);
@@ -328,6 +343,9 @@ export class TasksService {
               project,
               input.parentNumber,
             );
+      if (input.milestoneId) {
+        await this.requireMilestone(client, tenant, project, input.milestoneId);
+      }
       const done = (await this.categoryOf(client, stateId)) === 'done';
       await client
         .query(
@@ -339,6 +357,7 @@ export class TasksService {
            assignee_user_id = CASE WHEN $8 THEN $9::uuid ELSE assignee_user_id END,
            due_at = CASE WHEN $10 THEN $11::timestamptz ELSE due_at END,
            parent_task_id = CASE WHEN $13 THEN $14::uuid ELSE parent_task_id END,
+           milestone_id = CASE WHEN $15 THEN $16::uuid ELSE milestone_id END,
            completed_at = CASE
              WHEN $12 THEN COALESCE(completed_at, now())
              ELSE NULL END,
@@ -360,6 +379,8 @@ export class TasksService {
             done,
             input.parentNumber !== undefined,
             parentId,
+            input.milestoneId !== undefined,
+            input.milestoneId ?? null,
           ],
         )
         .catch(rejectInvalidParent);
@@ -404,6 +425,20 @@ export class TasksService {
       [tenant.organizationId, project.id],
     );
     if (!result.rowCount) throw new ConflictException();
+  }
+
+  private async requireMilestone(
+    client: PoolClient,
+    tenant: TenantContext,
+    project: ProjectContext,
+    milestoneId: string,
+  ): Promise<void> {
+    const result = await client.query(
+      `SELECT 1 FROM milestones
+       WHERE organization_id = $1 AND project_id = $2 AND id = $3`,
+      [tenant.organizationId, project.id, milestoneId],
+    );
+    if (!result.rowCount) throw new BadRequestException();
   }
 
   /** A parent must be another task in the same project. */

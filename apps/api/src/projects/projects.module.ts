@@ -8,6 +8,8 @@ import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
 import { LabelsController, TaskLabelsController } from './labels.controller';
 import { LabelsService } from './labels.service';
+import { PlanningController } from './planning.controller';
+import { PlanningService } from './planning.service';
 import { ProjectGuard } from './project.guard';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
@@ -25,6 +27,7 @@ import { TasksService } from './tasks.service';
     LabelsController,
     TaskLabelsController,
     StatesController,
+    PlanningController,
   ],
   providers: [
     ProjectsService,
@@ -34,6 +37,7 @@ import { TasksService } from './tasks.service';
     CommentsService,
     LabelsService,
     StatesService,
+    PlanningService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

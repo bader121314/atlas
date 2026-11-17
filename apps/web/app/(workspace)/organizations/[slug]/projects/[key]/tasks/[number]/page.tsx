@@ -14,7 +14,9 @@ import {
 } from '../../../../../../../../lib/api';
 import type {
   Label,
+  Milestone,
   Project,
+  TaskRef,
   Task,
   WorkflowState,
 } from '../../../../../../../../lib/api';
@@ -58,6 +60,10 @@ function describe(entry: Activity, names: Map<string, string>): string {
       return `${who} edited a comment`;
     case 'comment.deleted':
       return `${who} deleted a comment`;
+    case 'dependency.added':
+      return `${who} marked it blocked by task ${String(entry.changes.blockedBy)}`;
+    case 'dependency.removed':
+      return `${who} removed the blocker task ${String(entry.changes.blockedBy)}`;
     default: {
       const parts = Object.entries(entry.changes).map(([field, change]) => {
         if (change === true) return `changed the ${field}`;
@@ -92,6 +98,14 @@ export default function TaskPage() {
   const [states, setStates] = useState<WorkflowState[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [deps, setDeps] = useState<{
+    blockedBy: TaskRef[];
+    blocking: TaskRef[];
+  }>({
+    blockedBy: [],
+    blocking: [],
+  });
   const [comments, setComments] = useState<Comment[]>([]);
   const [history, setHistory] = useState<Activity[]>([]);
   const [message, setMessage] = useState<{
@@ -106,6 +120,10 @@ export default function TaskPage() {
     ]);
     setComments(c.data ?? []);
     setHistory(h.data ?? []);
+    const d = await api<{ blockedBy: TaskRef[]; blocking: TaskRef[] }>(
+      `${base}/tasks/${number}/dependencies`,
+    );
+    if (d.data) setDeps(d.data);
   }, [base, number]);
 
   const load = useCallback(async () => {
@@ -125,6 +143,8 @@ export default function TaskPage() {
     setStates(s.data ?? []);
     setMembers(m.data?.members ?? []);
     setLabels(l.data ?? []);
+    const ms = await api<Milestone[]>(`${base}/milestones`);
+    setMilestones(ms.data ?? []);
     await loadThread();
   }, [base, number, slug, loadThread]);
 
@@ -203,6 +223,38 @@ export default function TaskPage() {
         text: describeFailure(result.status, 'Labels could not be changed.'),
       });
     }
+  }
+
+  async function addBlocker(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const blockerNumber = Number(new FormData(form).get('blocker'));
+    const result = await api(`${base}/tasks/${number}/dependencies`, {
+      method: 'POST',
+      body: { blockerNumber },
+    });
+    if (result.ok) {
+      form.reset();
+      await loadThread();
+      return;
+    }
+    setMessage({
+      tone: 'error',
+      text:
+        result.status === 400
+          ? `${key}-${blockerNumber} cannot block this task: it does not exist, or it already depends on this task.`
+          : describeFailure(
+              result.status,
+              'The dependency could not be added.',
+            ),
+    });
+  }
+
+  async function removeBlocker(blocker: number) {
+    await api(`${base}/tasks/${number}/dependencies/${blocker}`, {
+      method: 'DELETE',
+    });
+    await loadThread();
   }
 
   async function saveText(event: FormEvent<HTMLFormElement>) {
@@ -294,6 +346,68 @@ export default function TaskPage() {
               </p>
             </>
           )}
+
+          <section className="section" aria-labelledby="deps-heading">
+            <h2 id="deps-heading">Dependencies</h2>
+            {deps.blockedBy.length === 0 && deps.blocking.length === 0 ? (
+              <p className="muted">This task does not depend on other tasks.</p>
+            ) : null}
+            {deps.blockedBy.length > 0 ? (
+              <>
+                <h3>Blocked by</h3>
+                <ul className="rows">
+                  {deps.blockedBy.map((d) => (
+                    <li key={d.number}>
+                      <Link className="grow" href={`${base}/tasks/${d.number}`}>
+                        {d.key} {d.title}
+                      </Link>
+                      <span className="muted">{d.done ? 'Done' : 'Open'}</span>
+                      {canWrite ? (
+                        <button
+                          className="button secondary small"
+                          type="button"
+                          onClick={() => void removeBlocker(d.number)}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {deps.blocking.length > 0 ? (
+              <>
+                <h3 className="section">Blocking</h3>
+                <ul className="rows">
+                  {deps.blocking.map((d) => (
+                    <li key={d.number}>
+                      <Link className="grow" href={`${base}/tasks/${d.number}`}>
+                        {d.key} {d.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {canWrite ? (
+              <form className="inline-form section" onSubmit={addBlocker}>
+                <div className="field">
+                  <label htmlFor="blocker">Blocked by task number</label>
+                  <input
+                    id="blocker"
+                    name="blocker"
+                    type="number"
+                    min={1}
+                    required
+                  />
+                </div>
+                <button className="button secondary" type="submit">
+                  Add blocker
+                </button>
+              </form>
+            ) : null}
+          </section>
 
           <section className="section" aria-labelledby="comments-heading">
             <h2 id="comments-heading">Comments</h2>
@@ -469,6 +583,29 @@ export default function TaskPage() {
                 </label>
               ))}
             </fieldset>
+          ) : null}
+          {milestones.length > 0 ? (
+            <div className="field">
+              <label htmlFor="milestone">Milestone</label>
+              <select
+                id="milestone"
+                value={task.milestone?.id ?? ''}
+                disabled={!canWrite}
+                onChange={(event) =>
+                  void save(
+                    { milestoneId: event.target.value || null },
+                    'Milestone changed.',
+                  )
+                }
+              >
+                <option value="">No milestone</option>
+                {milestones.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
+                  </option>
+                ))}
+              </select>
+            </div>
           ) : null}
           <div className="field">
             <label htmlFor="parent">Part of task number</label>

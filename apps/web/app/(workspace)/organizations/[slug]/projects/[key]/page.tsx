@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
+import { MilestonesSection } from '../../../../../../components/milestones-section';
 import { WorkflowSettings } from '../../../../../../components/workflow-settings';
 import { api, describeFailure, priorityLabel } from '../../../../../../lib/api';
 import type { Project, Task, WorkflowState } from '../../../../../../lib/api';
@@ -300,6 +301,10 @@ export default function ProjectPage() {
           ))}
         </ul>
       )}
+      <MilestonesSection
+        base={base}
+        canManage={project.role === 'manager' && project.status === 'active'}
+      />
       {project.role === 'manager' && project.status === 'active' ? (
         <WorkflowSettings
           base={base}

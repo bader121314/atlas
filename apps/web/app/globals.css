@@ -508,3 +508,9 @@ textarea {
 .checks input {
   height: auto;
 }
+
+progress {
+  width: 7rem;
+  height: 0.6rem;
+  accent-color: var(--sea);
+}
