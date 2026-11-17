@@ -90,6 +90,7 @@ export async function startFixtures() {
       for (const table of [
         'notifications',
         'attachments',
+        'exports',
         'notification_settings',
         'outbox_events',
         'saved_views',

@@ -31,7 +31,13 @@ describe('effective project role', () => {
 describe('project permissions', () => {
   const EXPECTED: Record<string, string[]> = {
     manager: [...PROJECT_ACTIONS],
-    editor: ['project.read', 'task.read', 'task.write', 'task.comment'],
+    editor: [
+      'project.read',
+      'task.read',
+      'task.write',
+      'task.comment',
+      'task.export',
+    ],
     commenter: ['project.read', 'task.read', 'task.comment'],
     viewer: ['project.read', 'task.read'],
   };

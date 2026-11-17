@@ -6,12 +6,16 @@ import type {
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
 import { ObjectStore, storageSettings } from '@atlas/shared';
+import { expireExports, runExports } from '../exports/exporter';
 import { checkBatch, removeAbandoned } from './checker';
 
 const CHECK_MS = 2000;
 const CLEANUP_MS = 10 * 60 * 1000;
 
-/** Runs attachment checks in the worker when storage is configured. */
+/**
+ * Storage jobs in the worker when storage is configured: attachment checks
+ * (ADR-034) and task exports (ADR-035).
+ */
 @Injectable()
 export class AttachmentChecksService
   implements OnApplicationBootstrap, OnApplicationShutdown
@@ -47,7 +51,14 @@ export class AttachmentChecksService
         CHECK_MS,
       ),
       setInterval(
-        guarded(() => removeAbandoned(pool, store)),
+        guarded(() => runExports(pool, store)),
+        CHECK_MS,
+      ),
+      setInterval(
+        guarded(async () => {
+          await removeAbandoned(pool, store);
+          await expireExports(pool, store);
+        }),
         CLEANUP_MS,
       ),
     );

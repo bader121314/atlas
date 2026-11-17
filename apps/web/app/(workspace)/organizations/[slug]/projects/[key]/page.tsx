@@ -7,6 +7,7 @@ import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
 import { AnalyticsSection } from '../../../../../../components/analytics-section';
 import { FieldsSection } from '../../../../../../components/custom-fields';
+import { ExportsSection } from '../../../../../../components/exports-section';
 import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../lib/live';
@@ -423,6 +424,9 @@ export default function ProjectPage() {
         base={base}
         refreshKey={tasks.reduce((n, t) => n + t.version, 0)}
       />
+      {project.role === 'manager' || project.role === 'editor' ? (
+        <ExportsSection base={base} />
+      ) : null}
       <MilestonesSection
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}

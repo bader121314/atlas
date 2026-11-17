@@ -360,6 +360,18 @@ const pages = [];
   await alice.keyboard.press('Enter');
   await alice.getByRole('link', { name: 'Mark the tide lines' }).waitFor();
   await shot(alice, '11k-search');
+  // A CSV export, built by the worker and downloadable by its requester.
+  await alice.goto(`${BASE}/organizations/${slug}/projects/COAST`);
+  await alice.getByRole('button', { name: 'Export tasks as CSV' }).click();
+  const csvLink = alice.getByRole('link', { name: /Download \(\d+ tasks\)/ });
+  await csvLink.waitFor({ timeout: 20000 });
+  const csv = await alice.request.get(
+    new URL(await csvLink.getAttribute('href'), BASE).toString(),
+  );
+  if (!csv.ok() || !(await csv.text()).includes('Chart the harbour')) {
+    throw new Error(`export download failed: ${csv.status()}`);
+  }
+  await shot(alice, '11l-export');
   await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();

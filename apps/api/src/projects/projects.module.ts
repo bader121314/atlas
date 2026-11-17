@@ -21,6 +21,8 @@ import { AttachmentsController } from './attachments.controller';
 import { AttachmentsService, StorageProvider } from './attachments.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
+import { ExportsController } from './exports.controller';
+import { ExportsService } from './exports.service';
 import { FieldsController } from './fields.controller';
 import { FieldsService } from './fields.service';
 import { LabelsController, TaskLabelsController } from './labels.controller';
@@ -63,6 +65,7 @@ import { ViewsService } from './views.service';
     SearchController,
     AnalyticsController,
     AttachmentsController,
+    ExportsController,
   ],
   providers: [
     ProjectsService,
@@ -84,6 +87,7 @@ import { ViewsService } from './views.service';
     AnalyticsService,
     AttachmentsService,
     StorageProvider,
+    ExportsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
