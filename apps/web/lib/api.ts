@@ -102,7 +102,16 @@ export interface Task {
   parent: { number: number; key: string } | null;
   labels: Label[];
   milestone: { id: string; title: string } | null;
+  fields: Record<string, string | number>;
   version: number;
+}
+
+export interface CustomField {
+  id: string;
+  name: string;
+  type: 'text' | 'number' | 'date' | 'select';
+  options: string[];
+  position: number;
 }
 
 export interface Milestone {

@@ -277,3 +277,27 @@ model SavedView {
   @@index([organizationId, projectId])
   @@map("saved_views")
 }
+model CustomField {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  name String @db.VarChar(40)
+  type String
+  options Json @default("[]")
+  position Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@unique([organizationId, projectId, id], map: "custom_fields_scope_key")
+  @@map("custom_fields")
+}
+model TaskFieldValue {
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  fieldId String @map("field_id") @db.Uuid
+  valueText String? @map("value_text") @db.VarChar(500)
+  valueNumber Decimal? @map("value_number")
+  valueDate DateTime? @map("value_date") @db.Date
+  @@id([taskId, fieldId])
+  @@index([fieldId], map: "task_field_values_field_idx")
+  @@map("task_field_values")
+}

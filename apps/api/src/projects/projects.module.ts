@@ -6,6 +6,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
 import { ActivityService } from './activity.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
+import { FieldsController } from './fields.controller';
+import { FieldsService } from './fields.service';
 import { LabelsController, TaskLabelsController } from './labels.controller';
 import { LabelsService } from './labels.service';
 import { PlanningController } from './planning.controller';
@@ -31,6 +33,7 @@ import { ViewsService } from './views.service';
     StatesController,
     PlanningController,
     ViewsController,
+    FieldsController,
   ],
   providers: [
     ProjectsService,
@@ -42,6 +45,7 @@ import { ViewsService } from './views.service';
     StatesService,
     PlanningService,
     ViewsService,
+    FieldsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

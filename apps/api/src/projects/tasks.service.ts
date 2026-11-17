@@ -44,6 +44,7 @@ interface TaskRow {
   labels: Label[];
   milestone_id: string | null;
   milestone_title: string | null;
+  fields: Record<string, string | number>;
 }
 
 const TASK_SELECT = `
@@ -59,7 +60,12 @@ const TASK_SELECT = `
         ORDER BY lower(l.name))
       FROM task_labels tl JOIN labels l ON l.id = tl.label_id
       WHERE tl.task_id = t.id
-    ), '[]'::json) AS labels
+    ), '[]'::json) AS labels,
+    COALESCE((
+      SELECT jsonb_object_agg(v.field_id::text, COALESCE(
+        to_jsonb(v.value_text), to_jsonb(v.value_number), to_jsonb(v.value_date::text)))
+      FROM task_field_values v WHERE v.task_id = t.id
+    ), '{}'::jsonb) AS fields
   FROM tasks t
   JOIN workflow_states s ON s.id = t.state_id
   LEFT JOIN users u ON u.id = t.assignee_user_id
@@ -99,6 +105,7 @@ function toTask(row: TaskRow, projectKey: string): Task {
       row.milestone_id && row.milestone_title
         ? { id: row.milestone_id, title: row.milestone_title }
         : null,
+    fields: row.fields,
     version: Number(row.version),
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),

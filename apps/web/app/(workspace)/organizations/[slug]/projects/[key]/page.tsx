@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
+import { FieldsSection } from '../../../../../../components/custom-fields';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
 import {
   CalendarView,
@@ -24,6 +25,7 @@ import { WorkflowSettings } from '../../../../../../components/workflow-settings
 import { api, describeFailure, priorityLabel } from '../../../../../../lib/api';
 import type {
   Label,
+  CustomField,
   Milestone,
   Project,
   Task,
@@ -125,6 +127,7 @@ export default function ProjectPage() {
   const [sort, setSort] = useState<Sort>({ field: 'number', direction: 'asc' });
   const [labels, setLabels] = useState<Label[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [fields, setFields] = useState<CustomField[]>([]);
   const [views, setViews] = useState<SavedView[]>([]);
   const [error, setError] = useState('');
   const [moveError, setMoveError] = useState('');
@@ -137,13 +140,15 @@ export default function ProjectPage() {
       return;
     }
     setProject(result.data);
-    const [stateResult, labelResult, milestoneResult, viewResult] =
+    const [stateResult, labelResult, milestoneResult, viewResult, fieldResult] =
       await Promise.all([
         api<WorkflowState[]>(`${base}/states`),
         api<Label[]>(`/organizations/${slug}/labels`),
         api<Milestone[]>(`${base}/milestones`),
         api<SavedView[]>(`${base}/views`),
+        api<CustomField[]>(`${base}/fields`),
       ]);
+    setFields(fieldResult.data ?? []);
     setStates(stateResult.data ?? []);
     setLabels(labelResult.data ?? []);
     setMilestones(milestoneResult.data ?? []);
@@ -345,7 +350,13 @@ export default function ProjectPage() {
           })}
         </div>
       ) : view === 'table' ? (
-        <TableView tasks={tasks} sort={sort} onSort={setSort} href={href} />
+        <TableView
+          tasks={tasks}
+          fields={fields}
+          sort={sort}
+          onSort={setSort}
+          href={href}
+        />
       ) : view === 'calendar' ? (
         <CalendarView tasks={tasks} href={href} />
       ) : (
@@ -373,6 +384,17 @@ export default function ProjectPage() {
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}
       />
+      {project.role === 'manager' && project.status === 'active' ? (
+        <FieldsSection
+          base={base}
+          fields={fields}
+          onChange={async () => {
+            const refreshed = await api<CustomField[]>(`${base}/fields`);
+            setFields(refreshed.data ?? []);
+            setTasks(await allTasks(base, filters));
+          }}
+        />
+      ) : null}
       {project.role === 'manager' && project.status === 'active' ? (
         <WorkflowSettings
           base={base}
