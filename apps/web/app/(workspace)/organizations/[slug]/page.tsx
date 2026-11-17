@@ -10,6 +10,7 @@ import { ApiTokensSection } from '../../../../components/api-tokens-section';
 import { ProjectsSection } from '../../../../components/projects-section';
 import { DomainsSection } from '../../../../components/domains-section';
 import { ScimSection } from '../../../../components/scim-section';
+import { SsoSection } from '../../../../components/sso-section';
 import { WebhooksSection } from '../../../../components/webhooks-section';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
@@ -421,6 +422,7 @@ export default function OrganizationPage() {
       {mine === 'owner' ? (
         <>
           <DomainsSection slug={slug} />
+          <SsoSection slug={slug} />
           <ScimSection slug={slug} />
         </>
       ) : null}

@@ -539,3 +539,30 @@ model OrganizationDomain {
   @@unique([organizationId, domain], map: "organization_domains_org_domain_key")
   @@map("organization_domains")
 }
+
+model SsoConnection {
+  organizationId String @id @map("organization_id") @db.Uuid
+  issuer String @db.VarChar(500)
+  clientId String @map("client_id") @db.VarChar(255)
+  clientSecretSealed String @map("client_secret_sealed")
+  enabled Boolean @default(false)
+  requireSso Boolean @default(false) @map("require_sso")
+  updatedByUserId String @map("updated_by_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("sso_connections")
+}
+
+model SsoState {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stateHash Bytes @unique(map: "sso_states_state_hash_key") @map("state_hash")
+  organizationId String @map("organization_id") @db.Uuid
+  nonce String @db.VarChar(64)
+  codeVerifier String @map("code_verifier") @db.VarChar(128)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@index([expiresAt], map: "sso_states_expires_idx")
+  @@map("sso_states")
+}

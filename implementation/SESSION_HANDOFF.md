@@ -168,9 +168,12 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 13. Done (PR #65): SCIM 2.0 user provisioning (ADR-055).
 14. Done (PR #66): usage metering per organization (ADR-056).
 15. Done (PR #67): verified email domains; SCIM limited to them (ADR-057).
-16. Next: SSO with OpenID Connect for verified domains (customers bring
-    their provider; tests use a local fake). Billing waits for a decision
-    on Stripe test mode (asked; deferred by the user for now).
+16. Done (PR #68): single sign-on with OpenID Connect (ADR-058). New
+    optional env: SSO_SECRET_KEY (SSO_ALLOW_HTTP, SSO_ALLOWED_HOSTS for
+    development only).
+17. Next M9 candidates: fine-grained access rules (guest label scoping),
+    offline editing and push notifications. Billing waits for a decision
+    on Stripe test mode (deferred by the user for now).
 
 ## Environment and versions
 

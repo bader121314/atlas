@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   Inject,
@@ -120,6 +121,8 @@ export class AuthController {
       { rule: 'loginPerAccount', subject: input.email },
     ]);
     const result = await this.auth.login(input, requestMeta(request));
+    // Right password, but the organization requires single sign-on (ADR-058).
+    if (!result.ok && result.ssoRequired) throw new ForbiddenException();
     if (!result.ok) throw new UnauthorizedException();
     response.setHeader(
       'Set-Cookie',
