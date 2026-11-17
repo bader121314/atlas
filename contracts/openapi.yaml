@@ -597,7 +597,7 @@ paths:
     post:
       operationId: createTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), startAt? and dueAt? (ISO 8601; start not after due, ADR-052), parentNumber? (task in the same project). Editor or manager.'
+      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), startAt? and dueAt? (ISO 8601; start not after due, ADR-052), estimateMinutes? (1-60000, ADR-054), parentNumber? (task in the same project). Editor or manager.'
       responses:
         '201': { description: 'Created with key PROJECT-N' }
         '400': { $ref: '#/components/responses/Problem' }
@@ -614,7 +614,7 @@ paths:
     patch:
       operationId: updateTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), startAt and dueAt (null clears; a start after the due date returns 400), parentNumber (null clears; loops and nesting beyond 5 levels return 400).'
+      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), startAt and dueAt (null clears; a start after the due date returns 400), estimateMinutes (null clears), parentNumber (null clears; loops and nesting beyond 5 levels return 400).'
       responses:
         '200': { description: Updated; version incremented }
         '400': { $ref: '#/components/responses/Problem' }
@@ -1224,10 +1224,19 @@ paths:
     get:
       operationId: getWorkload
       security: [{ sessionCookie: [] }]
-      description: '?weeks=1..12 (default 6). { weekStarts, people: [{ userId, displayName, overdue, weeks, later, noDueDate, total }] } counting open assigned tasks in projects the caller can open. Members, not guests. ADR-047.'
+      description: '?weeks=1..12 (default 6). { weekStarts, people: [{ userId, displayName, overdue, weeks, weekMinutes, capacityMinutes, later, noDueDate, total }] } counting open assigned tasks and their estimates (shared between assignees) in projects the caller can open. Members, not guests. ADR-047, ADR-054.'
       responses:
         '200': { description: Workload }
         '403': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/workload/capacity/{userId}:
+    put:
+      operationId: setCapacity
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { weeklyMinutes: 0-10080 or null }. Yourself, or anyone as owner or admin. ADR-054.'
+      responses:
+        '200': { description: '{ userId, weeklyMinutes }' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:
