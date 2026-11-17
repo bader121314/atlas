@@ -26,5 +26,7 @@
   cannot remove someone else's entry; a member's report excludes other
   people and private projects they cannot open
   (`tests/integration/time-tracking.test.ts`).
-- Totals are not exported or sent in webhooks yet; adding them later must
-  keep the same project-read check.
+- Task exports (ADR-035) include each task's start date and total minutes
+  logged, as columns appended after the existing ones; exports already
+  require `task.export` and a requester who can still export when the job
+  runs. Totals are not sent in webhooks.
