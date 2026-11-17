@@ -124,7 +124,7 @@ access, lockfile is authoritative), so M4 uses what is installed.
    being typed. The smoke job now runs the worker.
 4. Done (PR #28): task presence in a Redis sorted set with 45-second expiry,
    heartbeats from the task page (ADR-030).
-5. Done (PRs #29, #30): notifications from the outbox (assignment,
+5. Done (PR #29): notifications from the outbox (assignment,
    comments), inbox API with access checks, delayed email with an opt-out
    (ADR-031); inbox page and unread badge in the web app.
 6. Exit tests: delivery across two API instances, revocation cuts the stream,

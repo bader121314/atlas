@@ -43,6 +43,7 @@ jobs:
       SESSION_SECRET: ephemeral-ci-only-session-secret-0123456789
       WEB_ORIGIN: http://127.0.0.1:3000
       API_PORT: '3001'
+      NOTIFICATION_EMAIL_DELAY_MS: '0'
       NEXT_TELEMETRY_DISABLED: '1'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
