@@ -1147,6 +1147,14 @@ paths:
       responses:
         '200': { description: The updated task }
         '400': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/workload:
+    get:
+      operationId: getWorkload
+      security: [{ sessionCookie: [] }]
+      description: '?weeks=1..12 (default 6). { weekStarts, people: [{ userId, displayName, overdue, weeks, later, noDueDate, total }] } counting open assigned tasks in projects the caller can open. Members, not guests. ADR-047.'
+      responses:
+        '200': { description: Workload }
+        '403': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:

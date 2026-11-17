@@ -30,6 +30,8 @@ const TEXT: [string, string][] = [
   ['ink', 'paper'],
   ['ink', 'surface'],
   ['ink', 'column'],
+  ['ink', 'load-2'],
+  ['ink', 'load-3'],
   ['ink-soft', 'paper'],
   ['ink-soft', 'surface'],
   ['ink-soft', 'column'],
