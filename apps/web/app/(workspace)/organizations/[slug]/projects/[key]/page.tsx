@@ -6,21 +6,45 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
+import {
+  CalendarView,
+  TableView,
+} from '../../../../../../components/task-views';
+import type { Sort } from '../../../../../../components/task-views';
+import {
+  LAYOUTS,
+  ViewToolbar,
+} from '../../../../../../components/view-toolbar';
+import type {
+  Filters,
+  Layout,
+  SavedView,
+} from '../../../../../../components/view-toolbar';
 import { WorkflowSettings } from '../../../../../../components/workflow-settings';
 import { api, describeFailure, priorityLabel } from '../../../../../../lib/api';
-import type { Project, Task, WorkflowState } from '../../../../../../lib/api';
+import type {
+  Label,
+  Milestone,
+  Project,
+  Task,
+  WorkflowState,
+} from '../../../../../../lib/api';
 
 const day = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
-async function allTasks(base: string): Promise<Task[]> {
+async function allTasks(base: string, filters: Filters = {}): Promise<Task[]> {
   const tasks: Task[] = [];
+  const query = Object.entries(filters)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `&${k}=${encodeURIComponent(String(v))}`)
+    .join('');
   let after: number | null = 0;
   // Keyset pages of 100 until the API reports no further page.
   for (let page = 0; after !== null && page < 20; page += 1) {
     const result: {
       data?: { tasks: Task[]; nextCursor: number | null } | undefined;
     } = await api<{ tasks: Task[]; nextCursor: number | null }>(
-      `${base}/tasks?limit=100&after=${after}`,
+      `${base}/tasks?limit=100&after=${after}${query}`,
     );
     if (!result.data) break;
     tasks.push(...result.data.tasks);
@@ -96,7 +120,12 @@ export default function ProjectPage() {
   const [missing, setMissing] = useState(false);
   const [states, setStates] = useState<WorkflowState[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [view, setView] = useState<'board' | 'list'>('board');
+  const [view, setView] = useState<Layout>('board');
+  const [filters, setFilters] = useState<Filters>({});
+  const [sort, setSort] = useState<Sort>({ field: 'number', direction: 'asc' });
+  const [labels, setLabels] = useState<Label[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [views, setViews] = useState<SavedView[]>([]);
   const [error, setError] = useState('');
   const [moveError, setMoveError] = useState('');
   const [dropTarget, setDropTarget] = useState<string>();
@@ -108,10 +137,19 @@ export default function ProjectPage() {
       return;
     }
     setProject(result.data);
-    const stateResult = await api<WorkflowState[]>(`${base}/states`);
+    const [stateResult, labelResult, milestoneResult, viewResult] =
+      await Promise.all([
+        api<WorkflowState[]>(`${base}/states`),
+        api<Label[]>(`/organizations/${slug}/labels`),
+        api<Milestone[]>(`${base}/milestones`),
+        api<SavedView[]>(`${base}/views`),
+      ]);
     setStates(stateResult.data ?? []);
-    setTasks(await allTasks(base));
-  }, [base]);
+    setLabels(labelResult.data ?? []);
+    setMilestones(milestoneResult.data ?? []);
+    setViews(viewResult.data ?? []);
+    setTasks(await allTasks(base, filters));
+  }, [base, slug, filters]);
 
   useEffect(() => {
     void load();
@@ -150,7 +188,7 @@ export default function ProjectPage() {
     if (result.ok) {
       form.reset();
       setError('');
-      setTasks(await allTasks(base));
+      setTasks(await allTasks(base, filters));
       return;
     }
     setError(describeFailure(result.status, 'The task could not be created.'));
@@ -184,7 +222,7 @@ export default function ProjectPage() {
         ? `${task.key} was changed by someone else, so it was not moved. The board now shows the latest version.`
         : describeFailure(result.status, `${task.key} could not be moved.`),
     );
-    setTasks(await allTasks(base));
+    setTasks(await allTasks(base, filters));
   }
 
   const href = (task: Task) => `${base}/tasks/${task.number}`;
@@ -216,8 +254,30 @@ export default function ProjectPage() {
         </form>
       ) : null}
 
+      <ViewToolbar
+        base={base}
+        views={views}
+        layout={view}
+        filters={filters}
+        sort={sort}
+        states={states}
+        labels={labels}
+        milestones={milestones}
+        canManage={project.role === 'manager'}
+        onApply={(config) => {
+          setView(config.layout);
+          setFilters(config.filters);
+          setSort(config.sort);
+        }}
+        onFilters={setFilters}
+        onViewsChanged={async () => {
+          const refreshed = await api<SavedView[]>(`${base}/views`);
+          setViews(refreshed.data ?? []);
+        }}
+      />
+
       <nav className="tabs" aria-label="Task views">
-        {(['board', 'list'] as const).map((option) => (
+        {LAYOUTS.map((option) => (
           <a
             key={option}
             href={`#${option}`}
@@ -227,13 +287,17 @@ export default function ProjectPage() {
               setView(option);
             }}
           >
-            {option === 'board' ? 'Board' : 'List'}
+            {option.charAt(0).toUpperCase() + option.slice(1)}
           </a>
         ))}
       </nav>
 
       {tasks.length === 0 ? (
-        <p className="muted">No tasks yet.</p>
+        <p className="muted">
+          {Object.values(filters).some(Boolean)
+            ? 'No tasks match these filters.'
+            : 'No tasks yet.'}
+        </p>
       ) : view === 'board' ? (
         <div className="board">
           {moveError ? (
@@ -280,6 +344,10 @@ export default function ProjectPage() {
             );
           })}
         </div>
+      ) : view === 'table' ? (
+        <TableView tasks={tasks} sort={sort} onSort={setSort} href={href} />
+      ) : view === 'calendar' ? (
+        <CalendarView tasks={tasks} href={href} />
       ) : (
         <ul className="rows">
           {tasks.map((task) => (
@@ -312,7 +380,7 @@ export default function ProjectPage() {
           onChange={async () => {
             const refreshed = await api<WorkflowState[]>(`${base}/states`);
             setStates(refreshed.data ?? []);
-            setTasks(await allTasks(base));
+            setTasks(await allTasks(base, filters));
           }}
         />
       ) : null}
