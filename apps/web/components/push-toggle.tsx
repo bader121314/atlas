@@ -5,10 +5,12 @@ import { api } from '../lib/api';
 
 type State = 'unsupported' | 'unavailable' | 'off' | 'on' | 'blocked';
 
-function keyBytes(base64url: string): Uint8Array {
+function keyBytes(base64url: string): ArrayBuffer {
   const padded = base64url.replace(/-/g, '+').replace(/_/g, '/');
   const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  const bytes = new Uint8Array(new ArrayBuffer(raw.length));
+  for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer;
 }
 
 /** Turns browser notifications on or off for this device (ADR-060). */
