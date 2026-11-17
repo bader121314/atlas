@@ -253,6 +253,11 @@ const pages = [];
   if (!fetched.ok() || (await fetched.body()).length !== 70) {
     throw new Error(`attachment download failed: ${fetched.status()}`);
   }
+  // Time tracking: log an entry and see the total.
+  await alice.getByLabel('Time spent').fill('1h 30m');
+  await alice.getByLabel('Note (optional)').fill('Measured the tides');
+  await alice.getByRole('button', { name: 'Log time' }).click();
+  await alice.getByText('1h 30m by Alice Rahman').waitFor();
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice

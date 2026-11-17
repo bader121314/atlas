@@ -1068,6 +1068,64 @@ export const workloadSchema = z
   .strict();
 export type Workload = z.infer<typeof workloadSchema>;
 
+/** Time logged against a task (ADR-049). */
+export const logTimeRequestSchema = z
+  .object({
+    minutes: z.number().int().min(1).max(1440),
+    spentOn: z.iso.date(),
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+export type LogTimeRequest = z.infer<typeof logTimeRequestSchema>;
+
+export const timeEntrySchema = z
+  .object({
+    id: z.uuid(),
+    user: z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    minutes: z.number().int(),
+    spentOn: z.iso.date(),
+    note: z.string().nullable(),
+    createdAt: z.iso.datetime(),
+  })
+  .strict();
+export type TimeEntry = z.infer<typeof timeEntrySchema>;
+
+export const taskTimeSchema = z
+  .object({ totalMinutes: z.number().int(), entries: z.array(timeEntrySchema) })
+  .strict();
+export type TaskTime = z.infer<typeof taskTimeSchema>;
+
+export const timeReportQuerySchema = z
+  .object({ from: z.iso.date(), to: z.iso.date() })
+  .strict()
+  .refine((q) => q.from <= q.to, 'from must not be after to')
+  .refine(
+    (q) => Date.parse(q.to) - Date.parse(q.from) <= 92 * 86_400_000,
+    'At most 93 days',
+  );
+
+/** Minutes per person and project over a date range (ADR-049). */
+export const timeReportSchema = z
+  .object({
+    from: z.iso.date(),
+    to: z.iso.date(),
+    everyone: z.boolean(),
+    totalMinutes: z.number().int(),
+    rows: z.array(
+      z
+        .object({
+          userId: z.uuid(),
+          displayName: z.string(),
+          projectKey: z.string(),
+          projectName: z.string(),
+          minutes: z.number().int(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type TimeReport = z.infer<typeof timeReportSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

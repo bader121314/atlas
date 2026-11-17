@@ -153,8 +153,9 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 2. Done (PR #54): team workload view (ADR-047, first M9 item).
 3. Done (PR #55): notification preferences per kind and daily digests
    (ADR-048).
-4. Next M9 items, each with an ADR, threat model and acceptance gates:
-   time tracking,
+4. Done (PR #56): time tracking with task entries and a time report
+   (ADR-049).
+5. Next M9 items, each with an ADR, threat model and acceptance gates:
    public read-only share links with strict data fences.
 
 ## Environment and versions
