@@ -27,8 +27,8 @@ export interface ActivityInput {
 /**
  * Writes the activity row and its outbox event with the caller's
  * transaction client, so history and notifications can never disagree with
- * the change itself (ADR-020). The outbox is published after commit by the
- * dispatcher (M4).
+ * the change itself (ADR-020). The worker's outbox dispatcher publishes the event
+ * only after commit (ADR-028).
  */
 @Injectable()
 export class ActivityService {
@@ -47,9 +47,9 @@ export class ActivityService {
       ],
     );
     await client.query(
-      `INSERT INTO outbox_events (organization_id, aggregate_type, aggregate_id,
-         aggregate_version, event_type, payload)
-       VALUES ($1, 'task', $2, $3, $4, $5)`,
+      `INSERT INTO outbox_events (organization_id, project_id, aggregate_type,
+         aggregate_id, aggregate_version, event_type, payload)
+       VALUES ($1, $6, 'task', $2, $3, $4, $5)`,
       [
         input.organizationId,
         input.taskId,
@@ -61,6 +61,7 @@ export class ActivityService {
           actorUserId: input.actorUserId,
           changes: input.changes,
         }),
+        input.projectId,
       ],
     );
   }

@@ -225,6 +225,9 @@ model OutboxEvent {
   occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
   publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
   attemptCount Int @default(0) @map("attempt_count")
+  projectId String? @map("project_id") @db.Uuid
+  nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(6)
+  @@index([projectId, publishedAt], map: "outbox_events_stream_idx")
   @@map("outbox_events")
 }
 model Label {
