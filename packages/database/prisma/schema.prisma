@@ -114,6 +114,7 @@ model AuditEvent {
   ipSummary String? @map("ip_summary") @db.VarChar(64)
   userAgentSummary String? @map("user_agent_summary") @db.VarChar(256)
   metadata Json @default("{}")
+  requestId String? @map("request_id") @db.VarChar(128)
   occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
   @@index([actorUserId, occurredAt(sort: Desc)])
   @@index([organizationId, occurredAt(sort: Desc)])

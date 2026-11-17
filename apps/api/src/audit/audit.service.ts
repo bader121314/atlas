@@ -43,6 +43,7 @@ export type AuditAction =
 export interface RequestMeta {
   ip?: string | undefined;
   userAgent?: string | undefined;
+  requestId?: string | undefined;
 }
 
 type MetadataValue = string | number | boolean | null;
@@ -74,8 +75,9 @@ export class AuditService {
     const runner = client ?? this.database.pool;
     await runner.query(
       `INSERT INTO audit_events (organization_id, actor_user_id, action,
-         target_type, target_id, ip_summary, user_agent_summary, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+         target_type, target_id, ip_summary, user_agent_summary, metadata,
+         request_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         event.organizationId ?? null,
         event.actorUserId ?? null,
@@ -85,6 +87,7 @@ export class AuditService {
         summarizeIp(event.request?.ip),
         event.request?.userAgent?.slice(0, 256) ?? null,
         JSON.stringify(event.metadata ?? {}),
+        event.request?.requestId ?? null,
       ],
     );
   }

@@ -43,7 +43,11 @@ function clientIp(request: HttpRequest): string {
 }
 
 export function requestMeta(request: HttpRequest): RequestMeta {
-  return { ip: request.ip, userAgent: header(request, 'user-agent') };
+  return {
+    ip: request.ip,
+    userAgent: header(request, 'user-agent'),
+    requestId: request.requestId,
+  };
 }
 
 export function caller(request: HttpRequest): AuthContext {

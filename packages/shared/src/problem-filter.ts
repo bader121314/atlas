@@ -6,7 +6,12 @@ interface ProblemResponse {
   status(code: number): ProblemResponse;
   type(contentType: string): ProblemResponse;
   setHeader(name: string, value: string): void;
-  send(body: { type: string; title: string; status: number }): void;
+  send(body: {
+    type: string;
+    title: string;
+    status: number;
+    requestId?: string;
+  }): void;
 }
 const TITLES: Record<number, string> = {
   400: 'Bad request',
@@ -28,6 +33,9 @@ export class ProblemFilter implements ExceptionFilter {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
     const response = host.switchToHttp().getResponse<ProblemResponse>();
+    const request = host
+      .switchToHttp()
+      .getRequest<{ requestId?: string } | undefined>();
     const retryAfter = retryAfterSeconds(exception);
     if (retryAfter !== undefined) {
       response.setHeader('Retry-After', String(retryAfter));
@@ -39,6 +47,8 @@ export class ProblemFilter implements ExceptionFilter {
         type: 'about:blank',
         title: TITLES[status] ?? 'Request failed',
         status,
+        // Lets support find the matching log line without exposing details.
+        ...(request?.requestId ? { requestId: request.requestId } : {}),
       });
   }
 }

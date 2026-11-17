@@ -138,8 +138,8 @@ Read `docs/08` M7 and `docs/06`. No cloud credentials are available here,
 so infrastructure work is code plus validation (`terraform validate` is not
 installed; keep modules small and documented). Suggested order:
 
-1. Request IDs end to end (header in and out, in logs and audit events) and
-   structured JSON logs; trusted-proxy client addresses (carry-over).
+1. Done (PR #41): request ids in responses, problem details, audit events
+   and JSON request logs; `TRUST_PROXY` for client addresses (ADR-040).
 2. Metrics endpoint (Prometheus text format, no dependency) for HTTP,
    worker loops and outbox lag; health details for readiness.
 3. Dockerfiles for web, API and worker; a compose file for a full local

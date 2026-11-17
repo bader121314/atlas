@@ -12,7 +12,7 @@ import {
   RateLimitSettings,
 } from '../../../apps/api/src/rate-limit/rate-limit.service';
 import { parseEnvironment } from '../../../packages/config/src';
-import { ProblemFilter } from '../../../packages/shared/src';
+import { ProblemFilter, requestLogging } from '../../../packages/shared/src';
 
 export const ORIGIN = 'http://localhost:3000';
 export const SECRET = 'integration-test-secret-'.padEnd(48, 'x');
@@ -65,6 +65,7 @@ export async function startAuthApp() {
     })
     .compile();
   const app: App = module.createNestApplication();
+  app.use(requestLogging(() => undefined, false));
   app.setGlobalPrefix('v1');
   app.useGlobalFilters(new ProblemFilter());
   await app.listen(0, '127.0.0.1');
