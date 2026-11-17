@@ -25,6 +25,18 @@ const size = { width: 1280, height: 800 };
     await page.waitForLoadState('networkidle');
     await pause();
   };
+  // Views sit below the filters; bring the view tabs to the top of the frame.
+  const toViews = async () => {
+    await page.waitForLoadState('networkidle');
+    await page
+      .getByRole('link', { name: 'Board', exact: true })
+      .evaluate((el) =>
+        window.scrollTo({
+          top: el.getBoundingClientRect().top + window.scrollY - 16,
+        }),
+      );
+    await pause();
+  };
 
   await page.goto(`${BASE}/login`);
   await page.getByLabel('Email').pressSequentially('demo@atlas.example', {
@@ -38,7 +50,7 @@ const size = { width: 1280, height: 800 };
   // Board, then a task with its discussion.
   await page.goto(project);
   await page.getByRole('region', { name: 'In review' }).waitFor();
-  await settle();
+  await toViews();
   await page.goto(`${project}/tasks/3`);
   await page.getByRole('heading', { name: 'Comments' }).waitFor();
   await settle();
@@ -49,7 +61,7 @@ const size = { width: 1280, height: 800 };
   for (const view of ['Table', 'Timeline', 'Calendar']) {
     await page.goto(project);
     await page.getByRole('link', { name: view, exact: true }).click();
-    await settle();
+    await toViews();
   }
 
   // Search and the team's workload.
