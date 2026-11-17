@@ -62,7 +62,10 @@ export class SearchService {
       matched_in: 'task' | 'comment';
     }>(
       `WITH readable AS (
-         SELECT p.id, p.key, p.name FROM projects p
+         SELECT p.id, p.key, p.name,
+           -- Guests may be limited to labelled tasks (ADR-059).
+           CASE WHEN $3 = 'guest' THEN pm.label_scope END AS scope
+         FROM projects p
          LEFT JOIN project_memberships pm
            ON pm.project_id = p.id AND pm.user_id = $2
          WHERE ${READABLE}
@@ -95,6 +98,8 @@ export class SearchService {
        JOIN tasks t ON t.id = b.id
        JOIN readable r ON r.id = t.project_id
        JOIN workflow_states ws ON ws.id = t.state_id
+       WHERE r.scope IS NULL OR EXISTS (SELECT 1 FROM task_labels sl
+         WHERE sl.task_id = t.id AND sl.label_id = ANY(r.scope))
        ORDER BY b.tier, b.rank DESC, t.updated_at DESC, t.id
        LIMIT ${LIMIT}`,
       [

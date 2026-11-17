@@ -551,7 +551,7 @@ paths:
     put:
       operationId: setProjectMember
       security: [{ sessionCookie: [] }]
-      description: 'Body: role (manager | editor | commenter | viewer). Guests may be at most commenter (400 otherwise). Manager only.'
+      description: 'Body: role (manager | editor | commenter | viewer), labelIds? (guests only: up to 20 organization labels limiting them to tasks with any of them; null clears, omitted keeps; ADR-059). Guests may be at most commenter (400 otherwise). Manager only.'
       responses:
         '204': { description: Role set }
         '400': { $ref: '#/components/responses/Problem' }

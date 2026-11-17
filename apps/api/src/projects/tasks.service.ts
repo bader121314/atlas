@@ -21,6 +21,7 @@ import { DatabaseService } from '../database.service';
 import { ActivityService } from './activity.service';
 import type { Changes } from './activity.service';
 import { effectiveProjectRole } from './policy';
+import { inScope, scopeOf } from './label-scope';
 
 interface TaskRow {
   id: string;
@@ -242,6 +243,11 @@ export class TasksService {
     if (query.parent === 'none') conditions.push('t.parent_task_id IS NULL');
     else if (query.parent !== undefined) add('pt.number = ?', query.parent);
     if (query.after !== undefined) add('t.number > ?', query.after);
+    const scope = scopeOf(project);
+    if (scope) {
+      values.push(scope);
+      conditions.push(inScope('t.id', `$${values.length}`));
+    }
     values.push(query.limit + 1);
     const result = await this.database.pool.query<TaskRow>(
       `${TASK_SELECT}
@@ -463,8 +469,9 @@ export class TasksService {
   ): Promise<TaskRow | undefined> {
     const result = await runner.query<TaskRow>(
       `${TASK_SELECT}
-       WHERE t.organization_id = $1 AND t.project_id = $2 AND t.number = $3`,
-      [tenant.organizationId, project.id, number],
+       WHERE t.organization_id = $1 AND t.project_id = $2 AND t.number = $3
+         AND ${inScope('t.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     return result.rows[0];
   }

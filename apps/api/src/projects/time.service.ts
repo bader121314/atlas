@@ -13,6 +13,7 @@ import type {
 } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
+import { inScope, scopeOf } from './label-scope';
 
 interface EntryRow {
   id: string;
@@ -56,8 +57,9 @@ export class TimeService {
   ): Promise<string> {
     const result = await this.database.pool.query<{ id: string }>(
       `SELECT id FROM tasks
-       WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
-      [tenant.organizationId, project.id, number],
+       WHERE organization_id = $1 AND project_id = $2 AND number = $3
+         AND ${inScope('tasks.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     const id = result.rows[0]?.id;
     if (!id) throw new NotFoundException();

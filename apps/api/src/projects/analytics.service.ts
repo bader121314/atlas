@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import type { ProjectAnalytics } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
@@ -29,6 +29,8 @@ export class AnalyticsService {
     tenant: TenantContext,
     project: ProjectContext,
   ): Promise<ProjectAnalytics> {
+    // Project-wide figures would describe tasks a scoped guest cannot see.
+    if (project.labelScope) throw new ForbiddenException();
     const args = [tenant.organizationId, project.id];
     const [states, totals, weeks, lead, people] = await Promise.all([
       this.database.pool.query<{

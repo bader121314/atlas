@@ -112,7 +112,7 @@ export class ProjectsController {
     @Body() body: unknown,
     @Req() request: HttpRequest,
   ): Promise<void> {
-    const { role } = parse(setProjectMemberRequestSchema, body);
+    const { role, labelIds } = parse(setProjectMemberRequestSchema, body);
     return this.projects.setMember(
       tenantOf(request),
       projectOf(request),
@@ -120,6 +120,7 @@ export class ProjectsController {
       idParam(userId),
       role,
       requestMeta(request),
+      labelIds,
     );
   }
 

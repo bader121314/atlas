@@ -10,6 +10,7 @@ import type { Activity, Comment } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
 import { ActivityService } from './activity.service';
+import { inScope, scopeOf } from './label-scope';
 
 interface CommentRow {
   id: string;
@@ -50,8 +51,9 @@ export class CommentsService {
   ): Promise<{ id: string; version: number }> {
     const result = await runner.query<{ id: string; version: string }>(
       `SELECT id, version FROM tasks
-       WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
-      [tenant.organizationId, project.id, number],
+       WHERE organization_id = $1 AND project_id = $2 AND number = $3
+         AND ${inScope('tasks.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     const row = result.rows[0];
     if (!row) throw new NotFoundException();
@@ -94,8 +96,12 @@ export class CommentsService {
            LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = m.user_id
            WHERE m.organization_id = $1 AND m.user_id = ANY($3::uuid[]) AND m.state = 'active'
              AND (m.role IN ('owner', 'admin') OR pm.user_id IS NOT NULL
-                  OR (m.role = 'member' AND p.visibility = 'organization'))`,
-          [tenant.organizationId, project.id, mentions],
+                  OR (m.role = 'member' AND p.visibility = 'organization'))
+             -- Scoped guests can be mentioned only on tasks they can see.
+             AND (m.role <> 'guest' OR pm.label_scope IS NULL OR EXISTS (
+               SELECT 1 FROM task_labels sl
+               WHERE sl.task_id = $4 AND sl.label_id = ANY(pm.label_scope)))`,
+          [tenant.organizationId, project.id, mentions, task.id],
         );
         if (Number(allowed.rows[0]?.count) !== mentions.length)
           throw new BadRequestException(
