@@ -8,3 +8,20 @@ export {
   hashPassword,
   verifyPassword,
 } from './auth';
+export {
+  ObjectStore,
+  encodeRfc3986,
+  presign,
+  signature,
+  storageSettings,
+} from './storage';
+export type { PresignInput, StorageSettings } from './storage';
+export {
+  ALLOWED_TYPES,
+  MAX_ATTACHMENT_BYTES,
+  isAllowedType,
+  safeFilename,
+  scanForMalware,
+  sniffType,
+} from './files';
+export type { AllowedType } from './files';
