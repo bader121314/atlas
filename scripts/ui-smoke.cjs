@@ -208,6 +208,22 @@ const pages = [];
     .getByText('Survey the cliffs')
     .waitFor();
   await shot(alice, '11d-board-moved');
+  // Table view with a filter, saved as a shared view.
+  await alice.getByRole('link', { name: 'Table', exact: true }).click();
+  await alice.getByRole('columnheader', { name: 'Title' }).waitFor();
+  await alice
+    .getByLabel('Status', { exact: true })
+    .selectOption({ label: 'Done' });
+  await alice.getByRole('cell', { name: 'Survey the cliffs' }).waitFor();
+  await alice.getByLabel('Save this view as').fill('Finished work');
+  await alice.getByLabel('Share with the project').check();
+  await alice.getByRole('button', { name: 'Save view' }).click();
+  await alice.getByRole('button', { name: 'Finished work (shared)' }).waitFor();
+  await shot(alice, '11e-table-view');
+  await alice.getByRole('button', { name: 'Clear filters' }).click();
+  await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
+  await alice.getByRole('grid').waitFor();
+  await shot(alice, '11f-calendar');
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 

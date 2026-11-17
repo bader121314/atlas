@@ -433,6 +433,60 @@ export const milestoneSchema = z
   .strict();
 export type Milestone = z.infer<typeof milestoneSchema>;
 
+export const viewConfigSchema = z
+  .object({
+    layout: z.enum(['board', 'list', 'table', 'calendar']),
+    filters: z
+      .object({
+        state: z
+          .string()
+          .regex(/^[a-z][a-z0-9_]*$/)
+          .optional(),
+        assignee: z.union([z.uuid(), z.enum(['me', 'none'])]).optional(),
+        priority: priority.optional(),
+        label: z.uuid().optional(),
+        milestone: z.union([z.uuid(), z.literal('none')]).optional(),
+      })
+      .strict()
+      .default({}),
+    sort: z
+      .object({
+        field: z.enum([
+          'number',
+          'title',
+          'priority',
+          'due',
+          'state',
+          'assignee',
+        ]),
+        direction: z.enum(['asc', 'desc']),
+      })
+      .strict()
+      .default({ field: 'number', direction: 'asc' }),
+  })
+  .strict();
+export type ViewConfig = z.infer<typeof viewConfigSchema>;
+
+export const createViewRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(60),
+    shared: z.boolean().default(false),
+    config: viewConfigSchema,
+  })
+  .strict();
+
+export const savedViewSchema = z
+  .object({
+    id: z.uuid(),
+    name: z.string(),
+    shared: z.boolean(),
+    mine: z.boolean(),
+    owner: z.string(),
+    config: viewConfigSchema,
+  })
+  .strict();
+export type SavedView = z.infer<typeof savedViewSchema>;
+
 export const sessionResponseSchema = z
   .object({
     user: z

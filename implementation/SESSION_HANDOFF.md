@@ -111,8 +111,9 @@ Read `docs/08` M3 and the deferrals in `docs/10`. In order:
    rollback (ADR-023). Ordering within a column is not supported yet.
 3. Done (PR #19): dependencies with database loop protection and
    milestones with progress (ADR-024).
-4. Table view with sorting; calendar view by due date; saved views (filters
-   stored per user or project).
+4. Done (PR #20): filters, table (client-side sort) and calendar views,
+   saved views private or shared (ADR-025). Note: local Prettier 3.8 differs
+   from the project's 3.10 on long union types; keep them on one line.
 5. Custom fields (text, number, date, select) with typed validation.
 6. Design system pass: shared components, consistent spacing, WCAG checks;
    extend the browser smoke test to multiple viewports.
