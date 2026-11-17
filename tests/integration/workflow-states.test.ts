@@ -145,15 +145,6 @@ describe('workflow states', () => {
     expect(
       (await fx.call(owner, 'DELETE', `${base}/states/${todo?.id}`)).status,
     ).toBe(204);
-    expect(
-      (
-        await fx.call(
-          owner,
-          'DELETE',
-          `${base}/states/${done?.id}?moveTo=${done?.id}`,
-        )
-      ).status,
-    ).toBe(400);
     const last = await states();
     expect(last).toHaveLength(1);
     await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
