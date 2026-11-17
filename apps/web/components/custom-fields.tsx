@@ -7,8 +7,9 @@ import type { CustomField } from '../lib/api';
 import { Notice, value } from './form';
 import { useT } from '../lib/i18n';
 
+// Translated where shown (ADR-063).
 const TYPE_LABELS: Record<CustomField['type'], string> = {
-  text: t('Text'),
+  text: 'Text',
   number: 'Number',
   date: 'Date',
   select: 'Choice list',
@@ -125,7 +126,7 @@ export function FieldsSection({
               <span className="title">{field.name}</span>
               <br />
               <span className="muted">
-                {TYPE_LABELS[field.type]}
+                {t(TYPE_LABELS[field.type])}
                 {field.type === 'select' ? `: ${field.options.join(', ')}` : ''}
               </span>
             </span>
@@ -164,7 +165,7 @@ export function FieldsSection({
           >
             {Object.entries(TYPE_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
