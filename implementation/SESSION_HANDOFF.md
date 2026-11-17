@@ -178,14 +178,15 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 19. Done (PR #71): task edits kept while offline and saved when back
     online, with version checks (ADR-061).
 20. Done (PR #72): M9 report for the third batch, README.
-21. Remaining M9 items need approval or hosted services: billing (Stripe
-    test mode asked, deferred), multi-region recovery, a search index
-    service, SAML, the hosted demo. Next without approval: polish and
-    hardening.
-22. Done (PR #75): daily re-check of verified domains (ADR-057).
-23. Done (PR #74): requiring SSO ends existing sessions on the domain.
-24. Done (PR #73): project member management screen with guest label
+21. Done (PR #73): project member management screen with guest label
     scopes.
+22. Done (PR #74): requiring SSO ends existing sessions on the domain.
+23. Done (PR #75): daily re-check of verified domains (ADR-057).
+24. Done (PR #76): case study updated with M9.
+25. Remaining M9 items need approval or hosted services: billing (Stripe
+    test mode asked, deferred), multi-region recovery, a search index
+    service, SAML, the hosted demo. Everything buildable without approval
+    is done; wait for the user's decision before starting these.
 
 ## Environment and versions
 
