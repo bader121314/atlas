@@ -1017,3 +1017,8 @@ code.secret {
   font-family: var(--serif);
   font-size: 1.5rem;
 }
+
+/* Long URLs and tokens in settings wrap instead of widening the page. */
+.section code {
+  overflow-wrap: anywhere;
+}
