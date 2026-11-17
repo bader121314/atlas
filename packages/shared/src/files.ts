@@ -58,7 +58,7 @@ export function sniffType(
 }
 
 function trimPartial(bytes: Uint8Array): number {
-  let end = bytes.length;
+  const end = bytes.length;
   for (let i = 1; i <= 3 && end - i >= 0; i += 1) {
     const b = bytes[end - i] ?? 0;
     if ((b & 0xc0) === 0xc0) return end - i;
@@ -82,9 +82,12 @@ export function scanForMalware(bytes: Uint8Array): 'clean' | 'infected' {
 /** Keeps a display name safe for headers and storage: no paths or controls. */
 export function safeFilename(name: string): string {
   const base = name.split(/[\\/]/).pop() ?? '';
-  const cleaned = base
-    .normalize('NFC')
-    .replace(/[\u0000-\u001f\u007f"]/g, '')
+  const cleaned = [...base.normalize('NFC')]
+    .filter((c) => {
+      const code = c.charCodeAt(0);
+      return code > 0x1f && code !== 0x7f && c !== '"';
+    })
+    .join('')
     .trim()
     .slice(0, 200);
   return cleaned || 'file';

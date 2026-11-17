@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import { parseEnvironment } from '../../packages/config/src';
 import { ObjectStore, storageSettings } from '../../packages/shared/src';
 import { checkBatch } from '../../apps/worker/src/attachments/checker';
-import { startFakeS3 } from './support/fake-s3';
+import { startFakeS3 } from '../../packages/shared/src/testing/fake-s3';
 import { startFixtures } from './support/fixtures';
 import type { Account } from './support/fixtures';
 

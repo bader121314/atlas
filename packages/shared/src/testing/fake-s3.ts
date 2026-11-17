@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { signature } from '../../../packages/shared/src';
+import { signature } from '../storage';
 
 interface StoredObject {
   body: Buffer;
@@ -8,12 +8,14 @@ interface StoredObject {
 }
 
 /**
- * A minimal S3 stand-in for tests: path-style buckets, presigned query
+ * TEST DOUBLE, never used by the application. A minimal S3 stand-in for
+ * integration and browser tests: path-style buckets, presigned query
  * authentication verified with the same SigV4 code (itself checked against
  * the AWS documentation example), and PUT, GET with Range, HEAD and DELETE.
  */
 export async function startFakeS3(
   credentials = { accessKey: 'test-key', secretKey: 'test-secret' },
+  options: { port?: number; bucket?: string } = {},
 ) {
   const objects = new Map<string, StoredObject>();
   const region = 'us-east-1';
@@ -55,6 +57,17 @@ export async function startFakeS3(
     request.on('end', () => {
       const method = request.method ?? 'GET';
       const host = request.headers.host ?? '';
+      // Browsers upload directly, so answer CORS like a configured bucket.
+      response.setHeader('Access-Control-Allow-Origin', '*');
+      if (method === 'OPTIONS') {
+        response.writeHead(204, {
+          'Access-Control-Allow-Methods': 'PUT, GET, HEAD',
+          'Access-Control-Allow-Headers': 'content-type',
+          'Access-Control-Max-Age': '600',
+        });
+        response.end();
+        return;
+      }
       if (!verify(method, request.url ?? '/', request.headers, host)) {
         response.writeHead(403).end('SignatureDoesNotMatch');
         return;
@@ -101,13 +114,15 @@ export async function startFakeS3(
       response.end(method === 'HEAD' ? undefined : body);
     });
   });
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await new Promise<void>((resolve) =>
+    server.listen(options.port ?? 0, '127.0.0.1', resolve),
+  );
   const { port } = server.address() as AddressInfo;
   return {
     endpoint: `http://127.0.0.1:${port}`,
     env: {
       STORAGE_ENDPOINT: `http://127.0.0.1:${port}`,
-      STORAGE_BUCKET: 'atlas-test',
+      STORAGE_BUCKET: options.bucket ?? 'atlas-test',
       STORAGE_ACCESS_KEY: credentials.accessKey,
       STORAGE_SECRET_KEY: credentials.secretKey,
     },
