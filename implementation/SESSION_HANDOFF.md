@@ -146,9 +146,9 @@ installed; keep modules small and documented). Suggested order:
 3. Done (PR #43): one Dockerfile with api, worker, web and migrate targets,
    non-root runtime, health checks, `LISTEN_HOST`; `compose.app.yml`; CI
    builds the images; job timeouts and Vitest hook timeouts (ADR-042).
-4. Terraform skeleton for AWS (VPC, RDS, ElastiCache, S3, ECS services,
-   ALB, CloudFront) with variables and no secrets; runbooks for deploy,
-   rollback, backup and restore.
+4. Done (PR #44): Terraform for AWS (VPC, ECS Fargate with Service Connect,
+   RDS, ElastiCache, S3, ALB, Secrets Manager, alarms) validated in CI;
+   runbooks for deploy, rollback, backup and restore, outbox lag (ADR-043).
 5. Security review notes and a small load test script (no dependency).
 6. Carry-overs: change password while signed in, multiple assignees,
    mentions.

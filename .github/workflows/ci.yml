@@ -66,3 +66,18 @@ jobs:
           docker run --rm --entrypoint test atlas-worker -f apps/worker/dist/main.js
           docker run --rm --entrypoint test atlas-web -d .next
           docker images --format '{{.Repository}} {{.Size}}' | grep atlas-
+  terraform:
+    # The AWS stacks parse and validate without credentials (ADR-043).
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infrastructure/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - run: terraform fmt -check -recursive -diff
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
