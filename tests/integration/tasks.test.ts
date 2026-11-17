@@ -238,4 +238,58 @@ describe('tasks', () => {
       ).status,
     ).toBe(404);
   });
+
+  it('keeps start dates on or before due dates and records them', async () => {
+    const { owner, base } = await setup('PLAN');
+    const created = await fx.call(owner, 'POST', `${base}/tasks`, {
+      title: 'Lay the keel',
+      startAt: '2026-12-01T12:00:00Z',
+      dueAt: '2026-12-10T12:00:00Z',
+    });
+    expect(created.status).toBe(201);
+    expect(created.json).toMatchObject({
+      startAt: '2026-12-01T12:00:00.000Z',
+      dueAt: '2026-12-10T12:00:00.000Z',
+    });
+    // Starting after the due date is refused, either way round.
+    expect(
+      (
+        await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+          version: 1,
+          startAt: '2026-12-11T12:00:00Z',
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+          version: 1,
+          dueAt: '2026-11-30T12:00:00Z',
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await fx.call(owner, 'POST', `${base}/tasks`, {
+          title: 'Backwards',
+          startAt: '2026-12-11T12:00:00Z',
+          dueAt: '2026-12-10T12:00:00Z',
+        })
+      ).status,
+    ).toBe(400);
+    const moved = await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+      version: 1,
+      startAt: '2026-12-03T12:00:00Z',
+    });
+    expect(moved.status).toBe(200);
+    const history = (await fx.call(owner, 'GET', `${base}/tasks/1/activity`))
+      .json as { action: string; changes: Record<string, unknown> }[];
+    expect(history.some((h) => 'startAt' in h.changes)).toBe(true);
+    // Clearing the due date leaves a start-only task.
+    const cleared = await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+      version: 2,
+      dueAt: null,
+    });
+    expect(task(cleared.json).dueAt).toBeNull();
+  });
 });

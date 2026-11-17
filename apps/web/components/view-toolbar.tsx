@@ -7,7 +7,13 @@ import type { Label, Milestone, WorkflowState } from '../lib/api';
 import { Notice } from './form';
 import type { Sort } from './task-views';
 
-export const LAYOUTS = ['board', 'list', 'table', 'calendar'] as const;
+export const LAYOUTS = [
+  'board',
+  'list',
+  'table',
+  'calendar',
+  'timeline',
+] as const;
 export type Layout = (typeof LAYOUTS)[number];
 
 export interface Filters {

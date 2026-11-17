@@ -258,6 +258,13 @@ const pages = [];
   await alice.getByLabel('Note (optional)').fill('Measured the tides');
   await alice.getByRole('button', { name: 'Log time' }).click();
   await alice.getByText('1h 30m by Alice Rahman').waitFor();
+  // Schedule it for the timeline: starts today, due in three days.
+  const day = (offset) =>
+    new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+  await alice.getByLabel('Due date').fill(day(3));
+  await alice.getByText('Due date changed.').waitFor();
+  await alice.getByLabel('Start date').fill(day(0));
+  await alice.getByText('Start date changed.').waitFor();
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice
@@ -345,6 +352,12 @@ const pages = [];
   await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
   await alice.getByRole('table', { name: /\d{4}/ }).waitFor();
   await shot(alice, '11f-calendar');
+  await alice.getByRole('link', { name: 'Timeline', exact: true }).click();
+  await alice
+    .getByRole('table', { name: /Tasks scheduled/ })
+    .getByRole('link', { name: /Chart the harbour/ })
+    .waitFor();
+  await shot(alice, '11o-timeline');
   // Live updates: a second signed-in tab sees a new task without reloading.
   const watcher = await open(desktop);
   await signIn(watcher, aliceEmail, `/organizations/${slug}/projects/COAST`);

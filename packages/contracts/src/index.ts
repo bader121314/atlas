@@ -265,6 +265,7 @@ export const createTaskRequestSchema = z
     stateId: z.uuid().optional(),
     priority: priority.default('none'),
     assigneeId: z.uuid().nullable().default(null),
+    startAt: z.iso.datetime({ offset: true }).nullable().default(null),
     dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
     parentNumber: parentNumber.default(null),
     milestoneId: z.uuid().nullable().default(null),
@@ -280,6 +281,7 @@ export const updateTaskRequestSchema = z
     stateId: z.uuid().optional(),
     priority: priority.optional(),
     assigneeId: z.uuid().nullable().optional(),
+    startAt: z.iso.datetime({ offset: true }).nullable().optional(),
     dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
     parentNumber: parentNumber.optional(),
     milestoneId: z.uuid().nullable().optional(),
@@ -334,6 +336,8 @@ export const taskSchema = z
     assignees: z.array(
       z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
     ),
+    /** When work is planned to begin (ADR-052); never after dueAt. */
+    startAt: z.iso.datetime().nullable(),
     dueAt: z.iso.datetime().nullable(),
     completedAt: z.iso.datetime().nullable(),
     parent: z
@@ -473,7 +477,7 @@ export type Milestone = z.infer<typeof milestoneSchema>;
 
 export const viewConfigSchema = z
   .object({
-    layout: z.enum(['board', 'list', 'table', 'calendar']),
+    layout: z.enum(['board', 'list', 'table', 'calendar', 'timeline']),
     filters: z
       .object({
         state: z

@@ -28,6 +28,7 @@ interface TaskRow {
   title: string;
   description: string;
   priority: Task['priority'];
+  start_at: Date | null;
   due_at: Date | null;
   completed_at: Date | null;
   version: string;
@@ -49,7 +50,7 @@ interface TaskRow {
 }
 
 const TASK_SELECT = `
-  SELECT t.id, t.number, t.title, t.description, t.priority, t.due_at,
+  SELECT t.id, t.number, t.title, t.description, t.priority, t.start_at, t.due_at,
     t.completed_at, t.version, t.created_at, t.updated_at,
     s.id AS state_id, s.key AS state_key, s.label AS state_label,
     s.category AS state_category, s.position AS state_position,
@@ -98,6 +99,7 @@ function toTask(row: TaskRow, projectKey: string): Task {
       row.assignee_user_id && row.assignee_name
         ? { userId: row.assignee_user_id, displayName: row.assignee_name }
         : null,
+    startAt: row.start_at?.toISOString() ?? null,
     dueAt: row.due_at?.toISOString() ?? null,
     completedAt: row.completed_at?.toISOString() ?? null,
     parent:
@@ -126,7 +128,9 @@ function rejectInvalidParent(error: unknown): never {
     error instanceof DatabaseError &&
     (error.constraint === 'tasks_parent_cycle_check' ||
       error.constraint === 'tasks_parent_depth_check' ||
-      error.constraint === 'tasks_parent_not_self_check')
+      error.constraint === 'tasks_parent_not_self_check' ||
+      // A start after the due date (ADR-052).
+      error.constraint === 'tasks_start_before_due_check')
   ) {
     throw new BadRequestException();
   }
@@ -147,6 +151,7 @@ function diff(before: TaskRow, after: TaskRow): Changes {
       before.assignees.map((a) => a.displayName).join(', ') || null,
       after.assignees.map((a) => a.displayName).join(', ') || null,
     ],
+    ['startAt', iso(before.start_at), iso(after.start_at)],
     ['dueAt', iso(before.due_at), iso(after.due_at)],
     [
       'parent',
@@ -295,9 +300,9 @@ export class TasksService {
         .query(
           `INSERT INTO tasks (organization_id, project_id, number, title,
            description, state_id, priority, assignee_user_id, due_at,
-           completed_at, created_by_user_id, parent_task_id, milestone_id)
+           completed_at, created_by_user_id, parent_task_id, milestone_id, start_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-           CASE WHEN $10 THEN now() END, $11, $12, $13)`,
+           CASE WHEN $10 THEN now() END, $11, $12, $13, $14)`,
           [
             tenant.organizationId,
             project.id,
@@ -312,6 +317,7 @@ export class TasksService {
             userId,
             parentId,
             input.milestoneId,
+            input.startAt,
           ],
         )
         .catch(rejectInvalidParent);
@@ -392,6 +398,7 @@ export class TasksService {
            due_at = CASE WHEN $10 THEN $11::timestamptz ELSE due_at END,
            parent_task_id = CASE WHEN $13 THEN $14::uuid ELSE parent_task_id END,
            milestone_id = CASE WHEN $15 THEN $16::uuid ELSE milestone_id END,
+           start_at = CASE WHEN $17 THEN $18::timestamptz ELSE start_at END,
            completed_at = CASE
              WHEN $12 THEN COALESCE(completed_at, now())
              ELSE NULL END,
@@ -415,6 +422,8 @@ export class TasksService {
             parentId,
             input.milestoneId !== undefined,
             input.milestoneId ?? null,
+            input.startAt !== undefined,
+            input.startAt ?? null,
           ],
         )
         .catch(rejectInvalidParent);

@@ -897,3 +897,94 @@ code.secret {
   margin: 0 auto;
   padding: 2.5rem 1.5rem 4rem;
 }
+
+/* Timeline (ADR-052): a week grid with one bar per scheduled task. */
+.timeline-nav {
+  display: flex;
+  gap: var(--space-2);
+}
+.timeline {
+  width: 100%;
+  min-width: 46rem;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+.timeline th,
+.timeline td {
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: middle;
+}
+.timeline th[scope='row'] {
+  width: 16rem;
+  font-weight: 500;
+}
+.timeline td,
+.timeline thead th:last-child {
+  padding-left: 0;
+  padding-right: 0;
+}
+.timeline-track {
+  position: relative;
+  height: 1.6rem;
+}
+.timeline-week {
+  position: absolute;
+  top: 0.2rem;
+  padding-left: var(--space-1);
+  border-left: 1px solid var(--line-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.timeline-gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--line);
+}
+.timeline-today {
+  position: absolute;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  border-left: 2px solid var(--sea-deep);
+}
+.timeline-bar {
+  position: absolute;
+  top: 0.35rem;
+  height: 0.9rem;
+  min-width: 0.6rem;
+  border-radius: 3px;
+  background: var(--sea);
+}
+.timeline-bar.todo {
+  background: var(--surface);
+  border: 2px solid var(--sea);
+}
+.timeline-bar.done {
+  background: var(--contour);
+}
+.timeline-bar.overdue {
+  border: 2px solid var(--danger);
+}
+.timeline-bar.due-only {
+  border-radius: 50%;
+  max-width: 0.9rem;
+}
+.timeline-bar.clipped-start {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-style: dashed;
+}
+.timeline-bar.clipped-end {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-style: dashed;
+}
+@media (forced-colors: active) {
+  .timeline-bar {
+    border: 2px solid CanvasText;
+  }
+}
