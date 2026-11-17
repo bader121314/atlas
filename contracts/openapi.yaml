@@ -805,6 +805,46 @@ paths:
         '204': { description: Deleted }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { description: "Unknown, or someone else's private view" }
+  /organizations/{slug}/projects/{key}/fields:
+    get:
+      operationId: listCustomFields
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: 'Fields: id, name, type, options, position' }
+    post:
+      operationId: createCustomField
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name (1-40), type (text | number | date | select), options (1-30 unique choices, select only). Manager. ADR-026.'
+      responses:
+        '201': { description: Created }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409':
+          { description: Name already used in the project, or 20-field limit }
+  /organizations/{slug}/projects/{key}/fields/{id}:
+    patch:
+      operationId: updateCustomField
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name?, options? (select only; values using a removed choice are cleared). The type never changes. Manager.'
+      responses:
+        '200': { description: Updated }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown field }
+    delete:
+      operationId: deleteCustomField
+      security: [{ sessionCookie: [] }]
+      description: Manager. Removes the field's value from every task.
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Unknown field }
+  /organizations/{slug}/projects/{key}/tasks/{number}/fields/{id}:
+    put:
+      operationId: setTaskFieldValue
+      security: [{ sessionCookie: [] }]
+      description: 'Body: value (string, number, or null to clear), checked against the field type. Editor. Bumps the task version and returns the task, whose fields map holds { fieldId: value }.'
+      responses:
+        '200': { description: The updated task }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown task, or a field of another project }
 components:
   parameters:
     Slug:

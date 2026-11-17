@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useShell } from '../../../../../../../../components/app-shell';
 import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
+import { useShortcuts } from '../../../../../../../../components/shortcuts';
 import {
   PRIORITIES,
   api,
@@ -94,6 +95,23 @@ export default function TaskPage() {
   }>();
   const base = `/organizations/${slug}/projects/${key}`;
   const { user } = useShell();
+  const router = useRouter();
+  const shortcuts = useMemo(
+    () => [
+      {
+        keys: 'c',
+        description: 'Write a comment',
+        run: () => document.getElementById('comment')?.focus(),
+      },
+      {
+        keys: 'g p',
+        description: 'Go back to the project',
+        run: () => router.push(base),
+      },
+    ],
+    [router, base],
+  );
+  useShortcuts('task', shortcuts);
   const [project, setProject] = useState<Project>();
   const [task, setTask] = useState<Task>();
   const [missing, setMissing] = useState(false);
