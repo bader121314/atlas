@@ -194,8 +194,12 @@ export function CalendarView({
     byDay.set(due.getUTCDate(), list);
   }
   const undated = tasks.filter((task) => !task.dueAt).length;
-  const cells = Array.from({ length: offset + days }, (_, i) =>
-    i < offset ? null : i - offset + 1,
+  const cells = Array.from(
+    { length: Math.ceil((offset + days) / 7) * 7 },
+    (_, i) => (i < offset || i >= offset + days ? null : i - offset + 1),
+  );
+  const weeks = Array.from({ length: cells.length / 7 }, (_, w) =>
+    cells.slice(w * 7, w * 7 + 7),
   );
 
   return (
@@ -217,23 +221,37 @@ export function CalendarView({
           Next month
         </button>
       </div>
-      <div className="calendar" role="grid">
-        {WEEKDAYS.map((d) => (
-          <div key={d} className="calendar-weekday" role="columnheader">
-            {d}
-          </div>
-        ))}
-        {cells.map((date, i) => (
-          <div
-            key={i}
-            className={date ? 'calendar-day' : 'calendar-day empty'}
-            role="gridcell"
-          >
-            {date ? <span className="calendar-date">{date}</span> : null}
-            {(date ? (byDay.get(date) ?? []) : []).map((task) => (
-              <Link key={task.id} className="calendar-task" href={href(task)}>
-                {task.key} {task.title}
-              </Link>
+      <div
+        className="calendar"
+        role="table"
+        aria-label={monthName.format(first)}
+      >
+        <div className="calendar-row" role="row">
+          {WEEKDAYS.map((d) => (
+            <div key={d} className="calendar-weekday" role="columnheader">
+              {d}
+            </div>
+          ))}
+        </div>
+        {weeks.map((week, w) => (
+          <div key={w} className="calendar-row" role="row">
+            {week.map((date, i) => (
+              <div
+                key={i}
+                className={date ? 'calendar-day' : 'calendar-day empty'}
+                role="cell"
+              >
+                {date ? <span className="calendar-date">{date}</span> : null}
+                {(date ? (byDay.get(date) ?? []) : []).map((task) => (
+                  <Link
+                    key={task.id}
+                    className="calendar-task"
+                    href={href(task)}
+                  >
+                    {task.key} {task.title}
+                  </Link>
+                ))}
+              </div>
             ))}
           </div>
         ))}

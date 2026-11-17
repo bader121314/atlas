@@ -269,7 +269,7 @@ const pages = [];
   await alice.getByRole('cell', { name: 'North' }).waitFor();
   await shot(alice, '11g-custom-field');
   await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
-  await alice.getByRole('grid').waitFor();
+  await alice.getByRole('table', { name: /\d{4}/ }).waitFor();
   await shot(alice, '11f-calendar');
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
@@ -341,6 +341,8 @@ const pages = [];
   for (const [index, page] of pages.entries()) {
     try {
       console.error(`page ${index}: ${page.url()}`);
+      const text = await page.evaluate(() => document.body.innerText);
+      console.error(text.slice(0, 600));
       await page.screenshot({
         path: path.join(OUT, `failure-page-${index}.png`),
         fullPage: true,

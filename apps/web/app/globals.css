@@ -582,6 +582,9 @@ progress {
   border-left: 1px solid var(--line);
   background: var(--surface);
 }
+.calendar-row {
+  display: contents;
+}
 .calendar-weekday,
 .calendar-day {
   border-right: 1px solid var(--line);
