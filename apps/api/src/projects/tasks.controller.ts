@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -15,6 +16,7 @@ import {
 import {
   createTaskRequestSchema,
   parseRequest,
+  setAssigneesRequestSchema,
   taskQuerySchema,
   updateTaskRequestSchema,
 } from '@atlas/contracts';
@@ -102,6 +104,23 @@ export class TasksController {
       taskNumber(number),
       caller(request).user.id,
       parse(updateTaskRequestSchema, body),
+    );
+  }
+
+  @Put('tasks/:number/assignees')
+  @RequirePermission('organization.read')
+  @RequireProjectPermission('task.write')
+  setAssignees(
+    @Param('number') number: string,
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<Task> {
+    return this.tasks.setAssignees(
+      tenantOf(request),
+      projectOf(request),
+      taskNumber(number),
+      caller(request).user.id,
+      parse(setAssigneesRequestSchema, body).userIds,
     );
   }
 }

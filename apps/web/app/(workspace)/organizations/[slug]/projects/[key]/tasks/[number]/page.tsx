@@ -261,6 +261,28 @@ export default function TaskPage() {
     });
   }
 
+  async function toggleAssignee(userId: string, checked: boolean) {
+    if (!task) return;
+    const ids = task.assignees
+      .map((a) => a.userId)
+      .filter((id) => id !== userId);
+    if (checked) ids.push(userId);
+    const result = await api<Task>(`${base}/tasks/${number}/assignees`, {
+      method: 'PUT',
+      body: { userIds: ids },
+    });
+    if (result.data) {
+      setTask(result.data);
+      setMessage({ tone: 'info', text: 'Assignees changed.' });
+      await loadThread();
+    } else {
+      setMessage({
+        tone: 'error',
+        text: describeFailure(result.status, 'Assignees could not be changed.'),
+      });
+    }
+  }
+
   async function toggleLabel(label: Label, checked: boolean) {
     if (!task) return;
     const ids = new Set(task.labels.map((l) => l.id));
@@ -669,6 +691,28 @@ export default function TaskPage() {
               ))}
             </select>
           </div>
+          {task.assignee && members.length > 1 ? (
+            <fieldset className="checks plain">
+              <legend>Also assigned</legend>
+              {members
+                .filter((m) => m.userId !== task.assignee?.userId)
+                .map((member) => (
+                  <label key={member.userId}>
+                    <input
+                      type="checkbox"
+                      disabled={!canWrite}
+                      checked={task.assignees.some(
+                        (a) => a.userId === member.userId,
+                      )}
+                      onChange={(event) =>
+                        void toggleAssignee(member.userId, event.target.checked)
+                      }
+                    />
+                    {member.displayName}
+                  </label>
+                ))}
+            </fieldset>
+          ) : null}
           <div className="field">
             <label htmlFor="due">Due date</label>
             <input

@@ -59,7 +59,7 @@ The whole stack also runs in containers:
 ## What it does
 
 - **Work:** projects (organization-wide or private) with per-project roles;
-  tasks with custom statuses, priority, assignee, due date, labels, subtasks,
+  tasks with custom statuses, priority, assignees, due date, labels, subtasks,
   dependencies with loop protection, milestones and custom fields; board,
   list, table and calendar views with filters and saved views.
 - **Collaboration:** comments, field-level history, live updates over

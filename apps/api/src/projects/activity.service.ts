@@ -24,6 +24,8 @@ export interface ActivityInput {
   aggregateVersion: number;
   /** People mentioned in a comment; carried to the notifier, not stored in history. */
   mentions?: string[];
+  /** People newly assigned (ADR-046); notified, not stored in history. */
+  assigned?: string[];
 }
 
 /**
@@ -63,6 +65,7 @@ export class ActivityService {
           actorUserId: input.actorUserId,
           changes: input.changes,
           ...(input.mentions?.length ? { mentions: input.mentions } : {}),
+          ...(input.assigned?.length ? { assigned: input.assigned } : {}),
         }),
         input.projectId,
       ],

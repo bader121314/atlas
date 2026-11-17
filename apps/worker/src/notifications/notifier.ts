@@ -11,6 +11,7 @@ interface EventRow {
   payload: {
     actorUserId?: string;
     mentions?: string[];
+    assigned?: string[];
     changes?: { assignee?: string | { to?: string | null } };
   };
 }
@@ -28,8 +29,10 @@ export async function recipientsFor(
       : undefined;
   }
   if (event.event_type === 'task.updated') {
+    // A new primary assignee, and anyone added to the assignee list.
     const to = typeof assignee === 'object' ? assignee.to : undefined;
-    return to ? { kind: 'task.assigned', userIds: [to] } : undefined;
+    const userIds = [...(to ? [to] : []), ...(event.payload.assigned ?? [])];
+    return userIds.length ? { kind: 'task.assigned', userIds } : undefined;
   }
   if (event.event_type === 'comment.created') {
     // The reporter, the assignee and everyone who has commented.

@@ -330,6 +330,10 @@ export const taskSchema = z
       .object({ userId: z.uuid(), displayName: z.string() })
       .strict()
       .nullable(),
+    /** Everyone assigned, primary first (ADR-046). */
+    assignees: z.array(
+      z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    ),
     dueAt: z.iso.datetime().nullable(),
     completedAt: z.iso.datetime().nullable(),
     parent: z
@@ -356,6 +360,19 @@ export const taskListResponseSchema = z
   })
   .strict();
 export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
+
+/** Replaces a task's assignees; the first becomes primary (ADR-046). */
+export const setAssigneesRequestSchema = z
+  .object({
+    userIds: z
+      .array(z.uuid())
+      .max(10)
+      .refine(
+        (list) => new Set(list).size === list.length,
+        'Duplicate assignee',
+      ),
+  })
+  .strict();
 
 export const commentBodySchema = z
   .object({ body: z.string().trim().min(1).max(10000) })

@@ -92,7 +92,14 @@ function TaskCard({
               {priorityLabel(task.priority)}
             </span>
           ) : null}
-          {task.assignee ? <span>{task.assignee.displayName}</span> : null}
+          {task.assignee ? (
+            <span>
+              {task.assignee.displayName}
+              {task.assignees.length > 1
+                ? ` +${task.assignees.length - 1}`
+                : ''}
+            </span>
+          ) : null}
           {task.dueAt ? (
             <span>Due {day.format(new Date(task.dueAt))}</span>
           ) : null}
