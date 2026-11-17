@@ -13,6 +13,8 @@ closed by an exit report. **It is not deployed**; the AWS stack is written
 and validated but has not been applied, and the limitations are listed in
 the [M7 exit report](docs/17-m7-exit-report.md).
 
+![A 20-second walkthrough: signing in, the board, a task, the table, timeline and calendar views, search and the team's workload](docs/screenshots/demo-tour.gif)
+
 | Board with live updates                           | Table with custom fields                              |
 | ------------------------------------------------- | ----------------------------------------------------- |
 | ![Project board](docs/screenshots/demo-board.png) | ![Table view](docs/screenshots/demo-table.png)        |
