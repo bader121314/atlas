@@ -159,45 +159,6 @@ export default function TaskPage() {
     tone: 'info' | 'error';
     text: string;
   }>();
-  const pendingKey = `${slug}/${key}/${number}`;
-  const [pending, setPending] = useState<PendingEdit>();
-  useEffect(() => {
-    setPending(loadPendingEdit(pendingKey));
-  }, [pendingKey]);
-
-  // Back online: send the kept changes once, based on the version they
-  // were made against, so someone else's newer edit is never overwritten.
-  useEffect(() => {
-    if (!pending) return;
-    const flush = async () => {
-      if (!navigator.onLine) return;
-      const result = await api<Task>(`${base}/tasks/${number}`, {
-        method: 'PATCH',
-        body: { version: pending.version, ...pending.changes },
-      });
-      if (result.status === 0) return;
-      setPending(undefined);
-      storePendingEdit(pendingKey, undefined);
-      if (result.data) {
-        setTask(result.data);
-        setMessage({ tone: 'info', text: 'Saved your offline changes.' });
-        await loadThread();
-        return;
-      }
-      const fresh = await api<Task>(`${base}/tasks/${number}`);
-      if (fresh.data) setTask(fresh.data);
-      setMessage({
-        tone: 'error',
-        text:
-          result.status === 409
-            ? 'Your offline changes were not saved because someone else changed this task meanwhile. Their version is shown; apply yours again if still needed.'
-            : 'Your offline changes could not be saved.',
-      });
-    };
-    void flush();
-    window.addEventListener('online', flush);
-    return () => window.removeEventListener('online', flush);
-  }, [pending, pendingKey, base, number, loadThread]);
 
   const loadThread = useCallback(async () => {
     const [c, h] = await Promise.all([
@@ -237,6 +198,46 @@ export default function TaskPage() {
     setFields(f.data ?? []);
     await loadThread();
   }, [base, number, slug, loadThread]);
+
+  const pendingKey = `${slug}/${key}/${number}`;
+  const [pending, setPending] = useState<PendingEdit>();
+  useEffect(() => {
+    setPending(loadPendingEdit(pendingKey));
+  }, [pendingKey]);
+
+  // Back online: send the kept changes once, based on the version they
+  // were made against, so someone else's newer edit is never overwritten.
+  useEffect(() => {
+    if (!pending) return;
+    const flush = async () => {
+      if (!navigator.onLine) return;
+      const result = await api<Task>(`${base}/tasks/${number}`, {
+        method: 'PATCH',
+        body: { version: pending.version, ...pending.changes },
+      });
+      if (result.status === 0) return;
+      setPending(undefined);
+      storePendingEdit(pendingKey, undefined);
+      if (result.data) {
+        setTask(result.data);
+        setMessage({ tone: 'info', text: 'Saved your offline changes.' });
+        await loadThread();
+        return;
+      }
+      const fresh = await api<Task>(`${base}/tasks/${number}`);
+      if (fresh.data) setTask(fresh.data);
+      setMessage({
+        tone: 'error',
+        text:
+          result.status === 409
+            ? 'Your offline changes were not saved because someone else changed this task meanwhile. Their version is shown; apply yours again if still needed.'
+            : 'Your offline changes could not be saved.',
+      });
+    };
+    void flush();
+    window.addEventListener('online', flush);
+    return () => window.removeEventListener('online', flush);
+  }, [pending, pendingKey, base, number, loadThread]);
 
   useEffect(() => {
     void load();
