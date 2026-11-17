@@ -353,6 +353,9 @@ export const ar: Record<string, string> = {
   Tasks: 'المهام',
   'Tasks by status': 'المهام حسب الحالة',
   Text: 'نص',
+  Number: 'رقم',
+  Date: 'تاريخ',
+  'Choice list': 'قائمة خيارات',
   'That change is not allowed. Guests can be at most commenters.':
     'هذا التغيير غير مسموح. أقصى دور للضيف هو معلّق.',
   'That device could not be signed out.': 'تعذر تسجيل الخروج من ذلك الجهاز.',

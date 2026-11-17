@@ -61,6 +61,11 @@ describe('Arabic interface text (ADR-063)', () => {
       'High',
       'Urgent',
       'No priority',
+      // Field types, translated through a variable as well.
+      'Text',
+      'Number',
+      'Date',
+      'Choice list',
     ];
     const unused = Object.keys(ar).filter(
       (key) => !used.has(key) && !roles.includes(key),
