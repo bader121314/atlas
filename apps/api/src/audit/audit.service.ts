@@ -3,7 +3,7 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from '../database.service';
 import { summarizeIp } from './ip-summary';
 
-const AUDIT_TARGETS = [
+export const AUDIT_TARGETS = [
   'user',
   'session',
   'organization',
