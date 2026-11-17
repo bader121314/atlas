@@ -227,6 +227,28 @@ export type ProjectMemberListResponse = z.infer<
 >;
 
 const priority = z.enum(['none', 'low', 'medium', 'high', 'urgent']);
+export const labelColorSchema = z.enum([
+  'slate',
+  'sea',
+  'sage',
+  'sand',
+  'rose',
+  'violet',
+]);
+export const createLabelRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(40),
+    color: labelColorSchema.default('sea'),
+  })
+  .strict();
+export const labelSchema = z
+  .object({ id: z.uuid(), name: z.string(), color: labelColorSchema })
+  .strict();
+export type Label = z.infer<typeof labelSchema>;
+export const setTaskLabelsRequestSchema = z
+  .object({ labelIds: z.array(z.uuid()).max(20) })
+  .strict();
+const parentNumber = z.number().int().positive().nullable();
 
 export const createTaskRequestSchema = z
   .object({
@@ -236,6 +258,7 @@ export const createTaskRequestSchema = z
     priority: priority.default('none'),
     assigneeId: z.uuid().nullable().default(null),
     dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
+    parentNumber: parentNumber.default(null),
   })
   .strict();
 export type CreateTaskRequest = z.infer<typeof createTaskRequestSchema>;
@@ -249,6 +272,7 @@ export const updateTaskRequestSchema = z
     priority: priority.optional(),
     assigneeId: z.uuid().nullable().optional(),
     dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
+    parentNumber: parentNumber.optional(),
   })
   .strict();
 export type UpdateTaskRequest = z.infer<typeof updateTaskRequestSchema>;
@@ -261,6 +285,10 @@ export const taskQuerySchema = z
       .optional(),
     assignee: z.union([z.uuid(), z.enum(['me', 'none'])]).optional(),
     priority: priority.optional(),
+    label: z.uuid().optional(),
+    parent: z
+      .union([z.coerce.number().int().positive(), z.literal('none')])
+      .optional(),
     after: z.coerce.number().int().nonnegative().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(50),
   })
@@ -293,6 +321,11 @@ export const taskSchema = z
       .nullable(),
     dueAt: z.iso.datetime().nullable(),
     completedAt: z.iso.datetime().nullable(),
+    parent: z
+      .object({ number: z.number().int(), key: z.string() })
+      .strict()
+      .nullable(),
+    labels: z.array(labelSchema),
     version: z.number().int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),

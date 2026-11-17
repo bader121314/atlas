@@ -16,6 +16,8 @@ export const ORGANIZATION_ACTIONS = [
   'members.invite',
   'members.manage',
   'projects.create',
+  'labels.manage',
+  'labels.delete',
 ] as const;
 export type OrganizationAction = (typeof ORGANIZATION_ACTIONS)[number];
 
@@ -26,6 +28,8 @@ const GRANTS: Record<OrganizationAction, readonly OrganizationRole[]> = {
   'members.invite': ['owner', 'admin'],
   'members.manage': ['owner', 'admin'],
   'projects.create': ['owner', 'admin', 'member'],
+  'labels.manage': ['owner', 'admin', 'member'],
+  'labels.delete': ['owner', 'admin'],
 };
 
 export function isOrganizationRole(value: string): value is OrganizationRole {

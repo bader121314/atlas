@@ -173,6 +173,7 @@ model Task {
   stateId String @map("state_id") @db.Uuid
   priority String @default("none")
   assigneeUserId String? @map("assignee_user_id") @db.Uuid
+  parentTaskId String? @map("parent_task_id") @db.Uuid
   dueAt DateTime? @map("due_at") @db.Timestamptz(6)
   completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
   createdByUserId String @map("created_by_user_id") @db.Uuid
@@ -181,6 +182,7 @@ model Task {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   @@unique([organizationId, id])
   @@unique([projectId, number])
+  @@unique([organizationId, projectId, id], map: "tasks_scope_key")
   @@index([organizationId, projectId, stateId, number])
   @@index([organizationId, assigneeUserId])
   @@index([organizationId, dueAt])
@@ -223,4 +225,21 @@ model OutboxEvent {
   publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
   attemptCount Int @default(0) @map("attempt_count")
   @@map("outbox_events")
+}
+model Label {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  name String @db.VarChar(40)
+  color String @default("sea")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@unique([organizationId, id])
+  @@map("labels")
+}
+model TaskLabel {
+  organizationId String @map("organization_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  labelId String @map("label_id") @db.Uuid
+  @@id([taskId, labelId])
+  @@index([organizationId, labelId])
+  @@map("task_labels")
 }
