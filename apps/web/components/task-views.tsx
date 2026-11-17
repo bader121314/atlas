@@ -201,8 +201,7 @@ export function CalendarView({
   const undated = tasks.filter((task) => !task.dueAt).length;
   const cells = Array.from(
     { length: Math.ceil((offset + days) / 7) * 7 },
-    (_, i) =>
-      i < offset || i >= offset + days ? null : i - offset + 1),
+    (_, i) => (i < offset || i >= offset + days ? null : i - offset + 1),
   );
   const weeks = Array.from({ length: cells.length / 7 }, (_, w) =>
     cells.slice(w * 7, w * 7 + 7),
