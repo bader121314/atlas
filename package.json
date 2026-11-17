@@ -4,21 +4,22 @@
   "version": "0.0.0",
   "packageManager": "pnpm@10.34.9",
   "engines": {
-    "node": "\u003e=24.0.0 \u003c25"
+    "node": ">=24.0.0 <25"
   },
   "scripts": {
-    "dev": "turbo run build --filter=./packages/* \u0026\u0026 turbo run dev",
+    "dev": "turbo run build --filter=./packages/* && turbo run dev",
     "build": "turbo run build",
-    "typecheck": "turbo run typecheck \u0026\u0026 tsc --noEmit -p tsconfig.json",
+    "typecheck": "turbo run typecheck && tsc --noEmit -p tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "turbo run build --filter=./packages/* \u0026\u0026 vitest run --project unit",
+    "test": "turbo run build --filter=./packages/* && vitest run --project unit",
     "test:integration": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run --project integration",
     "db:validate": "node --env-file-if-exists=.env scripts/database.mjs validate",
     "db:migrate": "node --env-file-if-exists=.env scripts/database.mjs migrate",
     "db:generate": "node --env-file-if-exists=.env scripts/database.mjs generate",
-    "smoke:dev": "node scripts/smoke-dev.mjs"
+    "smoke:dev": "node scripts/smoke-dev.mjs",
+    "demo:seed": "node --env-file-if-exists=.env scripts/demo-seed.mjs"
   },
   "devDependencies": {
     "@nestjs/testing": "11.2.10",

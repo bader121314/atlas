@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/generated/**',
       'scaffold.cjs',
       'scripts/ui-smoke.cjs',
+      'scripts/demo-screenshots.cjs',
     ],
   },
   ...tseslint.configs.recommended,
