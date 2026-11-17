@@ -328,7 +328,9 @@ model Notification {
 model NotificationSetting {
   organizationId String @map("organization_id") @db.Uuid
   userId String @map("user_id") @db.Uuid
-  emailEnabled Boolean @default(true) @map("email_enabled")
+  emailMode String @default("instant") @map("email_mode") @db.VarChar(8)
+  mutedKinds String[] @default([]) @map("muted_kinds")
+  lastDigestAt DateTime? @map("last_digest_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
   @@id([organizationId, userId])
   @@map("notification_settings")

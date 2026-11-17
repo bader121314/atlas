@@ -99,16 +99,20 @@ export async function notifyBatch(
         const inserted = await client.query(
           `INSERT INTO notifications (organization_id, recipient_user_id, kind,
            project_id, task_id, actor_user_id, source_event_id)
-         SELECT $1, m.user_id, $3, p.id, t.id, $6, $7
+         SELECT $1, m.user_id, $3::text, p.id, t.id, $6, $7
          FROM organization_memberships m
          JOIN projects p ON p.organization_id = $1 AND p.id = $4
          JOIN tasks t ON t.organization_id = $1 AND t.project_id = p.id AND t.id = $5
          LEFT JOIN project_memberships pm
            ON pm.project_id = p.id AND pm.user_id = m.user_id
+         LEFT JOIN notification_settings ns
+           ON ns.organization_id = m.organization_id AND ns.user_id = m.user_id
          WHERE m.organization_id = $1 AND m.user_id = ANY($2::uuid[])
            AND m.state = 'active'
            AND (m.role IN ('owner', 'admin') OR pm.user_id IS NOT NULL
                 OR (m.role = 'member' AND p.visibility = 'organization'))
+           -- People who muted this kind get nothing (ADR-048).
+           AND NOT ($3::text = ANY(COALESCE(ns.muted_kinds, '{}'::text[])))
          ON CONFLICT (recipient_user_id, source_event_id) DO NOTHING`,
           [
             event.organization_id,

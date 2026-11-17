@@ -18,7 +18,7 @@ interface PendingRow {
   project_key: string;
   number: number;
   title: string;
-  email_enabled: boolean | null;
+  email_mode: 'instant' | 'daily' | 'off' | null;
 }
 
 /** Plain-text email for one notification. */
@@ -74,7 +74,7 @@ export async function emailBatch(
     const rows = await client.query<PendingRow>(
       `SELECT n.id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name,
               a.display_name AS actor_name, o.slug, p.key AS project_key,
-              t.number, t.title, s.email_enabled
+              t.number, t.title, s.email_mode
        FROM notifications n
        JOIN users u ON u.id = n.recipient_user_id
        LEFT JOIN users a ON a.id = n.actor_user_id
@@ -84,6 +84,8 @@ export async function emailBatch(
        LEFT JOIN notification_settings s
          ON s.organization_id = n.organization_id AND s.user_id = n.recipient_user_id
        WHERE n.email_status = 'pending' AND n.read_at IS NULL
+         -- Daily-digest people are emailed by digestBatch instead.
+         AND COALESCE(s.email_mode, 'instant') <> 'daily'
          AND n.created_at <= now() - ($1 * interval '1 millisecond')
          AND ($3::uuid IS NULL OR n.organization_id = $3)
        ORDER BY n.created_at
@@ -96,7 +98,7 @@ export async function emailBatch(
       ],
     );
     for (const row of rows.rows) {
-      if (row.email_enabled === false) {
+      if (row.email_mode === 'off') {
         await client.query(
           `UPDATE notifications SET email_status = 'skipped' WHERE id = $1`,
           [row.id],
@@ -117,6 +119,107 @@ export async function emailBatch(
     }
     await client.query('COMMIT');
     return result;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+interface DigestItem {
+  kind: 'task.assigned' | 'comment.created' | 'mention';
+  actor_name: string | null;
+  project_key: string;
+  number: number;
+  title: string;
+}
+
+/** One email summarizing a person's unread notifications. */
+export function composeDigest(
+  recipient: { email: string; name: string; slug: string },
+  items: DigestItem[],
+  webOrigin: string,
+): MailMessage {
+  const lines = items.map((i) => {
+    const key = `${i.project_key}-${i.number}`;
+    const who = i.actor_name ?? 'Someone';
+    const what =
+      i.kind === 'task.assigned'
+        ? `${who} assigned it to you`
+        : i.kind === 'mention'
+          ? `${who} mentioned you`
+          : `${who} commented`;
+    return `- ${key} ${i.title}: ${what}`;
+  });
+  return {
+    to: recipient.email,
+    subject: `Your Atlas summary: ${items.length} unread ${items.length === 1 ? 'notification' : 'notifications'}`,
+    text: `Hello ${recipient.name},\n\nSince your last summary:\n\n${lines.join('\n')}\n\nOpen your notifications: ${webOrigin}/organizations/${recipient.slug}/notifications\n\nYou chose a daily summary; change it on your notifications page in Atlas.\n`,
+  };
+}
+
+/**
+ * Daily digests (ADR-048): people who chose them get at most one email per
+ * 24 hours listing their unread notifications, which are then marked sent.
+ */
+export async function digestBatch(
+  pool: Pool,
+  send: SendMail,
+  options: { webOrigin: string; organizationId?: string; maxItems?: number },
+): Promise<number> {
+  const client = await pool.connect();
+  let sent = 0;
+  try {
+    await client.query('BEGIN');
+    const people = await client.query<{
+      organization_id: string;
+      user_id: string;
+      email: string;
+      name: string;
+      slug: string;
+    }>(
+      `SELECT s.organization_id, s.user_id, u.email_normalized AS email,
+              u.display_name AS name, o.slug
+       FROM notification_settings s
+       JOIN users u ON u.id = s.user_id
+       JOIN organizations o ON o.id = s.organization_id
+       WHERE s.email_mode = 'daily'
+         AND (s.last_digest_at IS NULL OR s.last_digest_at <= now() - interval '24 hours')
+         AND ($1::uuid IS NULL OR s.organization_id = $1)
+         AND EXISTS (SELECT 1 FROM notifications n WHERE n.organization_id = s.organization_id
+           AND n.recipient_user_id = s.user_id AND n.email_status = 'pending' AND n.read_at IS NULL)
+       LIMIT 20
+       FOR UPDATE OF s SKIP LOCKED`,
+      [options.organizationId ?? null],
+    );
+    for (const person of people.rows) {
+      const items = await client.query<DigestItem & { id: string }>(
+        `SELECT n.id, n.kind, a.display_name AS actor_name, p.key AS project_key, t.number, t.title
+         FROM notifications n
+         JOIN projects p ON p.id = n.project_id
+         JOIN tasks t ON t.id = n.task_id
+         LEFT JOIN users a ON a.id = n.actor_user_id
+         WHERE n.organization_id = $1 AND n.recipient_user_id = $2
+           AND n.email_status = 'pending' AND n.read_at IS NULL
+         ORDER BY n.created_at LIMIT $3`,
+        [person.organization_id, person.user_id, options.maxItems ?? 20],
+      );
+      if (items.rows.length === 0) continue;
+      await send(composeDigest(person, items.rows, options.webOrigin));
+      await client.query(
+        `UPDATE notifications SET email_status = 'sent' WHERE id = ANY($1::uuid[])`,
+        [items.rows.map((i) => i.id)],
+      );
+      await client.query(
+        `UPDATE notification_settings SET last_digest_at = now()
+         WHERE organization_id = $1 AND user_id = $2`,
+        [person.organization_id, person.user_id],
+      );
+      sent += 1;
+    }
+    await client.query('COMMIT');
+    return sent;
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined);
     throw error;

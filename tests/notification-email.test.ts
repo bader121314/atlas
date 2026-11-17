@@ -12,7 +12,7 @@ const row = {
   project_key: 'NW',
   number: 12,
   title: 'Chart the harbour',
-  email_enabled: null,
+  email_mode: null,
 };
 
 describe('notification email', () => {
