@@ -4,7 +4,7 @@ import { z } from 'zod';
 // Identity providers send many optional attributes; unknown ones are kept
 // out of the result but do not fail the request (ADR-055).
 export const scimUserSchema = z.looseObject({
-  userName: z.string().trim().toLowerCase().pipe(z.email()).max(320),
+  userName: z.string().trim().toLowerCase().max(320).pipe(z.email()),
   externalId: z.string().trim().min(1).max(256).optional(),
   displayName: z.string().trim().min(1).max(100).optional(),
   name: z
