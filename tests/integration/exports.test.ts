@@ -89,13 +89,13 @@ describe('task exports', () => {
     );
     const text = await file.text();
     expect(text.split('\r\n')[0]).toBe(
-      'Key,Title,Status,Priority,Assignee,Due,Labels,Milestone,Parent,Created,Completed,Start,Time logged (minutes)',
+      'Key,Title,Status,Priority,Assignee,Due,Labels,Milestone,Parent,Created,Completed,Start,Time logged (minutes),Estimate (minutes)',
     );
     expect(text).toContain('EXP-1,"Survey, phase 1",To do,none');
     expect(text).toContain("EXP-2,'=cmd|calc");
     const rows = text.split('\r\n');
-    expect(rows[1]?.endsWith(',105')).toBe(true);
-    expect(rows[2]?.endsWith(',0')).toBe(true);
+    expect(rows[1]?.endsWith(',105,')).toBe(true);
+    expect(rows[2]?.endsWith(',0,')).toBe(true);
 
     // Another editor cannot see or fetch it; viewers cannot export at all.
     const member = await fx.join(slug, owner, 'member');

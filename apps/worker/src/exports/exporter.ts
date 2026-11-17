@@ -27,6 +27,7 @@ const HEADER = [
   // Added in M9; appended so existing columns keep their positions.
   'Start',
   'Time logged (minutes)',
+  'Estimate (minutes)',
 ];
 
 interface Job {
@@ -89,13 +90,14 @@ export async function runExports(
         completed_at: Date | null;
         start_at: Date | null;
         minutes: string;
+        estimate_minutes: number | null;
       }>(
         `SELECT p.key, t.number, t.title, ws.label AS state, t.priority,
                 u.display_name AS assignee, t.due_at,
                 (SELECT string_agg(l.name, '; ' ORDER BY l.name) FROM task_labels tl
                    JOIN labels l ON l.id = tl.label_id WHERE tl.task_id = t.id) AS labels,
                 ms.title AS milestone, pt.number AS parent, t.created_at, t.completed_at,
-                t.start_at,
+                t.start_at, t.estimate_minutes,
                 (SELECT COALESCE(sum(te.minutes), 0) FROM time_entries te
                    WHERE te.task_id = t.id) AS minutes
          FROM tasks t
@@ -125,6 +127,7 @@ export async function runExports(
           iso(t.completed_at),
           iso(t.start_at),
           Number(t.minutes),
+          t.estimate_minutes,
         ]),
       ]);
       const key = `${job.organization_id}/${job.project_id}/exports/${job.id}.csv`;
