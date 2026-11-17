@@ -110,15 +110,17 @@ paths:
           description: Signed in. Sets the HttpOnly session cookie.
           headers:
             Set-Cookie: { schema: { type: string } }
-        '403':
-          description: Correct password, but the organization that verified this email domain requires single sign-on (ADR-058).
         '400': { $ref: '#/components/responses/Problem' }
         '401':
           description: Unknown email, wrong password, unverified or disabled account; indistinguishable by design.
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
-        '403': { $ref: '#/components/responses/Problem' }
+        '403':
+          description: Correct password, but the organization that verified this email domain requires single sign-on (ADR-058); also a failed Origin check.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/Problem' }
   /auth/logout:
@@ -1340,7 +1342,10 @@ paths:
       security: [{ sessionCookie: [] }]
       description: 'OpenID Connect settings without the secret. Owners only. ADR-058.'
       responses:
-        '200': { description: '{ issuer, clientId, enabled, requireSso, redirectUri, updatedAt }' }
+        '200':
+          {
+            description: '{ issuer, clientId, enabled, requireSso, redirectUri, updatedAt }',
+          }
         '404': { $ref: '#/components/responses/Problem' }
     put:
       operationId: putSso
