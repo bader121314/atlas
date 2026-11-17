@@ -47,7 +47,8 @@ export class EventsService {
        FROM outbox_events e, cursor c
        WHERE e.organization_id = $1 AND e.project_id = $2
          AND e.published_at >= c.published_at AND e.id <> $3
-       ORDER BY e.published_at, e.id
+       -- One dispatch batch shares a published_at; keep commit order within it.
+       ORDER BY e.published_at, e.occurred_at, e.id
        LIMIT $4`,
       [tenant.organizationId, project.id, lastEventId, REPLAY_LIMIT + 1],
     );

@@ -124,7 +124,12 @@ export default function WorkloadPage() {
           Nobody has open assigned tasks or a capacity yet.
         </p>
       ) : (
-        <div className="table-wrap">
+        <div
+          className="table-wrap"
+          tabIndex={0}
+          role="region"
+          aria-label="Workload table"
+        >
           <table className="tasks-table workload">
             <caption className="visually-hidden">
               Open tasks per person and week
