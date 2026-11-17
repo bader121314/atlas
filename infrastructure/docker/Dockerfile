@@ -25,6 +25,9 @@ RUN pnpm install --frozen-lockfile && pnpm build
 
 # Runs the SQL migrations once per deployment, before new versions start.
 FROM build AS migrate
+# Prisma's migration engine links against OpenSSL.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
 CMD ["pnpm", "db:migrate"]
 
 FROM build AS prod-deps
