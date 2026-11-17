@@ -117,10 +117,8 @@ access, lockfile is authoritative), so M4 uses what is installed.
 1. Done (PR #25): outbox dispatcher in `apps/worker` with SKIP LOCKED
    claims, Redis channel per project, per-event backoff, 24-hour replay
    window and pruning (ADR-028).
-2. Event stream to browsers: Server-Sent Events from the API (no new
-   dependency; writes stay REST), authenticated by the session cookie,
-   authorized per project on connect and revalidated; `Last-Event-ID`
-   backfill from the outbox; full resync when the cursor is too old. ADR.
+2. Done (PR #26): Server-Sent Events per project with guard rechecks,
+   Redis fan-out per instance, Last-Event-ID replay and resync (ADR-029).
 3. Web: live board, list and task page updates; reconnect handling.
 4. Presence (ephemeral, Redis with expiry) on the task page.
 5. In-app notifications (assignment, mention, comment on watched task) and
