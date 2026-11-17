@@ -153,7 +153,8 @@ Read `docs/08` M8. Suggested order:
 3. Done (PR #50): `docs/18-case-study.md`: problem, constraints, key decisions with ADR
    links, what went wrong and how it was caught (the starved export job,
    the Turbo env filter, parameter type inference), results.
-4. Carry-overs: multiple assignees, mentions.
+4. Done (PR #51): mentions in comments with notifications (ADR-045).
+   Remaining carry-over: multiple assignees.
 
 ## Environment and versions
 

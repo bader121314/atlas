@@ -1,6 +1,6 @@
 import type { Pool, PoolClient } from 'pg';
 
-export type NotificationKind = 'task.assigned' | 'comment.created';
+export type NotificationKind = 'task.assigned' | 'comment.created' | 'mention';
 
 interface EventRow {
   id: string;
@@ -10,6 +10,7 @@ interface EventRow {
   event_type: string;
   payload: {
     actorUserId?: string;
+    mentions?: string[];
     changes?: { assignee?: string | { to?: string | null } };
   };
 }
@@ -78,12 +79,22 @@ export async function notifyBatch(
       if (!event.project_id) continue;
       const target = await recipientsFor(client, event);
       const actor = event.payload.actorUserId ?? null;
-      const userIds = [...new Set(target?.userIds ?? [])].filter(
-        (id) => id !== actor,
-      );
-      if (!target || userIds.length === 0) continue;
-      const inserted = await client.query(
-        `INSERT INTO notifications (organization_id, recipient_user_id, kind,
+      // Mentions come first, so someone both mentioned and following the
+      // task gets the more specific notification (one per event).
+      const groups: { kind: NotificationKind; userIds: string[] }[] = [];
+      if (
+        event.event_type === 'comment.created' &&
+        event.payload.mentions?.length
+      )
+        groups.push({ kind: 'mention', userIds: event.payload.mentions });
+      if (target) groups.push(target);
+      for (const group of groups) {
+        const userIds = [...new Set(group.userIds)].filter(
+          (id) => id !== actor,
+        );
+        if (userIds.length === 0) continue;
+        const inserted = await client.query(
+          `INSERT INTO notifications (organization_id, recipient_user_id, kind,
            project_id, task_id, actor_user_id, source_event_id)
          SELECT $1, m.user_id, $3, p.id, t.id, $6, $7
          FROM organization_memberships m
@@ -96,17 +107,18 @@ export async function notifyBatch(
            AND (m.role IN ('owner', 'admin') OR pm.user_id IS NOT NULL
                 OR (m.role = 'member' AND p.visibility = 'organization'))
          ON CONFLICT (recipient_user_id, source_event_id) DO NOTHING`,
-        [
-          event.organization_id,
-          userIds,
-          target.kind,
-          event.project_id,
-          event.aggregate_id,
-          actor,
-          event.id,
-        ],
-      );
-      created += inserted.rowCount ?? 0;
+          [
+            event.organization_id,
+            userIds,
+            group.kind,
+            event.project_id,
+            event.aggregate_id,
+            actor,
+            event.id,
+          ],
+        );
+        created += inserted.rowCount ?? 0;
+      }
     }
     if (events.rows.length > 0) {
       await client.query(

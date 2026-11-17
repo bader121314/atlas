@@ -14,9 +14,11 @@ const when = new Intl.DateTimeFormat(undefined, {
 
 function describe(item: AppNotification): string {
   const who = item.actor ?? 'Someone';
-  return item.kind === 'task.assigned'
-    ? `${who} assigned ${item.task.key} to you`
-    : `${who} commented on ${item.task.key}`;
+  if (item.kind === 'task.assigned')
+    return `${who} assigned ${item.task.key} to you`;
+  if (item.kind === 'mention')
+    return `${who} mentioned you on ${item.task.key}`;
+  return `${who} commented on ${item.task.key}`;
 }
 
 export default function NotificationsPage() {

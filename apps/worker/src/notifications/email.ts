@@ -10,7 +10,7 @@ export type SendMail = (message: MailMessage) => Promise<void>;
 
 interface PendingRow {
   id: string;
-  kind: 'task.assigned' | 'comment.created';
+  kind: 'task.assigned' | 'comment.created' | 'mention';
   email: string;
   recipient_name: string;
   actor_name: string | null;
@@ -29,11 +29,15 @@ export function composeEmail(row: PendingRow, webOrigin: string): MailMessage {
   const subject =
     row.kind === 'task.assigned'
       ? `${key} was assigned to you: ${row.title}`
-      : `New comment on ${key}: ${row.title}`;
+      : row.kind === 'mention'
+        ? `${who} mentioned you on ${key}: ${row.title}`
+        : `New comment on ${key}: ${row.title}`;
   const opening =
     row.kind === 'task.assigned'
       ? `${who} assigned ${key} to you.`
-      : `${who} commented on ${key}.`;
+      : row.kind === 'mention'
+        ? `${who} mentioned you in a comment on ${key}.`
+        : `${who} commented on ${key}.`;
   return {
     to: row.email,
     subject,

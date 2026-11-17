@@ -127,6 +127,38 @@ describe('notifications', () => {
     expect(JSON.stringify(await inbox(owner))).not.toContain('I can go');
   });
 
+  it('notifies people mentioned in a comment, once', async () => {
+    const { owner, member, slug, base, notify, inbox } = await setup();
+    const third = await fx.join(slug, owner, 'member');
+    await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+      version: 1,
+      assigneeId: member.id,
+    });
+    await notify();
+    const posted = await fx.call(owner, 'POST', `${base}/tasks/1/comments`, {
+      body: 'Can you two check the tide tables?',
+      mentions: [member.id, third.id],
+    });
+    expect(posted.status).toBe(201);
+    await notify();
+    // The assignee is mentioned too: one notification, the mention.
+    expect((await inbox(member)).map((i) => i.kind)).toEqual([
+      'mention',
+      'task.assigned',
+    ]);
+    expect((await inbox(third)).map((i) => i.kind)).toEqual(['mention']);
+
+    const outsider = await fx.account('outsider');
+    expect(
+      (
+        await fx.call(owner, 'POST', `${base}/tasks/1/comments`, {
+          body: 'Hi',
+          mentions: [outsider.id],
+        })
+      ).status,
+    ).toBe(400);
+  });
+
   it('marks only your own notifications read', async () => {
     const { owner, member, slug, base, notify, inbox, count } = await setup();
     await fx.call(owner, 'PATCH', `${base}/tasks/1`, {

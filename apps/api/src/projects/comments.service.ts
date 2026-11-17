@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -81,9 +82,26 @@ export class CommentsService {
     number: number,
     userId: string,
     body: string,
+    mentions: string[] = [],
   ): Promise<Comment> {
     return this.database.transaction(async (client) => {
       const task = await this.taskId(client, tenant, project, number);
+      if (mentions.length > 0) {
+        // Only people who can open this project can be mentioned.
+        const allowed = await client.query<{ count: string }>(
+          `SELECT count(*) FROM organization_memberships m
+           JOIN projects p ON p.organization_id = m.organization_id AND p.id = $2
+           LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = m.user_id
+           WHERE m.organization_id = $1 AND m.user_id = ANY($3::uuid[]) AND m.state = 'active'
+             AND (m.role IN ('owner', 'admin') OR pm.user_id IS NOT NULL
+                  OR (m.role = 'member' AND p.visibility = 'organization'))`,
+          [tenant.organizationId, project.id, mentions],
+        );
+        if (Number(allowed.rows[0]?.count) !== mentions.length)
+          throw new BadRequestException(
+            'Someone mentioned cannot open this project',
+          );
+      }
       const inserted = await client.query<CommentRow>(
         `WITH c AS (
            INSERT INTO task_comments (organization_id, task_id, author_user_id, body)
@@ -103,6 +121,7 @@ export class CommentsService {
         action: 'comment.created',
         changes: { commentId: row.id },
         aggregateVersion: task.version,
+        mentions,
       });
       return toComment(row);
     });

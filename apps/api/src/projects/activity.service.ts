@@ -22,6 +22,8 @@ export interface ActivityInput {
   /** Field-level summary only: never comment bodies or descriptions. */
   changes: Changes;
   aggregateVersion: number;
+  /** People mentioned in a comment; carried to the notifier, not stored in history. */
+  mentions?: string[];
 }
 
 /**
@@ -60,6 +62,7 @@ export class ActivityService {
           taskId: input.taskId,
           actorUserId: input.actorUserId,
           changes: input.changes,
+          ...(input.mentions?.length ? { mentions: input.mentions } : {}),
         }),
         input.projectId,
       ],
