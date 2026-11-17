@@ -10,10 +10,11 @@ on every change.
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
 M2 (projects and tasks), M3 (views, planning and accessibility), M4
 (real-time updates and notifications), M5 (attachments, search and
-analytics) and M6 (automation and integrations) are complete too; see the
-[M2](docs/10-m2-exit-report.md), [M3](docs/11-m3-exit-report.md),
-[M4](docs/12-m4-exit-report.md), [M5](docs/13-m5-exit-report.md) and
-[M6](docs/14-m6-exit-report.md) exit reports. Not deployed; no
+analytics), M6 (automation and integrations) and M7 (hardening and
+operations) are complete too; see the [M2](docs/10-m2-exit-report.md),
+[M3](docs/11-m3-exit-report.md), [M4](docs/12-m4-exit-report.md),
+[M5](docs/13-m5-exit-report.md), [M6](docs/14-m6-exit-report.md) and
+[M7](docs/17-m7-exit-report.md) exit reports. Not deployed; no
 production-readiness claims.
 
 | Task board                                        | Task with comments and history                  |
@@ -68,7 +69,7 @@ production-readiness claims.
 and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
 Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
 
-**How it is verified:** about 185 unit tests and 131 integration tests against real
+**How it is verified:** 187 unit tests and 134 integration tests against real
 PostgreSQL and Redis, plus a browser test that drives three users through
 signup, invitations, projects, tasks, views, live updates, notifications,
 attachments, search and exports, and audits accessibility. Design decisions are recorded as ADRs in
@@ -172,6 +173,10 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [M4 exit report](docs/12-m4-exit-report.md)
 - [M5 exit report](docs/13-m5-exit-report.md)
 - [M6 exit report](docs/14-m6-exit-report.md)
+- [Security review](docs/15-security-review.md)
+- [Load baseline](docs/16-load-baseline.md)
+- [M7 exit report](docs/17-m7-exit-report.md)
+- [Runbooks](docs/runbooks)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
