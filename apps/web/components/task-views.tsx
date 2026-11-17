@@ -7,7 +7,12 @@ import type { CustomField, Task } from '../lib/api';
 import { formatFieldValue } from './custom-fields';
 
 export type SortField =
-  'number' | 'title' | 'priority' | 'due' | 'state' | 'assignee';
+  | 'number'
+  | 'title'
+  | 'priority'
+  | 'due'
+  | 'state'
+  | 'assignee';
 export interface Sort {
   field: SortField;
   direction: 'asc' | 'desc';
