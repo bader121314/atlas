@@ -139,22 +139,20 @@ CI now has five checks: validate, browser, images, terraform, drill.
 Turbo passes `API_ORIGIN`, `STORAGE_ENDPOINT` and `STORAGE_PUBLIC_ORIGIN`
 to builds (they are fixed at build time in Next.js).
 
-### M8 — next (public portfolio release)
+### M8 — complete
 
-Read `docs/08` M8. Suggested order:
+PRs #49–#52; exit report `docs/19-m8-exit-report.md`. Demo:
+`pnpm demo:seed` (Harbour Works). README screenshots come from the smoke
+job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
+`BEGIN-IMAGE` blocks from the job log into `docs/screenshots/demo-*.png`.
 
-1. Done (PR #49): demo seed (`pnpm demo:seed`) that creates a demo organization
-   with realistic projects, tasks, comments, labels, milestones and custom
-   fields through SQL, plus one demo account whose password is printed
-   once; no personal data.
-2. Done (PR #50): README rewrite for evaluators: what it is, a two-minute tour, screenshots
-   from the smoke run (refresh `docs/screenshots`), architecture diagram
-   (Mermaid in markdown), how it is tested, honest limitations.
-3. Done (PR #50): `docs/18-case-study.md`: problem, constraints, key decisions with ADR
-   links, what went wrong and how it was caught (the starved export job,
-   the Turbo env filter, parameter type inference), results.
-4. Done (PR #51): mentions in comments with notifications (ADR-045).
-   Remaining carry-over: multiple assignees.
+### Next (M9 backlog and carry-overs)
+
+1. Multiple assignees (carry-over since M2): `task_assignees` table, API
+   list on tasks, filters matching any assignee, notifications for added
+   assignees, board and task page UI.
+2. Then pick M9 items with an ADR each (docs/08): notification preferences
+   and digests, workload view, time tracking, public share views.
 
 ## Environment and versions
 
