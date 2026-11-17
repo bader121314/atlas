@@ -19,7 +19,13 @@ jobs:
         image: redis:7.4.7-alpine
         ports: ['6379:6379']
         options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
+      # Real malware scanning in the integration tests (ADR-065).
+      clamav:
+        image: clamav/clamav-debian:1.4
+        ports: ['3310:3310']
+        options: --health-cmd "clamdcheck.sh" --health-interval 10s --health-timeout 5s --health-retries 40
     env:
+      CLAMD_HOST: 127.0.0.1
       DATABASE_URL: postgresql://atlas:ephemeral-ci-only@127.0.0.1:5432/atlas
       REDIS_URL: redis://127.0.0.1:6379
       SESSION_SECRET: ephemeral-ci-only-session-secret-0123456789

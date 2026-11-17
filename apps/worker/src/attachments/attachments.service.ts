@@ -5,7 +5,7 @@ import type {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
-import { ObjectStore, storageSettings } from '@atlas/shared';
+import { ObjectStore, scannerFromEnv, storageSettings } from '@atlas/shared';
 import { expireExports, runExports } from '../exports/exporter';
 import { checkBatch, removeAbandoned } from './checker';
 import { tracked } from '../metrics';
@@ -30,6 +30,11 @@ export class AttachmentChecksService
     const settings = storageSettings(process.env);
     if (!settings) return;
     const store = new ObjectStore(settings);
+    const scanner = scannerFromEnv(process.env);
+    if (scanner.name === 'eicar' && process.env.NODE_ENV === 'production')
+      this.logger.warn(
+        'CLAMD_HOST is not set: uploads are checked for the EICAR test file only',
+      );
     const pool = new Pool({
       connectionString: parseEnvironment(process.env).DATABASE_URL,
       max: 2,
@@ -49,7 +54,7 @@ export class AttachmentChecksService
     };
     this.timers.push(
       setInterval(
-        guarded('check', () => checkBatch(pool, store)),
+        guarded('check', () => checkBatch(pool, store, { scanner })),
         CHECK_MS,
       ),
       setInterval(

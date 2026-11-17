@@ -19,7 +19,8 @@ Always Free resources.
 2. Image: **Canonical Ubuntu 24.04**.
 3. Shape: **Ampere → VM.Standard.A1.Flex**, 2 OCPUs, 12 GB memory. It must
    say "Always Free-eligible". If it reports "out of capacity", try again
-   later or use 1 OCPU / 6 GB (slower first build, still fine).
+   later or use 1 OCPU / 6 GB (slower first build, still fine). The upload
+   scanner, ClamAV, uses about 1.5 GB of either.
 4. Networking: keep the defaults and **assign a public IPv4 address**.
 5. SSH keys: **Generate a key pair for me** and download the private key.
 6. Create, wait until it is Running, and copy the **public IP address**.

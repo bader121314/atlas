@@ -24,6 +24,9 @@ x-app-env: &app-env
   SIGNUPS_CLOSED: 'true'
   DEMO_EMAIL: demo@atlas.example
   DEMO_PASSWORD: ${DEMO_PASSWORD:?run setup.sh}
+  # Uploads are scanned by ClamAV (ADR-065). Until it has loaded its
+  # signatures, new files wait in quarantine.
+  CLAMD_HOST: clamav
 
 x-build: &build
   context: ../..
@@ -60,6 +63,12 @@ services:
       MINIO_ROOT_USER: atlas-demo
       MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:?run setup.sh}
     volumes: ['minio-data:/data']
+    restart: unless-stopped
+
+  # Malware scanner for uploads (ADR-065); about 1.5 GB of memory.
+  clamav:
+    image: clamav/clamav-debian:1.4
+    volumes: ['clamav-data:/var/lib/clamav']
     restart: unless-stopped
 
   migrate:
@@ -133,3 +142,4 @@ volumes:
   minio-data:
   caddy-data:
   caddy-config:
+  clamav-data:

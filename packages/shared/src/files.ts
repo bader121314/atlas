@@ -71,8 +71,8 @@ const EICAR =
   'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 /**
- * Stand-in malware scanner: flags the industry EICAR test file. A real
- * scanner (ClamAV) replaces it in deployment behind the same function.
+ * Stand-in malware scanner: flags the industry EICAR test file. Deployments
+ * scan with ClamAV instead (malware.ts, ADR-065).
  */
 export function scanForMalware(bytes: Uint8Array): 'clean' | 'infected' {
   const text = Buffer.from(bytes).toString('latin1');

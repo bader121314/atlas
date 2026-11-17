@@ -1,5 +1,11 @@
 import type { Pool } from 'pg';
-import { isAllowedType, scanForMalware, sniffType } from '@atlas/shared';
+import {
+  MAX_ATTACHMENT_BYTES,
+  isAllowedType,
+  scannerFromEnv,
+  sniffType,
+} from '@atlas/shared';
+import type { MalwareScanner } from '@atlas/shared';
 
 /** What the checker needs from storage; ObjectStore implements it. */
 export interface CheckerStore {
@@ -7,7 +13,6 @@ export interface CheckerStore {
   remove(key: string): Promise<void>;
 }
 
-export const SAMPLE_BYTES = 64 * 1024;
 const PENDING_HOURS = 1;
 
 interface Row {
@@ -18,14 +23,20 @@ interface Row {
 
 /**
  * Checks quarantined uploads (ADR-034): the first bytes must match the
- * declared type and the scanner must pass them. Rejected files are deleted
- * from storage at once. A storage error leaves the batch for the next run.
+ * declared type and the scanner must pass the whole file (ADR-065). Rejected
+ * files are deleted from storage at once. A storage or scanner error leaves
+ * the batch quarantined for the next run.
  */
 export async function checkBatch(
   pool: Pool,
   store: CheckerStore,
-  options: { organizationId?: string; batchSize?: number } = {},
+  options: {
+    organizationId?: string;
+    batchSize?: number;
+    scanner?: MalwareScanner;
+  } = {},
 ): Promise<{ clean: number; rejected: number }> {
+  const scanner = options.scanner ?? scannerFromEnv(process.env);
   const client = await pool.connect();
   const result = { clean: 0, rejected: 0 };
   try {
@@ -37,12 +48,13 @@ export async function checkBatch(
       [options.batchSize ?? 10, options.organizationId ?? null],
     );
     for (const row of rows.rows) {
-      const bytes = await store.head(row.storage_key, SAMPLE_BYTES);
+      // Uploads are capped at 10 MB, so the whole file fits in memory.
+      const bytes = await store.head(row.storage_key, MAX_ATTACHMENT_BYTES);
       let reason: string | undefined;
       if (!isAllowedType(row.content_type)) reason = 'type';
       else if (sniffType(bytes, row.content_type) !== row.content_type)
         reason = 'type';
-      else if (scanForMalware(bytes) === 'infected') reason = 'malware';
+      else if ((await scanner.scan(bytes)) === 'infected') reason = 'malware';
       if (reason) {
         await store.remove(row.storage_key);
         result.rejected += 1;
