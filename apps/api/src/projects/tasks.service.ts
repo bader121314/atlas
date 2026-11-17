@@ -5,9 +5,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { DatabaseError } from 'pg';
 import type { PoolClient } from 'pg';
 import type {
   CreateTaskRequest,
+  Label,
   Task,
   TaskListResponse,
   TaskQuery,
@@ -38,6 +40,8 @@ interface TaskRow {
   state_position: number;
   assignee_user_id: string | null;
   assignee_name: string | null;
+  parent_number: number | null;
+  labels: Label[];
 }
 
 const TASK_SELECT = `
@@ -45,10 +49,18 @@ const TASK_SELECT = `
     t.completed_at, t.version, t.created_at, t.updated_at,
     s.id AS state_id, s.key AS state_key, s.label AS state_label,
     s.category AS state_category, s.position AS state_position,
-    t.assignee_user_id, u.display_name AS assignee_name
+    t.assignee_user_id, u.display_name AS assignee_name,
+    pt.number AS parent_number,
+    COALESCE((
+      SELECT json_agg(json_build_object('id', l.id, 'name', l.name, 'color', l.color)
+        ORDER BY lower(l.name))
+      FROM task_labels tl JOIN labels l ON l.id = tl.label_id
+      WHERE tl.task_id = t.id
+    ), '[]'::json) AS labels
   FROM tasks t
   JOIN workflow_states s ON s.id = t.state_id
-  LEFT JOIN users u ON u.id = t.assignee_user_id`;
+  LEFT JOIN users u ON u.id = t.assignee_user_id
+  LEFT JOIN tasks pt ON pt.id = t.parent_task_id`;
 
 function toTask(row: TaskRow, projectKey: string): Task {
   return {
@@ -71,10 +83,31 @@ function toTask(row: TaskRow, projectKey: string): Task {
         : null,
     dueAt: row.due_at?.toISOString() ?? null,
     completedAt: row.completed_at?.toISOString() ?? null,
+    parent:
+      row.parent_number === null
+        ? null
+        : {
+            number: row.parent_number,
+            key: `${projectKey}-${row.parent_number}`,
+          },
+    labels: row.labels,
     version: Number(row.version),
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
   };
+}
+
+/** Parent loops and over-deep nesting are client errors, not server errors. */
+function rejectInvalidParent(error: unknown): never {
+  if (
+    error instanceof DatabaseError &&
+    (error.constraint === 'tasks_parent_cycle_check' ||
+      error.constraint === 'tasks_parent_depth_check' ||
+      error.constraint === 'tasks_parent_not_self_check')
+  ) {
+    throw new BadRequestException();
+  }
+  throw error;
 }
 
 const iso = (date: Date | null) => date?.toISOString() ?? null;
@@ -87,6 +120,16 @@ function diff(before: TaskRow, after: TaskRow): Changes {
     ['priority', before.priority, after.priority],
     ['assignee', before.assignee_user_id, after.assignee_user_id],
     ['dueAt', iso(before.due_at), iso(after.due_at)],
+    [
+      'parent',
+      before.parent_number === null ? null : String(before.parent_number),
+      after.parent_number === null ? null : String(after.parent_number),
+    ],
+    [
+      'labels',
+      before.labels.map((l) => l.name).join(', ') || null,
+      after.labels.map((l) => l.name).join(', ') || null,
+    ],
   ];
   for (const [field, from, to] of pairs) {
     if (from !== to) changes[field] = { from, to };
@@ -138,6 +181,14 @@ export class TasksService {
     else if (query.assignee === 'me') add('t.assignee_user_id = ?', userId);
     else if (query.assignee) add('t.assignee_user_id = ?', query.assignee);
     if (query.priority) add('t.priority = ?', query.priority);
+    if (query.label) {
+      add(
+        'EXISTS (SELECT 1 FROM task_labels tl WHERE tl.task_id = t.id AND tl.label_id = ?)',
+        query.label,
+      );
+    }
+    if (query.parent === 'none') conditions.push('t.parent_task_id IS NULL');
+    else if (query.parent !== undefined) add('pt.number = ?', query.parent);
     if (query.after !== undefined) add('t.number > ?', query.after);
     values.push(query.limit + 1);
     const result = await this.database.pool.query<TaskRow>(
@@ -187,27 +238,39 @@ export class TasksService {
       if (input.assigneeId) {
         await this.requireAssignable(client, tenant, project, input.assigneeId);
       }
+      const parentId =
+        input.parentNumber === null
+          ? null
+          : await this.requireParent(
+              client,
+              tenant,
+              project,
+              input.parentNumber,
+            );
       const category = await this.categoryOf(client, stateId);
-      await client.query(
-        `INSERT INTO tasks (organization_id, project_id, number, title,
+      await client
+        .query(
+          `INSERT INTO tasks (organization_id, project_id, number, title,
            description, state_id, priority, assignee_user_id, due_at,
-           completed_at, created_by_user_id)
+           completed_at, created_by_user_id, parent_task_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-           CASE WHEN $10 THEN now() END, $11)`,
-        [
-          tenant.organizationId,
-          project.id,
-          number,
-          input.title,
-          input.description,
-          stateId,
-          input.priority,
-          input.assigneeId,
-          input.dueAt,
-          category === 'done',
-          userId,
-        ],
-      );
+           CASE WHEN $10 THEN now() END, $11, $12)`,
+          [
+            tenant.organizationId,
+            project.id,
+            number,
+            input.title,
+            input.description,
+            stateId,
+            input.priority,
+            input.assigneeId,
+            input.dueAt,
+            category === 'done',
+            userId,
+            parentId,
+          ],
+        )
+        .catch(rejectInvalidParent);
       const row = await this.find(client, tenant, project, number);
       if (!row) throw new Error('task vanished after insert');
       await this.activity.record(client, {
@@ -256,36 +319,50 @@ export class TasksService {
       if (input.assigneeId) {
         await this.requireAssignable(client, tenant, project, input.assigneeId);
       }
+      const parentId =
+        input.parentNumber === undefined || input.parentNumber === null
+          ? null
+          : await this.requireParent(
+              client,
+              tenant,
+              project,
+              input.parentNumber,
+            );
       const done = (await this.categoryOf(client, stateId)) === 'done';
-      await client.query(
-        `UPDATE tasks SET
+      await client
+        .query(
+          `UPDATE tasks SET
            title = COALESCE($4, title),
            description = COALESCE($5, description),
            state_id = $6,
            priority = COALESCE($7, priority),
            assignee_user_id = CASE WHEN $8 THEN $9::uuid ELSE assignee_user_id END,
            due_at = CASE WHEN $10 THEN $11::timestamptz ELSE due_at END,
+           parent_task_id = CASE WHEN $13 THEN $14::uuid ELSE parent_task_id END,
            completed_at = CASE
              WHEN $12 THEN COALESCE(completed_at, now())
              ELSE NULL END,
            version = version + 1,
            updated_at = now()
          WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
-        [
-          tenant.organizationId,
-          project.id,
-          number,
-          input.title ?? null,
-          input.description ?? null,
-          stateId,
-          input.priority ?? null,
-          input.assigneeId !== undefined,
-          input.assigneeId ?? null,
-          input.dueAt !== undefined,
-          input.dueAt ?? null,
-          done,
-        ],
-      );
+          [
+            tenant.organizationId,
+            project.id,
+            number,
+            input.title ?? null,
+            input.description ?? null,
+            stateId,
+            input.priority ?? null,
+            input.assigneeId !== undefined,
+            input.assigneeId ?? null,
+            input.dueAt !== undefined,
+            input.dueAt ?? null,
+            done,
+            input.parentNumber !== undefined,
+            parentId,
+          ],
+        )
+        .catch(rejectInvalidParent);
       const row = await this.find(client, tenant, project, number);
       if (!row || !before) throw new Error('task vanished after update');
       const changes = diff(before, row);
@@ -327,6 +404,78 @@ export class TasksService {
       [tenant.organizationId, project.id],
     );
     if (!result.rowCount) throw new ConflictException();
+  }
+
+  /** A parent must be another task in the same project. */
+  private async requireParent(
+    client: PoolClient,
+    tenant: TenantContext,
+    project: ProjectContext,
+    number: number,
+  ): Promise<string> {
+    const result = await client.query<{ id: string }>(
+      `SELECT id FROM tasks
+       WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
+      [tenant.organizationId, project.id, number],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new BadRequestException();
+    return id;
+  }
+
+  /**
+   * Replaces a task's labels. Labels must belong to the organization; the
+   * change bumps the task version and is recorded like any other edit.
+   */
+  async setLabels(
+    tenant: TenantContext,
+    project: ProjectContext,
+    number: number,
+    userId: string,
+    labelIds: string[],
+  ): Promise<Task> {
+    const unique = [...new Set(labelIds)];
+    return this.database.transaction(async (client) => {
+      await this.requireActiveProject(client, tenant, project);
+      const before = await this.find(client, tenant, project, number);
+      if (!before) throw new NotFoundException();
+      await client.query('SELECT 1 FROM tasks WHERE id = $1 FOR UPDATE', [
+        before.id,
+      ]);
+      const owned = await client.query(
+        'SELECT 1 FROM labels WHERE organization_id = $1 AND id = ANY($2::uuid[])',
+        [tenant.organizationId, unique],
+      );
+      if (owned.rowCount !== unique.length) throw new BadRequestException();
+      await client.query(
+        'DELETE FROM task_labels WHERE organization_id = $1 AND task_id = $2',
+        [tenant.organizationId, before.id],
+      );
+      if (unique.length > 0) {
+        await client.query(
+          `INSERT INTO task_labels (organization_id, task_id, label_id)
+           SELECT $1, $2, unnest($3::uuid[])`,
+          [tenant.organizationId, before.id, unique],
+        );
+      }
+      await client.query(
+        `UPDATE tasks SET version = version + 1, updated_at = now()
+         WHERE organization_id = $1 AND id = $2`,
+        [tenant.organizationId, before.id],
+      );
+      const row = await this.find(client, tenant, project, number);
+      if (!row) throw new Error('task vanished after labeling');
+      await this.activity.record(client, {
+        organizationId: tenant.organizationId,
+        projectId: project.id,
+        taskId: row.id,
+        actorUserId: userId,
+        action: 'task.updated',
+        changes: diff(before, row),
+        aggregateVersion: Number(row.version),
+      });
+      return toTask(row, project.key);
+    });
   }
 
   /** The state must belong to this project; anything else is a bad request. */

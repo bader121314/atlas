@@ -43,6 +43,12 @@ function TaskCard({ task, href }: { task: Task; href: string }) {
         {task.dueAt ? (
           <span>Due {day.format(new Date(task.dueAt))}</span>
         ) : null}
+        {task.parent ? <span>Part of {task.parent.key}</span> : null}
+        {task.labels.map((label) => (
+          <span key={label.id} className={`label label-${label.color}`}>
+            {label.name}
+          </span>
+        ))}
       </span>
     </Link>
   );

@@ -99,7 +99,15 @@ export interface Task {
   assignee: { userId: string; displayName: string } | null;
   dueAt: string | null;
   completedAt: string | null;
+  parent: { number: number; key: string } | null;
+  labels: Label[];
   version: number;
+}
+
+export interface Label {
+  id: string;
+  name: string;
+  color: 'slate' | 'sea' | 'sage' | 'sand' | 'rose' | 'violet';
 }
 
 export const PRIORITIES: Task['priority'][] = [

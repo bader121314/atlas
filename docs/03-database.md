@@ -34,7 +34,7 @@ Notation: `PK`, `FK`, `UQ`, `IDX`; all omitted conventional timestamps still app
 - `labels`: id PK, org_id FK, name, color_token, UQ(org_id,name).
 - `task_labels`: org_id, task_id, label_id, UQ(task_id,label_id).
 - `task_custom_field_definitions`: id PK, org_id, project_id nullable, name, type, validation_json, version.
-- `task_custom_field_values`: org_id, task_id, field_id, typed_value_*; unique(task_id,field_id); validate data type in application and DB where feasible.
+- `task_custom_field_values`: org*id, task_id, field_id, typed_value*\*; unique(task_id,field_id); validate data type in application and DB where feasible.
 - `task_comments`: id PK, org_id, project_id, task_id, author_id, body_json, edited_at, deleted_at, version.
 - `comment_reactions`: org_id, comment_id, user_id, emoji_code, UQ(comment_id,user_id,emoji_code).
 - `task_watchers`: org_id, task_id, user_id, UQ(task_id,user_id).

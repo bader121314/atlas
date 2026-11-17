@@ -6,6 +6,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
 import { ActivityService } from './activity.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
+import { LabelsController, TaskLabelsController } from './labels.controller';
+import { LabelsService } from './labels.service';
 import { ProjectGuard } from './project.guard';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
@@ -14,13 +16,20 @@ import { TasksService } from './tasks.service';
 
 @Module({
   imports: [DatabaseModule, AuditModule, AuthModule, OrganizationsModule],
-  controllers: [ProjectsController, TasksController, CommentsController],
+  controllers: [
+    ProjectsController,
+    TasksController,
+    CommentsController,
+    LabelsController,
+    TaskLabelsController,
+  ],
   providers: [
     ProjectsService,
     ProjectGuard,
     TasksService,
     ActivityService,
     CommentsService,
+    LabelsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

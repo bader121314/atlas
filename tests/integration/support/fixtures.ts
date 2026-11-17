@@ -91,6 +91,8 @@ export async function startFixtures() {
         'outbox_events',
         'activity_events',
         'task_comments',
+        'task_labels',
+        'labels',
         'tasks',
         'workflow_states',
         'project_memberships',

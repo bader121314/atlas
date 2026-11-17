@@ -103,8 +103,8 @@ Read `docs/08` M2, `docs/03` planning tables and the deferrals in
    concurrency (ADR-018). Task permissions `task.read/write/comment` already
    exist in `projects/policy.ts`.
 2. Done (PR #12): workflow states, tasks, filters, keyset pagination,
-   versioning (ADR-019). Deferred: custom states/transitions (M3), labels,
-   multiple assignees. Test fixture: `tests/integration/support/fixtures.ts`.
+   versioning (ADR-019). Labels and subtasks done in PR #15 (ADR-021).
+   Deferred: custom states/transitions (M3), multiple assignees. Test fixture: `tests/integration/support/fixtures.ts`.
 3. Done (PR #13): comments, activity history, transactional outbox
    (ADR-020). The outbox dispatcher is M4.
 4. Filters and stable cursor pagination; OpenAPI and contract tests.
