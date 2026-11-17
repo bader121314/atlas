@@ -35,6 +35,12 @@ import type {
   Task,
   WorkflowState,
 } from '../../../../../../../../lib/api';
+import {
+  loadPendingEdit,
+  mergeEdit,
+  storePendingEdit,
+} from '../../../../../../../../lib/offline-edits';
+import type { PendingEdit } from '../../../../../../../../lib/offline-edits';
 
 interface Comment {
   id: string;
@@ -193,6 +199,46 @@ export default function TaskPage() {
     await loadThread();
   }, [base, number, slug, loadThread]);
 
+  const pendingKey = `${slug}/${key}/${number}`;
+  const [pending, setPending] = useState<PendingEdit>();
+  useEffect(() => {
+    setPending(loadPendingEdit(pendingKey));
+  }, [pendingKey]);
+
+  // Back online: send the kept changes once, based on the version they
+  // were made against, so someone else's newer edit is never overwritten.
+  useEffect(() => {
+    if (!pending) return;
+    const flush = async () => {
+      if (!navigator.onLine) return;
+      const result = await api<Task>(`${base}/tasks/${number}`, {
+        method: 'PATCH',
+        body: { version: pending.version, ...pending.changes },
+      });
+      if (result.status === 0) return;
+      setPending(undefined);
+      storePendingEdit(pendingKey, undefined);
+      if (result.data) {
+        setTask(result.data);
+        setMessage({ tone: 'info', text: 'Saved your offline changes.' });
+        await loadThread();
+        return;
+      }
+      const fresh = await api<Task>(`${base}/tasks/${number}`);
+      if (fresh.data) setTask(fresh.data);
+      setMessage({
+        tone: 'error',
+        text:
+          result.status === 409
+            ? 'Your offline changes were not saved because someone else changed this task meanwhile. Their version is shown; apply yours again if still needed.'
+            : 'Your offline changes could not be saved.',
+      });
+    };
+    void flush();
+    window.addEventListener('online', flush);
+    return () => window.removeEventListener('online', flush);
+  }, [pending, pendingKey, base, number, loadThread]);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -246,12 +292,32 @@ export default function TaskPage() {
   const canComment = project.role !== 'viewer';
   const names = new Map(members.map((m) => [m.userId, m.displayName]));
 
+  function keepOffline(changes: Record<string, unknown>) {
+    if (!task) return;
+    const next = mergeEdit(pending, task.version, changes);
+    setPending(next);
+    storePendingEdit(pendingKey, next);
+    setMessage({
+      tone: 'info',
+      text: 'You are offline. Your changes are kept on this device and will be saved when the connection returns.',
+    });
+  }
+
   async function save(changes: Record<string, unknown>, success: string) {
     if (!task) return;
+    // Offline (ADR-061): keep the change and send it when back online.
+    if (pending || !navigator.onLine) {
+      keepOffline(changes);
+      return;
+    }
     const result = await api<Task>(`${base}/tasks/${number}`, {
       method: 'PATCH',
       body: { version: task.version, ...changes },
     });
+    if (result.status === 0) {
+      keepOffline(changes);
+      return;
+    }
     if (result.data) {
       setTask(result.data);
       setMessage({ tone: 'info', text: success });

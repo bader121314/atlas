@@ -269,6 +269,12 @@ const pages = [];
   await alice.getByLabel('Estimate').press('Tab');
   await alice.getByText('Estimate changed.').waitFor();
   await alice.getByText('of 4h estimated').waitFor();
+  // A change made while offline is kept and saved once back online.
+  await alice.context().setOffline(true);
+  await alice.getByLabel('Priority').selectOption('high');
+  await alice.getByText(/You are offline\. Your changes are kept/).waitFor();
+  await alice.context().setOffline(false);
+  await alice.getByText('Saved your offline changes.').waitFor();
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice
