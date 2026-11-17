@@ -109,8 +109,8 @@ Read `docs/08` M3 and the deferrals in `docs/10`. In order:
    Transition rules stay on the backlog.
 2. Done (PR #18): board moves by drag-and-drop or keyboard control, with
    rollback (ADR-023). Ordering within a column is not supported yet.
-3. Task dependencies (blocks/blocked by) with cycle detection in the
-   database, and milestones.
+3. Done (PR #19): dependencies with database loop protection and
+   milestones with progress (ADR-024).
 4. Table view with sorting; calendar view by due date; saved views (filters
    stored per user or project).
 5. Custom fields (text, number, date, select) with typed validation.

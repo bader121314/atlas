@@ -586,7 +586,7 @@ paths:
     get:
       operationId: listTasks
       security: [{ sessionCookie: [] }]
-      description: 'Query: state (key), assignee (me | none | uuid), priority, label (id), parent (task number | none), after (task number cursor), limit (1-100, default 50). Unknown parameters return 400.'
+      description: 'Query: state (key), assignee (me | none | uuid), priority, label (id), milestone (id | none), parent (task number | none), after (task number cursor), limit (1-100, default 50). Unknown parameters return 400.'
       responses:
         '200':
           {
@@ -728,6 +728,58 @@ paths:
             description: Tasks exist and no moveTo was given,
             or it is the last state,
           }
+  /organizations/{slug}/projects/{key}/tasks/{number}/dependencies:
+    get:
+      operationId: getTaskDependencies
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          {
+            description: 'blockedBy and blocking lists: number, key, title, done',
+          }
+    post:
+      operationId: addTaskDependency
+      security: [{ sessionCookie: [] }]
+      description: 'Body: blockerNumber (a task in the same project). Editor or manager.'
+      responses:
+        '204': { description: Recorded }
+        '400': { description: Unknown task, the task itself, or a loop }
+        '409': { description: Already recorded }
+  /organizations/{slug}/projects/{key}/tasks/{number}/dependencies/{blocker}:
+    delete:
+      operationId: removeTaskDependency
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Removed }
+        '404': { description: No such dependency }
+  /organizations/{slug}/projects/{key}/milestones:
+    get:
+      operationId: listMilestones
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: 'Milestones with taskCount and doneCount' }
+    post:
+      operationId: createMilestone
+      security: [{ sessionCookie: [] }]
+      description: 'Body: title, dueAt?. Manager.'
+      responses:
+        '201': { description: Created }
+        '403': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}/milestones/{id}:
+    patch:
+      operationId: updateMilestone
+      security: [{ sessionCookie: [] }]
+      description: 'Body: title?, dueAt? (null clears), status? (open | closed). Manager.'
+      responses:
+        '200': { description: Updated }
+        '404': { description: Unknown milestone }
+    delete:
+      operationId: deleteMilestone
+      security: [{ sessionCookie: [] }]
+      description: Manager. Tasks keep existing without a milestone.
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Unknown milestone }
 components:
   parameters:
     Slug:

@@ -101,7 +101,24 @@ export interface Task {
   completedAt: string | null;
   parent: { number: number; key: string } | null;
   labels: Label[];
+  milestone: { id: string; title: string } | null;
   version: number;
+}
+
+export interface Milestone {
+  id: string;
+  title: string;
+  dueAt: string | null;
+  status: 'open' | 'closed';
+  taskCount: number;
+  doneCount: number;
+}
+
+export interface TaskRef {
+  number: number;
+  key: string;
+  title: string;
+  done: boolean;
 }
 
 export interface Label {
