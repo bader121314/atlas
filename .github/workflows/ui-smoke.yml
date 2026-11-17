@@ -26,6 +26,9 @@ on:
       print_screenshots:
         description: Print the demo screenshots in the job log
         type: boolean
+      record_tour:
+        description: Record the README walkthrough GIF of the demo
+        type: boolean
         default: false
 permissions:
   contents: read
@@ -74,7 +77,7 @@ jobs:
       - name: Install Playwright and axe-core (smoke test only, not project dependencies)
         run: |
           npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright axe-core
-          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium ffmpeg
       - name: Start API and web
         run: |
           node -e "require('./packages/shared/dist/testing/fake-s3.js').startFakeS3({ accessKey: 'smoke-key', secretKey: 'smoke-secret' }, { port: 9100, bucket: 'atlas-smoke' })" > s3.log 2>&1 &
@@ -106,6 +109,19 @@ jobs:
           node scripts/demo-screenshots.cjs
           # Seeding twice leaves the data alone.
           node scripts/demo-seed.mjs | grep -q 'already exists'
+          if [ "${{ inputs.record_tour == true }}" = true ]; then
+            command -v ffmpeg >/dev/null || sudo apt-get install -y ffmpeg
+            node scripts/demo-tour.cjs
+            ffmpeg -loglevel error -i tour/tour.webm -vf \
+              "fps=8,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
+              -loop 0 screenshots/tour.gif
+            ls -la screenshots/tour.gif
+            if [ "$PRINT_SCREENSHOTS" = true ]; then
+              echo "BEGIN-IMAGE tour.gif"
+              base64 -w 40000 screenshots/tour.gif
+              echo "END-IMAGE"
+            fi
+          fi
       - name: Server logs on failure
         if: failure()
         run: tail -n 100 api.log web.log worker.log

@@ -188,7 +188,12 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     runbook `docs/runbooks/free-demo.md`. The owner chose a free host and
     does not want to pay; the deployment itself is done by the owner
     following the runbook. Not deployed by us.
-26. Remaining M9 items need approval or hosted services: billing (Stripe
+26. Done (PR #78): arm64 images built in CI. Done (PR #79): README
+    walkthrough GIF, recorded by dispatching ui-smoke.yml with
+    record_tour and print_screenshots, then decoded from the job log.
+27. The owner tried Oracle sign-up (Riyadh, Jeddah) and was rate limited
+    after card attempts; a reminder to retry fires in this session.
+28. Remaining M9 items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo. Everything buildable without approval
     is done; wait for the user's decision before starting these.
