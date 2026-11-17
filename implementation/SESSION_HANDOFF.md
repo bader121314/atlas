@@ -101,27 +101,35 @@ Shared test fixture: `tests/integration/support/fixtures.ts` (accounts,
 organizations, invitations, `call()` helper, cleanup of all tenant tables;
 add new tables to its cleanup list).
 
-### M3 — next (polished navigation and views)
+### M3 — complete
 
-Read `docs/08` M3 and the deferrals in `docs/10`. In order:
+PRs #17–#23 (ADR-022 to ADR-027); exit report `docs/11-m3-exit-report.md`.
+Note: local Prettier 3.8 differs from the project's 3.10 on long union types;
+keep them on one line. The local workspace may have no `node_modules`; CI is
+the type and lint check. Playwright labels match substrings: use
+`{ exact: true }` (the shortcut dialog is labelled "Keyboard shortcuts").
 
-1. Done (PR #17): custom workflow states with safe deletion (ADR-022).
-   Transition rules stay on the backlog.
-2. Done (PR #18): board moves by drag-and-drop or keyboard control, with
-   rollback (ADR-023). Ordering within a column is not supported yet.
-3. Done (PR #19): dependencies with database loop protection and
-   milestones with progress (ADR-024).
-4. Done (PR #20): filters, table (client-side sort) and calendar views,
-   saved views private or shared (ADR-025). Note: local Prettier 3.8 differs
-   from the project's 3.10 on long union types; keep them on one line.
-5. Done (PR #21): custom fields (text, number, date, choice list) with typed
-   value columns and validation; values shown in the table view (ADR-026).
-6. Done (PR #22): colour and spacing tokens, contrast unit test, axe-core
-   audit on every smoke screenshot, phone and tablet layout checks
-   (ADR-027).
-7. Carry-overs: trusted-proxy client addresses before deployment, request IDs
-   in audit events, change password while signed in, multiple assignees,
-   OpenAPI client generation and contract tests.
+### M4 — next (real-time and notifications)
+
+Constraint: new npm packages cannot be added from this workspace (no registry
+access, lockfile is authoritative), so M4 uses what is installed.
+
+1. Outbox dispatcher in `apps/worker`: claim unpublished `outbox_events` with
+   `FOR UPDATE SKIP LOCKED`, publish to Redis pub/sub per project, mark
+   published; retries with backoff; idempotent by event id.
+2. Event stream to browsers: Server-Sent Events from the API (no new
+   dependency; writes stay REST), authenticated by the session cookie,
+   authorized per project on connect and revalidated; `Last-Event-ID`
+   backfill from the outbox; full resync when the cursor is too old. ADR.
+3. Web: live board, list and task page updates; reconnect handling.
+4. Presence (ephemeral, Redis with expiry) on the task page.
+5. In-app notifications (assignment, mention, comment on watched task) and
+   the email worker.
+6. Exit tests: delivery across two API instances, revocation cuts the stream,
+   nothing published before commit, retry and dedup, resync after disconnect.
+7. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
+   change password while signed in, multiple assignees, OpenAPI client
+   generation and contract tests.
 
 ## Environment and versions
 
