@@ -516,3 +516,13 @@ model ScimToken {
   @@index([organizationId], map: "scim_tokens_organization_idx")
   @@map("scim_tokens")
 }
+
+model UsageCounter {
+  organizationId String @map("organization_id") @db.Uuid
+  period DateTime @db.Date
+  metric String @db.VarChar(40)
+  count BigInt @default(0)
+
+  @@id([organizationId, period, metric])
+  @@map("usage_counters")
+}

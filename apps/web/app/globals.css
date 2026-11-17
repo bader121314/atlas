@@ -994,3 +994,26 @@ code.secret {
     border: 2px solid CanvasText;
   }
 }
+
+/* Usage facts (ADR-056): label above a large figure, wrapping on phones. */
+.usage-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
+}
+.usage-facts div {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+.usage-facts dt {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.usage-facts dd {
+  margin: var(--space-1) 0 0;
+  font-family: var(--serif);
+  font-size: 1.5rem;
+}

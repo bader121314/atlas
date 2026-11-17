@@ -1296,6 +1296,14 @@ paths:
       operationId: scimServiceProviderConfig
       responses:
         '200': { description: Supported features }
+  /organizations/{slug}/usage:
+    get:
+      operationId: getUsage
+      security: [{ sessionCookie: [] }]
+      description: '{ members, guests, projects { active, archived }, tasks, storageBytes, months[6] { period YYYY-MM, apiRequests, scimRequests, webhookDeliveries, notificationEmails } }. Owners and admins. ADR-056.'
+      responses:
+        '200': { description: Usage }
+        '403': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:

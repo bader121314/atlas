@@ -1241,6 +1241,31 @@ export const auditPageSchema = z
   .strict();
 export type AuditPage = z.infer<typeof auditPageSchema>;
 
+/** An organization's current size and monthly metered usage (ADR-056). */
+export const usageSchema = z
+  .object({
+    members: z.number().int(),
+    guests: z.number().int(),
+    projects: z
+      .object({ active: z.number().int(), archived: z.number().int() })
+      .strict(),
+    tasks: z.number().int(),
+    storageBytes: z.number().int(),
+    months: z.array(
+      z
+        .object({
+          period: z.string().regex(/^\d{4}-\d{2}$/),
+          apiRequests: z.number().int(),
+          scimRequests: z.number().int(),
+          webhookDeliveries: z.number().int(),
+          notificationEmails: z.number().int(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type Usage = z.infer<typeof usageSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;
