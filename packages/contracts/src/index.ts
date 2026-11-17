@@ -333,6 +333,7 @@ export const taskSchema = z
       .object({ id: z.uuid(), title: z.string() })
       .strict()
       .nullable(),
+    fields: z.record(z.string(), z.union([z.string(), z.number()])),
     version: z.number().int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -486,6 +487,44 @@ export const savedViewSchema = z
   })
   .strict();
 export type SavedView = z.infer<typeof savedViewSchema>;
+
+const fieldName = z.string().trim().min(1).max(40);
+const fieldOptions = z
+  .array(z.string().trim().min(1).max(40))
+  .min(1)
+  .max(30)
+  .refine((o) => new Set(o.map((v) => v.toLowerCase())).size === o.length, {
+    message: 'options must be unique',
+  });
+export const createFieldRequestSchema = z.discriminatedUnion('type', [
+  z.object({ name: fieldName, type: z.literal('text') }).strict(),
+  z.object({ name: fieldName, type: z.literal('number') }).strict(),
+  z.object({ name: fieldName, type: z.literal('date') }).strict(),
+  z
+    .object({
+      name: fieldName,
+      type: z.literal('select'),
+      options: fieldOptions,
+    })
+    .strict(),
+]);
+export type CreateFieldRequest = z.infer<typeof createFieldRequestSchema>;
+export const updateFieldRequestSchema = z
+  .object({ name: fieldName.optional(), options: fieldOptions.optional() })
+  .strict();
+export const customFieldSchema = z
+  .object({
+    id: z.uuid(),
+    name: z.string(),
+    type: z.enum(['text', 'number', 'date', 'select']),
+    options: z.array(z.string()),
+    position: z.number().int(),
+  })
+  .strict();
+export type CustomField = z.infer<typeof customFieldSchema>;
+export const setFieldValueRequestSchema = z
+  .object({ value: z.union([z.string().max(500), z.number(), z.null()]) })
+  .strict();
 
 export const sessionResponseSchema = z
   .object({
