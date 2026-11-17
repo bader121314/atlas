@@ -34,12 +34,14 @@ export function TimeSection({
   userId,
   canWrite,
   canManage,
+  estimateMinutes = null,
 }: {
   base: string;
   number: string;
   userId: string;
   canWrite: boolean;
   canManage: boolean;
+  estimateMinutes?: number | null;
 }) {
   const [data, setData] = useState<{
     totalMinutes: number;
@@ -108,6 +110,15 @@ export function TimeSection({
           <p>
             Logged in total:{' '}
             <strong>{formatDuration(data.totalMinutes)}</strong>
+            {estimateMinutes ? (
+              <span className="muted">
+                {' '}
+                of {formatDuration(estimateMinutes)} estimated
+                {data.totalMinutes > estimateMinutes
+                  ? ` (${formatDuration(data.totalMinutes - estimateMinutes)} over)`
+                  : ''}
+              </span>
+            ) : null}
           </p>
           <ul className="rows">
             {data.entries.map((entry) => (

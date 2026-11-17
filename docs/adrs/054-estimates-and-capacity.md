@@ -25,9 +25,9 @@ backlog asks for capacity planning.
 
 ## Not included
 
-Spreading an estimate across the days between start and due date, time off
-and holidays, and comparing estimates with time logged (ADR-049). Each is a
-reasonable next step once teams use estimates.
+Spreading an estimate across the days between start and due date, and time
+off and holidays. The task page does show time logged (ADR-049) against the
+estimate, with any overrun.
 
 ## Gates
 
