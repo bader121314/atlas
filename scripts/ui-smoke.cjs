@@ -28,12 +28,12 @@ async function audit(page, name) {
   );
   for (const v of results.violations) {
     if (v.impact !== 'serious' && v.impact !== 'critical') continue;
-    violations.push(
-      `${name}: ${v.id} (${v.impact}) ${v.help}\n    ${v.nodes
-        .slice(0, 3)
-        .map((n) => n.target.join(' '))
-        .join('\n    ')}`,
-    );
+    const line = `${name}: ${v.id} (${v.impact}) ${v.help}\n    ${v.nodes
+      .slice(0, 3)
+      .map((n) => n.target.join(' '))
+      .join('\n    ')}`;
+    console.log(`axe ${line}`);
+    violations.push(line);
   }
 }
 
@@ -255,7 +255,7 @@ const pages = [];
   await alice.getByRole('button', { name: 'Clear filters' }).click();
   // A custom choice field, set on a task and shown as a table column.
   await alice.getByLabel('New field').fill('Region');
-  await alice.getByLabel('Type', { exact: true }).selectOption('select');
+  await alice.locator('#fieldType').selectOption('select');
   await alice.getByLabel('Choices, separated by commas').fill('North, South');
   await alice.getByRole('button', { name: 'Add field' }).click();
   await alice.getByText('Choice list: North, South').waitFor();
