@@ -65,7 +65,15 @@ export function useT(): (text: string, vars?: Vars) => string {
 /** Remembers the choice for a year and reloads in the new language. */
 export function chooseLocale(locale: Locale): void {
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`;
-  window.location.reload();
+  // Signed in: emails and push follow the choice too (ADR-066). Signed out,
+  // this fails quietly and the next sign-in records the cookie instead.
+  void fetch('/api/auth/locale', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ locale }),
+  })
+    .catch(() => undefined)
+    .finally(() => window.location.reload());
 }
 
 /** A link-styled button offering the other language, labelled in it. */

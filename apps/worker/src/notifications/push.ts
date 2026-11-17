@@ -2,6 +2,8 @@ import type { Pool } from 'pg';
 import {
   encryptPush,
   isPushServiceUrl,
+  message,
+  messageLocale,
   vapidAuthorization,
 } from '@atlas/shared';
 import type { VapidKeys } from '@atlas/shared';
@@ -34,19 +36,23 @@ interface Row {
   project_key: string;
   number: number;
   title: string;
+  /** The recipient's language (ADR-066); English when absent. */
+  locale?: string;
 }
 
 /** The visible text of a push message. Bodies of comments are never sent. */
 export function composePush(row: Row, webOrigin: string) {
+  const locale = messageLocale(row.locale);
   const key = `${row.project_key}-${row.number}`;
-  const who = row.actor_name ?? 'Someone';
+  const who = row.actor_name ?? message(locale, 'someone');
+  const kind =
+    row.kind === 'task.assigned'
+      ? 'assigned'
+      : row.kind === 'mention'
+        ? 'mention'
+        : 'comment';
   return {
-    title:
-      row.kind === 'task.assigned'
-        ? `${who} assigned ${key} to you`
-        : row.kind === 'mention'
-          ? `${who} mentioned you on ${key}`
-          : `${who} commented on ${key}`,
+    title: message(locale, `${kind}.push` as const, { who, key }),
     body: row.title,
     url: `${webOrigin}/organizations/${row.slug}/projects/${row.project_key}/tasks/${row.number}`,
     tag: `${key}`,
@@ -75,8 +81,9 @@ export async function pushBatch(
     await client.query('BEGIN');
     const rows = await client.query<Row>(
       `SELECT n.id, n.kind, n.recipient_user_id, a.display_name AS actor_name,
-              o.slug, p.key AS project_key, t.number, t.title
+              o.slug, p.key AS project_key, t.number, t.title, r.locale
        FROM notifications n
+       JOIN users r ON r.id = n.recipient_user_id
        LEFT JOIN users a ON a.id = n.actor_user_id
        JOIN organizations o ON o.id = n.organization_id
        JOIN projects p ON p.id = n.project_id

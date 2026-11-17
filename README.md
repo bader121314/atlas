@@ -41,7 +41,7 @@ pnpm demo:seed                # prints a sign-in for the demo organization
 ```
 
 `pnpm demo:seed` creates **Harbour Works**, a fictional team surveying a
-harbour: two projects with statuses, labels, milestones, dependencies,
+harbour: three projects (one written in Arabic) with statuses, labels, milestones, dependencies,
 comments, custom fields, an automation rule and a recurring task. Sign in
 with the printed account and try:
 

@@ -56,3 +56,11 @@ export {
   vapidKeys,
 } from './web-push';
 export type { PushTarget, VapidKeys } from './web-push';
+export {
+  LOCALE_COOKIE,
+  MESSAGE_TEXT,
+  localeFromCookies,
+  message,
+  messageLocale,
+} from './messages';
+export type { MessageKey, MessageLocale } from './messages';

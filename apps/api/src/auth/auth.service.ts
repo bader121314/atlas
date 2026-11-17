@@ -10,8 +10,11 @@ import {
   digestToken,
   generateToken,
   hashPassword,
+  message,
+  messageLocale,
   verifyPassword,
 } from '@atlas/shared';
+import type { MessageLocale } from '@atlas/shared';
 import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../audit/audit.service';
 import { DatabaseService } from '../database.service';
@@ -65,11 +68,11 @@ export class AuthService {
     const token = generateToken();
     const created = await this.database.transaction(async (client) => {
       const user = await client.query<{ id: string }>(
-        `INSERT INTO users (email_normalized, display_name, password_hash)
-         VALUES ($1, $2, $3)
+        `INSERT INTO users (email_normalized, display_name, password_hash, locale)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (email_normalized) DO NOTHING
          RETURNING id`,
-        [input.email, input.displayName, passwordHash],
+        [input.email, input.displayName, passwordHash, request.locale ?? 'en'],
       );
       const userId = user.rows[0]?.id;
       if (!userId) return false;
@@ -127,15 +130,33 @@ export class AuthService {
   private async sendVerification(email: string, token: string): Promise<void> {
     const link = `${this.config.WEB_ORIGIN}/verify-email?token=${token}`;
     try {
+      const locale = await this.localeOf(email);
       await this.mailer.send({
         to: email,
-        subject: 'Verify your Atlas email address',
-        text: `Confirm your email address to finish creating your Atlas account:\n\n${link}\n\nThis link expires in 24 hours.`,
+        subject: message(locale, 'verify.subject'),
+        text: message(locale, 'verify.text', { link }),
       });
     } catch {
       // Never log the address or token; the user can request a new link.
       this.logger.error('verification email could not be sent');
     }
+  }
+
+  /** The language a person chose for emails (ADR-066). */
+  async localeOf(email: string): Promise<MessageLocale> {
+    const result = await this.database.pool.query<{ locale: string }>(
+      'SELECT locale FROM users WHERE email_normalized = $1',
+      [email],
+    );
+    return messageLocale(result.rows[0]?.locale);
+  }
+
+  async setLocale(userId: string, locale: MessageLocale): Promise<void> {
+    await this.database.pool.query(
+      `UPDATE users SET locale = $2, updated_at = now()
+       WHERE id = $1 AND locale IS DISTINCT FROM $2`,
+      [userId, locale],
+    );
   }
 
   /** Single-use, expiring token. Returns false for unknown or used tokens. */
@@ -255,6 +276,8 @@ export class AuthService {
     method: 'password' | 'sso',
   ): Promise<string> {
     const token = generateToken();
+    // Remember the language chosen on the sign-in page (ADR-066).
+    if (request.locale) await this.setLocale(userId, request.locale);
     const session = await this.database.pool.query<{ id: string }>(
       `INSERT INTO sessions (user_id, token_hash, expires_at, user_agent_summary)
        VALUES ($1, $2, now() + make_interval(secs => $3), $4)
@@ -409,17 +432,23 @@ export class AuthService {
     if (!issued) return;
     const link = `${this.config.WEB_ORIGIN}/reset-password?token=${token}`;
     try {
+      const locale = await this.localeOf(email);
       await this.mailer.send(
         welcome
           ? {
               to: email,
-              subject: `You have been added to ${welcome.organizationName} on Atlas`,
-              text: `Your organization added you to ${welcome.organizationName} on Atlas. Choose a password to sign in:\n\n${link}\n\nThis link expires in 7 days. Afterwards, use "Forgot password" on the sign-in page.`,
+              subject: message(locale, 'welcome.subject', {
+                organization: welcome.organizationName,
+              }),
+              text: message(locale, 'welcome.text', {
+                organization: welcome.organizationName,
+                link,
+              }),
             }
           : {
               to: email,
-              subject: 'Reset your Atlas password',
-              text: `Someone asked to reset the password for your Atlas account. If it was you, choose a new password here:\n\n${link}\n\nThis link expires in 1 hour. If you did not ask, you can ignore this email; your password has not changed.`,
+              subject: message(locale, 'reset.subject'),
+              text: message(locale, 'reset.text', { link }),
             },
       );
     } catch {

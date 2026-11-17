@@ -62,6 +62,16 @@ const project = `${BASE}/organizations/harbour-works/projects/HBR`;
     .getByRole('link', { name: 'Chart the northern channel' })
     .waitFor();
   await shot('search');
+  // The Arabic project in the Arabic interface (ADR-063, ADR-066).
+  await page
+    .context()
+    .addCookies([{ name: 'atlas_locale', value: 'ar', url: BASE }]);
+  await page.goto(`${BASE}/organizations/harbour-works/projects/MRN`);
+  await page.getByRole('region', { name: 'In review' }).waitFor();
+  await shot('arabic-board');
+  await page
+    .context()
+    .addCookies([{ name: 'atlas_locale', value: 'en', url: BASE }]);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${project}/tasks/3`);
   await page.getByRole('heading', { name: 'Comments' }).waitFor();

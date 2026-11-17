@@ -1,4 +1,5 @@
 import type { Pool } from 'pg';
+import { message, messageLocale } from '@atlas/shared';
 import { countUsage } from '../usage';
 
 export interface MailMessage {
@@ -20,29 +21,31 @@ interface PendingRow {
   number: number;
   title: string;
   email_mode: 'instant' | 'daily' | 'off' | null;
+  /** The recipient's language (ADR-066); English when absent. */
+  locale?: string;
 }
 
-/** Plain-text email for one notification. */
+/** Plain-text email for one notification, in the recipient's language. */
 export function composeEmail(row: PendingRow, webOrigin: string): MailMessage {
+  const locale = messageLocale(row.locale);
   const key = `${row.project_key}-${row.number}`;
-  const who = row.actor_name ?? 'Someone';
+  const who = row.actor_name ?? message(locale, 'someone');
   const link = `${webOrigin}/organizations/${row.slug}/projects/${row.project_key}/tasks/${row.number}`;
-  const subject =
+  const kind =
     row.kind === 'task.assigned'
-      ? `${key} was assigned to you: ${row.title}`
+      ? 'assigned'
       : row.kind === 'mention'
-        ? `${who} mentioned you on ${key}: ${row.title}`
-        : `New comment on ${key}: ${row.title}`;
-  const opening =
-    row.kind === 'task.assigned'
-      ? `${who} assigned ${key} to you.`
-      : row.kind === 'mention'
-        ? `${who} mentioned you in a comment on ${key}.`
-        : `${who} commented on ${key}.`;
+        ? 'mention'
+        : 'comment';
+  const vars = { key, who, title: row.title };
   return {
     to: row.email,
-    subject,
-    text: `Hello ${row.recipient_name},\n\n${opening}\n\nOpen the task: ${link}\n\nYou can turn these emails off on your notifications page in Atlas.\n`,
+    subject: message(locale, `${kind}.subject` as const, vars),
+    text: message(locale, 'notification.text', {
+      name: row.recipient_name,
+      opening: message(locale, `${kind}.opening` as const, vars),
+      link,
+    }),
   };
 }
 
@@ -73,7 +76,7 @@ export async function emailBatch(
       [options.organizationId ?? null],
     );
     const rows = await client.query<PendingRow & { organization_id: string }>(
-      `SELECT n.id, n.organization_id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name,
+      `SELECT n.id, n.organization_id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name, u.locale,
               a.display_name AS actor_name, o.slug, p.key AS project_key,
               t.number, t.title, s.email_mode
        FROM notifications n
@@ -139,25 +142,33 @@ interface DigestItem {
 
 /** One email summarizing a person's unread notifications. */
 export function composeDigest(
-  recipient: { email: string; name: string; slug: string },
+  recipient: { email: string; name: string; slug: string; locale?: string },
   items: DigestItem[],
   webOrigin: string,
 ): MailMessage {
+  const locale = messageLocale(recipient.locale);
   const lines = items.map((i) => {
     const key = `${i.project_key}-${i.number}`;
-    const who = i.actor_name ?? 'Someone';
-    const what =
+    const who = i.actor_name ?? message(locale, 'someone');
+    const kind =
       i.kind === 'task.assigned'
-        ? `${who} assigned it to you`
+        ? 'assigned'
         : i.kind === 'mention'
-          ? `${who} mentioned you`
-          : `${who} commented`;
-    return `- ${key} ${i.title}: ${what}`;
+          ? 'mention'
+          : 'comment';
+    return `- ${key} ${i.title}: ${message(locale, `${kind}.line` as const, { who })}`;
   });
   return {
     to: recipient.email,
-    subject: `Your Atlas summary: ${items.length} unread ${items.length === 1 ? 'notification' : 'notifications'}`,
-    text: `Hello ${recipient.name},\n\nSince your last summary:\n\n${lines.join('\n')}\n\nOpen your notifications: ${webOrigin}/organizations/${recipient.slug}/notifications\n\nYou chose a daily summary; change it on your notifications page in Atlas.\n`,
+    subject:
+      items.length === 1
+        ? message(locale, 'digest.subject.one')
+        : message(locale, 'digest.subject.many', { count: items.length }),
+    text: message(locale, 'digest.text', {
+      name: recipient.name,
+      lines: lines.join('\n'),
+      link: `${webOrigin}/organizations/${recipient.slug}/notifications`,
+    }),
   };
 }
 
@@ -180,9 +191,10 @@ export async function digestBatch(
       email: string;
       name: string;
       slug: string;
+      locale: string;
     }>(
       `SELECT s.organization_id, s.user_id, u.email_normalized AS email,
-              u.display_name AS name, o.slug
+              u.display_name AS name, o.slug, u.locale
        FROM notification_settings s
        JOIN users u ON u.id = s.user_id
        JOIN organizations o ON o.id = s.organization_id

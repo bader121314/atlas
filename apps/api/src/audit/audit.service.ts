@@ -64,6 +64,8 @@ export interface RequestMeta {
   ip?: string | undefined;
   userAgent?: string | undefined;
   requestId?: string | undefined;
+  /** Language chosen in the web app, from its cookie (ADR-066). */
+  locale?: 'en' | 'ar' | undefined;
 }
 
 type MetadataValue = string | number | boolean | null;
