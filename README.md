@@ -8,7 +8,8 @@ on every change.
 
 **Status:** milestones M0 (foundation) and M1 (identity, organizations,
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
-M2 (projects and tasks) is nearly complete. Not deployed; no production-readiness claims.
+M2 (projects and tasks) is complete too; see the
+[M2 exit report](docs/10-m2-exit-report.md). Not deployed; no production-readiness claims.
 
 | Task board                                        | Task with comments and history                  |
 | ------------------------------------------------- | ----------------------------------------------- |
@@ -41,7 +42,7 @@ M2 (projects and tasks) is nearly complete. Not deployed; no production-readines
 and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
 Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
 
-**How it is verified:** 51 unit tests and 55 integration tests against real
+**How it is verified:** 79 unit tests and 74 integration tests against real
 PostgreSQL and Redis, plus a browser test that drives three users through
 signup, invitations and removal. Design decisions are recorded as ADRs in
 [`docs/adrs`](docs/adrs).
@@ -139,6 +140,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Quality and test strategy](docs/07-quality.md)
 - [Milestones, dependencies and acceptance](docs/08-milestones.md)
 - [M1 exit report](docs/09-m1-exit-report.md)
+- [M2 exit report](docs/10-m2-exit-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 

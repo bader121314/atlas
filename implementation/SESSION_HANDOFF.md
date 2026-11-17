@@ -1,7 +1,7 @@
 # Atlas session handoff
 
 **Date:** 2026-11-16 (Asia/Riyadh).
-**Milestone:** M0 and M1 complete (`docs/09-m1-exit-report.md`); M2 next.
+**Milestone:** M0, M1 and M2 complete (`docs/09`, `docs/10`); M3 next.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
 **Deployments:** none; no paid resources provisioned.
@@ -94,26 +94,30 @@ Anti-CSRF token deliberately deferred (see ADR-017).
 **Merged (PR #10):** M1 exit report, README screenshots, browser smoke test
 now covers member removal.
 
-### M2 — next (projects and tasks)
+### M2 — complete
 
-Read `docs/08` M2, `docs/03` planning tables and the deferrals in
-`docs/09`. In order:
+PRs #11–#15 (ADR-018 to ADR-021); exit report `docs/10-m2-exit-report.md`.
+Shared test fixture: `tests/integration/support/fixtures.ts` (accounts,
+organizations, invitations, `call()` helper, cleanup of all tenant tables;
+add new tables to its cleanup list).
 
-1. Done (PR #11): projects, project roles, `ProjectGuard`, optimistic
-   concurrency (ADR-018). Task permissions `task.read/write/comment` already
-   exist in `projects/policy.ts`.
-2. Done (PR #12): workflow states, tasks, filters, keyset pagination,
-   versioning (ADR-019). Labels and subtasks done in PR #15 (ADR-021).
-   Deferred: custom states/transitions (M3), multiple assignees. Test fixture: `tests/integration/support/fixtures.ts`.
-3. Done (PR #13): comments, activity history, transactional outbox
-   (ADR-020). The outbox dispatcher is M4.
-4. Filters and stable cursor pagination; OpenAPI and contract tests.
-5. Done (PR #14): project list/create on the organization page, board and
-   list views, task page (edit, status, priority, assignee, due date,
-   comments, history); smoke test covers it. Drag-and-drop is M3.
-6. Carry-overs: trusted-proxy client addresses before deployment, request IDs
-   in audit events, change password while signed in, email notice after a
-   reset, suspend/unsuspend members.
+### M3 — next (polished navigation and views)
+
+Read `docs/08` M3 and the deferrals in `docs/10`. In order:
+
+1. Custom workflow states per project (add, rename, reorder, delete with
+   task migration) and optional transition rules.
+2. Board drag-and-drop with keyboard support and rollback on 409.
+3. Task dependencies (blocks/blocked by) with cycle detection in the
+   database, and milestones.
+4. Table view with sorting; calendar view by due date; saved views (filters
+   stored per user or project).
+5. Custom fields (text, number, date, select) with typed validation.
+6. Design system pass: shared components, consistent spacing, WCAG checks;
+   extend the browser smoke test to multiple viewports.
+7. Carry-overs: trusted-proxy client addresses before deployment, request IDs
+   in audit events, change password while signed in, multiple assignees,
+   OpenAPI client generation and contract tests.
 
 ## Environment and versions
 
