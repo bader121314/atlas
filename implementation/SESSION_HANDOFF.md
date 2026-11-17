@@ -151,8 +151,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 1. Done (PR #53): multiple assignees with a primary kept in sync by a
    trigger, filters on anyone, notifications for people added (ADR-046).
 2. Done (PR #54): team workload view (ADR-047, first M9 item).
-3. Next M9 items, each with an ADR, threat model and acceptance gates:
-   notification preferences per kind and daily digests, time tracking,
+3. Done (PR #55): notification preferences per kind and daily digests
+   (ADR-048).
+4. Next M9 items, each with an ADR, threat model and acceptance gates:
+   time tracking,
    public read-only share links with strict data fences.
 
 ## Environment and versions

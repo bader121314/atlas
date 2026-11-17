@@ -904,11 +904,14 @@ paths:
       operationId: getNotificationSettings
       security: [{ sessionCookie: [] }]
       responses:
-        '200': { description: '{ email: boolean } (default true)' }
+        '200':
+          {
+            description: '{ email, emailMode (instant | daily | off), muted (kinds) }. ADR-048.',
+          }
     put:
       operationId: updateNotificationSettings
       security: [{ sessionCookie: [] }]
-      description: 'Body: { email: boolean }.'
+      description: 'Body: any of email (boolean, older clients), emailMode, muted (task.assigned | comment.created | mention).'
       responses:
         '200': { description: The saved settings }
   /organizations/{slug}/search:

@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 import { parseEnvironment } from '../../packages/config/src';
-import { emailBatch } from '../../apps/worker/src/notifications/email';
+import {
+  digestBatch,
+  emailBatch,
+} from '../../apps/worker/src/notifications/email';
 import type { MailMessage } from '../../apps/worker/src/notifications/email';
 import { notifyBatch } from '../../apps/worker/src/notifications/notifier';
 import { startFixtures } from './support/fixtures';
@@ -258,7 +261,7 @@ describe('notifications', () => {
           `/organizations/${slug}/notification-settings`,
         )
       ).json,
-    ).toEqual({ email: true });
+    ).toEqual({ email: true, emailMode: 'instant', muted: [] });
     await fx.call(
       member,
       'PUT',
@@ -274,5 +277,73 @@ describe('notifications', () => {
     await notify();
     expect(await run()).toEqual({ sent: 1, skipped: 1 });
     expect(sent[1]?.to).toBe(owner.email);
+  });
+
+  it('honours muted kinds and sends daily digests at most once a day', async () => {
+    const { owner, member, slug, base, organizationId, notify, inbox } =
+      await setup();
+    const settings = `/organizations/${slug}/notification-settings`;
+    expect(
+      (
+        await fx.call(member, 'PUT', settings, {
+          muted: ['comment.created'],
+          emailMode: 'daily',
+        })
+      ).json,
+    ).toEqual({ email: true, emailMode: 'daily', muted: ['comment.created'] });
+
+    // Muted: a comment on a task the member follows creates nothing.
+    await fx.call(owner, 'PATCH', `${base}/tasks/1`, {
+      version: 1,
+      assigneeId: member.id,
+    });
+    await fx.call(owner, 'POST', `${base}/tasks/1/comments`, {
+      body: 'Looks good',
+    });
+    await notify();
+    expect((await inbox(member)).map((i) => i.kind)).toEqual(['task.assigned']);
+
+    // Daily: the instant sender leaves it, the digest sends one summary.
+    const sent: MailMessage[] = [];
+    const send = async (m: MailMessage) => {
+      sent.push(m);
+    };
+    expect(
+      await emailBatch(pool, send, {
+        delayMs: 0,
+        webOrigin: 'https://atlas.test',
+        organizationId,
+      }),
+    ).toEqual({
+      sent: 0,
+      skipped: 0,
+    });
+    expect(
+      await digestBatch(pool, send, {
+        webOrigin: 'https://atlas.test',
+        organizationId,
+      }),
+    ).toBe(1);
+    expect(sent[0]?.subject).toBe('Your Atlas summary: 1 unread notification');
+    expect(sent[0]?.text).toContain('NOT-1 Survey the bay: ');
+    expect(sent[0]?.text).toContain(
+      `https://atlas.test/organizations/${slug}/notifications`,
+    );
+
+    // A second assignment within 24 hours waits for tomorrow's digest.
+    await fx.call(owner, 'POST', `${base}/tasks`, {
+      title: 'Second',
+      assigneeId: member.id,
+    });
+    await notify();
+    expect(
+      await digestBatch(pool, send, {
+        webOrigin: 'https://atlas.test',
+        organizationId,
+      }),
+    ).toBe(0);
+    expect(
+      (await fx.call(member, 'PUT', settings, { muted: ['nonsense'] })).status,
+    ).toBe(400);
   });
 });

@@ -1,5 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Notification, NotificationSettings } from '@atlas/contracts';
+import type {
+  Notification,
+  NotificationSettings,
+  UpdateNotificationSettings,
+} from '@atlas/contracts';
 import type { TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
 
@@ -87,26 +91,45 @@ export class NotificationsService {
     tenant: TenantContext,
     userId: string,
   ): Promise<NotificationSettings> {
-    const result = await this.database.pool.query<{ email_enabled: boolean }>(
-      `SELECT email_enabled FROM notification_settings
+    const result = await this.database.pool.query<{
+      email_mode: NotificationSettings['emailMode'];
+      muted_kinds: NotificationSettings['muted'];
+    }>(
+      `SELECT email_mode, muted_kinds FROM notification_settings
        WHERE organization_id = $1 AND user_id = $2`,
       [tenant.organizationId, userId],
     );
-    return { email: result.rows[0]?.email_enabled ?? true };
+    const row = result.rows[0];
+    const emailMode = row?.email_mode ?? 'instant';
+    return {
+      email: emailMode !== 'off',
+      emailMode,
+      muted: row?.muted_kinds ?? [],
+    };
   }
 
   async updateSettings(
     tenant: TenantContext,
     userId: string,
-    input: NotificationSettings,
+    input: UpdateNotificationSettings,
   ): Promise<NotificationSettings> {
+    const current = await this.settings(tenant, userId);
+    const emailMode =
+      input.emailMode ??
+      (input.email === undefined
+        ? current.emailMode
+        : input.email
+          ? 'instant'
+          : 'off');
+    const muted = input.muted ?? current.muted;
     await this.database.pool.query(
-      `INSERT INTO notification_settings (organization_id, user_id, email_enabled)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (organization_id, user_id)
-       DO UPDATE SET email_enabled = EXCLUDED.email_enabled, updated_at = now()`,
-      [tenant.organizationId, userId, input.email],
+      `INSERT INTO notification_settings (organization_id, user_id, email_mode, muted_kinds)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (organization_id, user_id) DO UPDATE SET
+         email_mode = EXCLUDED.email_mode, muted_kinds = EXCLUDED.muted_kinds,
+         updated_at = now()`,
+      [tenant.organizationId, userId, emailMode, muted],
     );
-    return input;
+    return { email: emailMode !== 'off', emailMode, muted };
   }
 }

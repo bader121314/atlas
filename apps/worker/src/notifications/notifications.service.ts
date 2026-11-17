@@ -5,7 +5,7 @@ import type {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
-import { emailBatch } from './email';
+import { digestBatch, emailBatch } from './email';
 import type { MailMessage } from './email';
 import { notifyBatch } from './notifier';
 import { tracked } from '../metrics';
@@ -54,7 +54,7 @@ export class NotificationsService
   private readonly mailer = new ConsoleMailer();
   private pool: Pool | undefined;
   private timers: ReturnType<typeof setInterval>[] = [];
-  private busy = { notify: false, email: false };
+  private busy = { notify: false, email: false, digest: false };
 
   onApplicationBootstrap(): void {
     const config = parseEnvironment(process.env);
@@ -76,11 +76,18 @@ export class NotificationsService
         },
         Math.min(EMAIL_MS, Math.max(settings.delayMs, 1000)),
       ),
+      setInterval(() => {
+        void this.once('digest', () =>
+          digestBatch(pool, (m) => this.mailer.send(m), {
+            webOrigin: settings.webOrigin,
+          }),
+        );
+      }, 60_000),
     );
   }
 
   private async once(
-    name: 'notify' | 'email',
+    name: 'notify' | 'email' | 'digest',
     run: () => Promise<unknown>,
   ): Promise<void> {
     if (this.busy[name]) return;

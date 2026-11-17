@@ -621,9 +621,37 @@ export const markNotificationsReadRequestSchema = z.union([
   z.object({ all: z.literal(true) }).strict(),
 ]);
 
+export const notificationKinds = [
+  'task.assigned',
+  'comment.created',
+  'mention',
+] as const;
+
+/**
+ * Per-organization notification preferences (ADR-048). `email` is kept for
+ * older clients: true means instant, false means off.
+ */
 export const notificationSettingsSchema = z
-  .object({ email: z.boolean() })
+  .object({
+    email: z.boolean(),
+    emailMode: z.enum(['instant', 'daily', 'off']),
+    muted: z.array(z.enum(notificationKinds)),
+  })
   .strict();
+
+export const updateNotificationSettingsSchema = z
+  .object({
+    email: z.boolean().optional(),
+    emailMode: z.enum(['instant', 'daily', 'off']).optional(),
+    muted: z
+      .array(z.enum(notificationKinds))
+      .refine((list) => new Set(list).size === list.length, 'Duplicate kind')
+      .optional(),
+  })
+  .strict();
+export type UpdateNotificationSettings = z.infer<
+  typeof updateNotificationSettingsSchema
+>;
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
 export const searchQuerySchema = z

@@ -12,6 +12,29 @@ const when = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 });
 
+type Kind = 'task.assigned' | 'comment.created' | 'mention';
+type Mode = 'instant' | 'daily' | 'off';
+interface Preferences {
+  email: boolean;
+  emailMode: Mode;
+  muted: Kind[];
+}
+
+const KINDS: [Kind, string][] = [
+  ['task.assigned', 'A task is assigned to me'],
+  ['mention', 'Someone mentions me'],
+  [
+    'comment.created',
+    'Someone comments on a task I created, am assigned to or commented on',
+  ],
+];
+
+const MODES: [Mode, string][] = [
+  ['instant', 'Email each notification I have not read within two minutes'],
+  ['daily', 'Email one daily summary of what I have not read'],
+  ['off', 'No email'],
+];
+
 function describe(item: AppNotification): string {
   const who = item.actor ?? 'Someone';
   if (item.kind === 'task.assigned')
@@ -26,7 +49,7 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [items, setItems] = useState<AppNotification[]>();
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [email, setEmail] = useState<boolean>();
+  const [prefs, setPrefs] = useState<Preferences>();
   const [error, setError] = useState('');
   const [missing, setMissing] = useState(false);
 
@@ -35,14 +58,14 @@ export default function NotificationsPage() {
       api<AppNotification[]>(
         `/organizations/${slug}/notifications${unreadOnly ? '?unread=true' : ''}`,
       ),
-      api<{ email: boolean }>(`/organizations/${slug}/notification-settings`),
+      api<Preferences>(`/organizations/${slug}/notification-settings`),
     ]);
     if (list.status === 404) {
       setMissing(true);
       return;
     }
     setItems(list.data ?? []);
-    if (settings.data) setEmail(settings.data.email);
+    if (settings.data) setPrefs(settings.data);
   }, [slug, unreadOnly]);
 
   useEffect(() => {
@@ -68,12 +91,15 @@ export default function NotificationsPage() {
     );
   }
 
-  async function toggleEmail(next: boolean) {
-    const result = await api<{ email: boolean }>(
+  async function savePrefs(change: Partial<Omit<Preferences, 'email'>>) {
+    const result = await api<Preferences>(
       `/organizations/${slug}/notification-settings`,
-      { method: 'PUT', body: { email: next } },
+      {
+        method: 'PUT',
+        body: change,
+      },
     );
-    if (result.data) setEmail(result.data.email);
+    if (result.data) setPrefs(result.data);
   }
 
   if (missing) {
@@ -147,17 +173,42 @@ export default function NotificationsPage() {
           ))}
         </ul>
       )}
-      {email === undefined ? null : (
-        <section className="section" aria-labelledby="email-heading">
-          <h2 id="email-heading">Email</h2>
-          <label className="checks inline">
-            <input
-              type="checkbox"
-              checked={email}
-              onChange={(event) => void toggleEmail(event.target.checked)}
-            />
-            Email me about notifications I have not read within two minutes
-          </label>
+      {prefs === undefined ? null : (
+        <section className="section" aria-labelledby="prefs-heading">
+          <h2 id="prefs-heading">Preferences</h2>
+          <fieldset className="checks plain">
+            <legend>Notify me when</legend>
+            {KINDS.map(([kind, label]) => (
+              <label key={kind}>
+                <input
+                  type="checkbox"
+                  checked={!prefs.muted.includes(kind)}
+                  onChange={(event) =>
+                    void savePrefs({
+                      muted: event.target.checked
+                        ? prefs.muted.filter((k) => k !== kind)
+                        : [...prefs.muted, kind],
+                    })
+                  }
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset className="checks plain section">
+            <legend>Email</legend>
+            {MODES.map(([mode, label]) => (
+              <label key={mode}>
+                <input
+                  type="radio"
+                  name="emailMode"
+                  checked={prefs.emailMode === mode}
+                  onChange={() => void savePrefs({ emailMode: mode })}
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
         </section>
       )}
     </>

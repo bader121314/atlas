@@ -13,7 +13,7 @@ import {
 import {
   markNotificationsReadRequestSchema,
   notificationQuerySchema,
-  notificationSettingsSchema,
+  updateNotificationSettingsSchema,
 } from '@atlas/contracts';
 import type { Notification, NotificationSettings } from '@atlas/contracts';
 import { caller, parse } from '../auth/auth.controller';
@@ -86,7 +86,7 @@ export class NotificationsController {
     return this.notifications.updateSettings(
       tenantOf(request),
       caller(request).user.id,
-      parse(notificationSettingsSchema, body),
+      parse(updateNotificationSettingsSchema, body),
     );
   }
 }
