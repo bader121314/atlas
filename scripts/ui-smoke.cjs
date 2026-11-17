@@ -1,6 +1,9 @@
 // Browser smoke test: drives the real web app and API through signup,
-// verification, organizations and invitations, saving screenshots.
-// Run by .github/workflows/ui-smoke.yml; Playwright is installed there only.
+// verification, organizations, invitations, projects and tasks, saving
+// screenshots. Every screenshot is also checked with axe-core against WCAG
+// 2.2 A/AA rules, and phone and tablet viewports must not scroll sideways.
+// Run by .github/workflows/ui-smoke.yml; Playwright and axe-core are
+// installed there only.
 const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -11,7 +14,35 @@ const OUT = process.env.SCREENSHOT_DIR ?? 'screenshots';
 const PASSWORD = 'correct horse battery staple';
 const run = Date.now().toString(36);
 
+const AXE = require.resolve('axe-core/axe.min.js');
+const violations = [];
+
 fs.mkdirSync(OUT, { recursive: true });
+
+async function audit(page, name) {
+  await page.addScriptTag({ path: AXE });
+  const results = await page.evaluate(() =>
+    window.axe.run(document, {
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+    }),
+  );
+  for (const v of results.violations) {
+    if (v.impact !== 'serious' && v.impact !== 'critical') continue;
+    violations.push(
+      `${name}: ${v.id} (${v.impact}) ${v.help}\n    ${v.nodes
+        .slice(0, 3)
+        .map((n) => n.target.join(' '))
+        .join('\n    ')}`,
+    );
+  }
+}
+
+async function noSidewaysScroll(page, name) {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth,
+  );
+  if (overflow > 1) violations.push(`${name}: page is ${overflow}px too wide`);
+}
 
 function latestToken(email, linkPath) {
   const log = fs.readFileSync(API_LOG, 'utf8');
@@ -42,6 +73,7 @@ async function shot(page, name) {
     fullPage: true,
   });
   console.log(`screenshot ${name}`);
+  await audit(page, name);
 }
 
 async function signUp(page, name, email) {
@@ -221,6 +253,21 @@ const pages = [];
   await alice.getByRole('button', { name: 'Finished work (shared)' }).waitFor();
   await shot(alice, '11e-table-view');
   await alice.getByRole('button', { name: 'Clear filters' }).click();
+  // A custom choice field, set on a task and shown as a table column.
+  await alice.getByLabel('New field').fill('Region');
+  await alice.getByLabel('Type', { exact: true }).selectOption('select');
+  await alice.getByLabel('Choices, separated by commas').fill('North, South');
+  await alice.getByRole('button', { name: 'Add field' }).click();
+  await alice.getByText('Choice list: North, South').waitFor();
+  await alice.getByRole('columnheader', { name: 'Region' }).waitFor();
+  await alice.getByRole('link', { name: 'Chart the harbour' }).click();
+  await alice.waitForURL(/\/tasks\/1$/);
+  await alice.getByLabel('Region').selectOption('North');
+  await alice.getByText('Region saved.').waitFor();
+  await alice.getByRole('link', { name: 'Coastal survey' }).click();
+  await alice.getByRole('link', { name: 'Table', exact: true }).click();
+  await alice.getByRole('cell', { name: 'North' }).waitFor();
+  await shot(alice, '11g-custom-field');
   await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
   await alice.getByRole('grid').waitFor();
   await shot(alice, '11f-calendar');
@@ -252,9 +299,42 @@ const pages = [];
   });
   await phone.goto(`${BASE}/login`);
   await shot(phone, '15-login-mobile');
+  await noSidewaysScroll(phone, '15-login-mobile');
+
+  // Signed-in pages on a phone and a tablet.
+  const project = `${BASE}/organizations/${slug}/projects/COAST`;
+  for (const [label, viewport] of [
+    ['phone', { width: 390, height: 844 }],
+    ['tablet', { width: 820, height: 1180 }],
+  ]) {
+    const page = await open({ viewport });
+    await signIn(page, aliceEmail, null);
+    await page.getByRole('heading', { name: 'Your organizations' }).waitFor();
+    for (const [name, url, heading] of [
+      ['organization', `${BASE}/organizations/${slug}`, 'Northwind Survey'],
+      ['board', project, 'Coastal survey'],
+      ['table', project, 'Coastal survey'],
+      ['task', `${project}/tasks/1`, 'Chart the harbour'],
+    ]) {
+      await page.goto(url);
+      await page.getByRole('heading', { name: heading }).first().waitFor();
+      if (name === 'table') {
+        await page.getByRole('link', { name: 'Table', exact: true }).click();
+        await page.getByRole('columnheader', { name: 'Region' }).waitFor();
+      }
+      await shot(page, `16-${label}-${name}`);
+      await noSidewaysScroll(page, `16-${label}-${name}`);
+    }
+  }
 
   await browser.close();
-  console.log('UI smoke test passed');
+  if (violations.length > 0) {
+    console.error(
+      `Accessibility and layout problems:\n${violations.join('\n')}`,
+    );
+    process.exit(1);
+  }
+  console.log('UI smoke test passed, no serious accessibility violations');
 })().catch(async (error) => {
   console.error(error);
   // Capture every open page so failures can be diagnosed from the artifact.

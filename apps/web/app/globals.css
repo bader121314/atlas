@@ -11,6 +11,22 @@
   --danger: #b42318;
   --danger-soft: #fdecea;
   --ok-soft: #e6f2ed;
+  --line-strong: #7f908a;
+  --column: #e8efec;
+  --on-sea: #ffffff;
+  --on-map: #e8f1ee;
+  --label-slate: #475569;
+  --label-sage: #3f6b55;
+  --label-sand: #8a6516;
+  --label-rose: #a3264a;
+  --label-violet: #5b3ea6;
+  /* Spacing scale: use these for new layout work. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
   --serif:
     'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
     serif;
@@ -99,7 +115,7 @@ select {
   font: inherit;
   color: inherit;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #b9c7c0;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--surface);
   height: 2.75rem;
@@ -121,14 +137,14 @@ select:focus-visible {
   border-radius: var(--radius-control);
   border: 1px solid var(--sea);
   background: var(--sea);
-  color: #fff;
+  color: var(--on-sea);
   cursor: pointer;
   text-decoration: none;
 }
 .button:hover {
   background: var(--sea-deep);
   border-color: var(--sea-deep);
-  color: #fff;
+  color: var(--on-sea);
 }
 .button:disabled {
   opacity: 0.6;
@@ -178,7 +194,7 @@ select:focus-visible {
 }
 .auth-map {
   background: var(--sea-deep);
-  color: #e8f1ee;
+  color: var(--on-map);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -336,7 +352,7 @@ select:focus-visible {
 .tabs a[aria-current='page'] {
   background: var(--sea-deep);
   border-color: var(--sea-deep);
-  color: #fff;
+  color: var(--on-sea);
 }
 .board {
   display: grid;
@@ -345,7 +361,7 @@ select:focus-visible {
   align-items: start;
 }
 .column {
-  background: #e8efec;
+  background: var(--column);
   border-radius: var(--radius-panel);
   padding: 0.75rem;
 }
@@ -436,7 +452,7 @@ textarea {
   width: 100%;
   min-height: 7rem;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #b9c7c0;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--surface);
   resize: vertical;
@@ -478,22 +494,22 @@ textarea {
   border: 1px solid currentColor;
 }
 .label-slate {
-  color: #475569;
+  color: var(--label-slate);
 }
 .label-sea {
   color: var(--sea-deep);
 }
 .label-sage {
-  color: #3f6b55;
+  color: var(--label-sage);
 }
 .label-sand {
-  color: #8a6516;
+  color: var(--label-sand);
 }
 .label-rose {
-  color: #a3264a;
+  color: var(--label-rose);
 }
 .label-violet {
-  color: #5b3ea6;
+  color: var(--label-violet);
 }
 .checks {
   display: grid;
@@ -643,4 +659,39 @@ progress {
   .calendar-task {
     font-size: 0.7rem;
   }
+}
+
+/* Small layout utilities shared by pages (replace inline styles). */
+.fill {
+  flex: 1;
+}
+.span-all {
+  grid-column: 1 / -1;
+}
+.key-cell {
+  width: 5.5rem;
+}
+.key-input {
+  text-transform: uppercase;
+  width: 8rem;
+}
+.wide {
+  max-width: none;
+}
+.prewrap {
+  white-space: pre-wrap;
+}
+.checks.inline {
+  flex-direction: row;
+}
+fieldset.plain {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+fieldset.plain legend {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+  padding: 0;
 }
