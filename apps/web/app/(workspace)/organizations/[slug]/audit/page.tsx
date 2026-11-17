@@ -114,7 +114,13 @@ export default function AuditPage() {
             <p>Nothing recorded yet.</p>
           ) : null}
           {items.length > 0 ? (
-            <div className="table-wrap section">
+            // Focusable so keyboard users can scroll a wide table.
+            <div
+              className="table-wrap section"
+              tabIndex={0}
+              role="region"
+              aria-label="Audit events"
+            >
               <table className="tasks-table">
                 <caption className="visually-hidden">
                   Audit events, newest first
