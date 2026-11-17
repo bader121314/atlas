@@ -40,6 +40,8 @@ import { PresenceService } from './presence.service';
 import { ProjectGuard } from './project.guard';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { RecurrencesController } from './recurrences.controller';
+import { RecurrencesService } from './recurrences.service';
 import { StatesController } from './states.controller';
 import { StatesService } from './states.service';
 import { TasksController } from './tasks.controller';
@@ -75,6 +77,7 @@ import { ViewsService } from './views.service';
     WebhooksController,
     ApiTokensController,
     AutomationsController,
+    RecurrencesController,
   ],
   providers: [
     ProjectsService,
@@ -100,6 +103,7 @@ import { ViewsService } from './views.service';
     WebhooksService,
     ApiTokensService,
     AutomationsService,
+    RecurrencesService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

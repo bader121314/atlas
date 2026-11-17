@@ -435,3 +435,21 @@ model AutomationRun {
   @@unique([ruleId, eventId], map: "automation_runs_once_key")
   @@map("automation_runs")
 }
+model TaskRecurrence {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  title String @db.VarChar(200)
+  description String @default("") @db.VarChar(10000)
+  priority String @default("none")
+  assigneeUserId String? @map("assignee_user_id") @db.Uuid
+  frequency String @db.VarChar(8)
+  interval Int @default(1)
+  dueInDays Int? @map("due_in_days")
+  nextRunAt DateTime @map("next_run_at") @db.Timestamptz(6)
+  lastRunAt DateTime? @map("last_run_at") @db.Timestamptz(6)
+  enabled Boolean @default(true)
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@map("task_recurrences")
+}

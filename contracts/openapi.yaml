@@ -1103,6 +1103,32 @@ paths:
       description: 'Latest 50: { id, status (applied | skipped | failed), detail, task, createdAt }.'
       responses:
         '200': { description: Runs }
+  /organizations/{slug}/projects/{key}/recurrences:
+    get:
+      operationId: listRecurrences
+      security: [{ sessionCookie: [] }]
+      description: 'Recurring tasks: { id, title, priority, assigneeId, frequency, interval, dueInDays, nextRunAt, lastRunAt, enabled }. ADR-039.'
+      responses:
+        '200': { description: Recurrences }
+    post:
+      operationId: createRecurrence
+      security: [{ sessionCookie: [] }]
+      description: 'Body: title, description?, priority?, assigneeId?, frequency (daily | weekly | monthly), interval (1-12), dueInDays?, startsAt?. Editors.'
+      responses:
+        '201': { description: Created }
+        '400': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}/recurrences/{id}:
+    patch:
+      operationId: setRecurrenceEnabled
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { enabled }.'
+      responses:
+        '200': { description: Updated }
+    delete:
+      operationId: deleteRecurrence
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Deleted; tasks already created stay }
 components:
   parameters:
     Slug:

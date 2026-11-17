@@ -13,6 +13,7 @@ import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../lib/live';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
+import { RecurrencesSection } from '../../../../../../components/recurrences-section';
 import {
   CalendarView,
   TableView,
@@ -428,6 +429,7 @@ export default function ProjectPage() {
       {project.role === 'manager' || project.role === 'editor' ? (
         <ExportsSection base={base} />
       ) : null}
+      <RecurrencesSection base={base} canWrite={canWrite} />
       <MilestonesSection
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}
