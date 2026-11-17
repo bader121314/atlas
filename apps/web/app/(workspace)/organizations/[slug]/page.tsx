@@ -7,6 +7,7 @@ import type { FormEvent } from 'react';
 import { useShell } from '../../../../components/app-shell';
 import { Field, Notice, value } from '../../../../components/form';
 import { ProjectsSection } from '../../../../components/projects-section';
+import { WebhooksSection } from '../../../../components/webhooks-section';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
 
@@ -371,6 +372,9 @@ export default function OrganizationPage() {
             </button>
           </form>
         </section>
+      ) : null}
+      {mine === 'owner' || mine === 'admin' ? (
+        <WebhooksSection slug={slug} />
       ) : null}
     </>
   );

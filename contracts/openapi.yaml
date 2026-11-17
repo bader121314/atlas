@@ -993,6 +993,55 @@ paths:
         '404': { description: Unknown, or someone else's export }
         '409': { description: Not ready yet, or failed }
         '410': { description: Expired }
+  /organizations/{slug}/webhooks:
+    get:
+      operationId: listWebhooks
+      security: [{ sessionCookie: [] }]
+      description: 'Endpoints: { id, url, description, events, status (active | paused), consecutiveFailures, createdAt }. Owners and admins. ADR-036.'
+      responses:
+        '200': { description: Endpoints }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createWebhook
+      security: [{ sessionCookie: [] }]
+      description: 'Body: url (https, public), description?, events (task.created | task.updated | comment.created). Returns { endpoint, secret }; the secret is shown only here.'
+      responses:
+        '201': { description: Created }
+        '400': { $ref: '#/components/responses/Problem' }
+        '503': { description: Webhooks are not configured }
+  /organizations/{slug}/webhooks/{id}:
+    patch:
+      operationId: updateWebhook
+      security: [{ sessionCookie: [] }]
+      description: 'Body: url?, description?, events?, status? (resuming resets the failure count).'
+      responses:
+        '200': { description: Updated }
+    delete:
+      operationId: deleteWebhook
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Deleted with its history }
+  /organizations/{slug}/webhooks/{id}/deliveries:
+    get:
+      operationId: listWebhookDeliveries
+      security: [{ sessionCookie: [] }]
+      description: 'Latest 50: { id, eventId, eventType, status (pending | delivered | failed), attempts, lastStatusCode, lastError, createdAt, deliveredAt }.'
+      responses:
+        '200': { description: Deliveries }
+  /organizations/{slug}/webhooks/{id}/deliveries/{deliveryId}/replay:
+    post:
+      operationId: replayWebhookDelivery
+      security: [{ sessionCookie: [] }]
+      description: Sends the delivery again with the same event id.
+      responses:
+        '202': { description: Queued }
+  /organizations/{slug}/webhooks/{id}/ping:
+    post:
+      operationId: pingWebhook
+      security: [{ sessionCookie: [] }]
+      description: Queues a webhook.ping event to the endpoint.
+      responses:
+        '202': { description: Queued }
 components:
   parameters:
     Slug:

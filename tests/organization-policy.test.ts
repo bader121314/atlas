@@ -20,6 +20,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'projects.create': true,
     'labels.manage': true,
     'labels.delete': true,
+    'webhooks.manage': true,
   },
   admin: {
     'organization.read': true,
@@ -30,6 +31,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'projects.create': true,
     'labels.manage': true,
     'labels.delete': true,
+    'webhooks.manage': true,
   },
   member: {
     'organization.read': true,
@@ -40,6 +42,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'projects.create': true,
     'labels.manage': true,
     'labels.delete': false,
+    'webhooks.manage': false,
   },
   guest: {
     'organization.read': true,
@@ -50,6 +53,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'projects.create': false,
     'labels.manage': false,
     'labels.delete': false,
+    'webhooks.manage': false,
   },
 };
 

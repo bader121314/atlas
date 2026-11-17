@@ -91,6 +91,8 @@ export async function startFixtures() {
         'notifications',
         'attachments',
         'exports',
+        'webhook_deliveries',
+        'webhook_endpoints',
         'notification_settings',
         'outbox_events',
         'saved_views',
