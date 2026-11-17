@@ -25,6 +25,8 @@ export {
   sniffType,
 } from './files';
 export type { AllowedType } from './files';
+export { clamdScanner, eicarScanner, scannerFromEnv } from './malware';
+export type { MalwareScanner, ScanResult } from './malware';
 export {
   WEBHOOK_EVENTS,
   checkWebhookUrl,

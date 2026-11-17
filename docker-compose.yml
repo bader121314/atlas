@@ -33,6 +33,15 @@ services:
   mailpit:
     image: axllent/mailpit:v1.27.10
     ports: ['127.0.0.1:1025:1025', '127.0.0.1:8025:8025']
+  # Optional real malware scanning (ADR-065): `docker compose --profile scan
+  # up -d`, then set CLAMD_HOST=127.0.0.1. It needs about 1.5 GB of memory
+  # and a minute or two to download signatures on first start.
+  clamav:
+    image: clamav/clamav-debian:1.4
+    profiles: [scan]
+    ports: ['127.0.0.1:3310:3310']
+    volumes: ['clamav-data:/var/lib/clamav']
 volumes:
   postgres-data:
   minio-data:
+  clamav-data:
