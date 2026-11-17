@@ -37,6 +37,9 @@ so there is no hosted cost.
   verified domains returns 403 (only after a correct password, so it does
   not reveal anything to guessers). Owners are exempt so a broken provider
   cannot lock the organization out.
+  Turning the requirement on ends every existing session of people with
+  addresses on the verified domains (owners again exempt), so password
+  sessions do not outlive it; they sign in again through the provider.
 - **Outbound requests** to the provider follow the webhook rules (ADR-036):
   https, public addresses, no redirects, timeouts and size caps.
   `SSO_ALLOW_HTTP` and `SSO_ALLOWED_HOSTS` relax them outside production
@@ -46,8 +49,8 @@ so there is no hosted cost.
 
 ## Not included
 
-SAML, provider-initiated sign-in, single logout, group-to-role mapping,
-and ending existing password sessions when SSO becomes required.
+SAML, provider-initiated sign-in, single logout and group-to-role
+mapping.
 
 ## Gates
 
