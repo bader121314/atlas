@@ -5,9 +5,10 @@ import type {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
+import { runRecurrences } from '../recurrences/scheduler';
 import { runAutomations } from './engine';
 
-/** Runs automation rules in the worker (ADR-038). */
+/** Runs automation rules (ADR-038) and recurring tasks (ADR-039). */
 @Injectable()
 export class AutomationsService
   implements OnApplicationBootstrap, OnApplicationShutdown
@@ -26,7 +27,7 @@ export class AutomationsService
     this.timer = setInterval(() => {
       if (this.busy) return;
       this.busy = true;
-      runAutomations(pool)
+      Promise.all([runRecurrences(pool), runAutomations(pool)])
         .catch(() => this.logger.error('automations failed; retrying'))
         .finally(() => {
           this.busy = false;

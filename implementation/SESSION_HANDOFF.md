@@ -137,7 +137,9 @@ Read `docs/08` M6. In order:
    per (rule, event), with depth and self-trigger loop protection, savepoint
    rollback per rule, simulation, and a manager section on the project page
    (ADR-038).
-4. Recurring tasks.
+4. Done (PR #39): recurring tasks created by the worker, one per
+   occurrence without catching up; hourly rule quota per organization
+   (ADR-039).
 5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client
    generation and contract tests, mentions.

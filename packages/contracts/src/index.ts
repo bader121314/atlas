@@ -894,6 +894,90 @@ export function matchesConditions(
   return true;
 }
 
+/** How often a recurring task repeats (ADR-039). */
+export const recurrenceFrequencies = ['daily', 'weekly', 'monthly'] as const;
+export type RecurrenceFrequency = (typeof recurrenceFrequencies)[number];
+
+export const createRecurrenceRequestSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    description: z.string().max(10000).default(''),
+    priority: priority.default('none'),
+    assigneeId: z.uuid().nullable().default(null),
+    frequency: z.enum(recurrenceFrequencies),
+    interval: z.number().int().min(1).max(12).default(1),
+    dueInDays: z.number().int().min(0).max(365).nullable().default(null),
+    /** First occurrence; now when absent. */
+    startsAt: z.iso.datetime({ offset: true }).optional(),
+  })
+  .strict();
+export type CreateRecurrenceRequest = z.infer<
+  typeof createRecurrenceRequestSchema
+>;
+
+export const setEnabledRequestSchema = z
+  .object({ enabled: z.boolean() })
+  .strict();
+
+export const recurrenceSchema = z
+  .object({
+    id: z.uuid(),
+    title: z.string(),
+    priority,
+    assigneeId: z.uuid().nullable(),
+    frequency: z.enum(recurrenceFrequencies),
+    interval: z.number().int(),
+    dueInDays: z.number().int().nullable(),
+    nextRunAt: z.iso.datetime(),
+    lastRunAt: z.iso.datetime().nullable(),
+    enabled: z.boolean(),
+  })
+  .strict();
+export type Recurrence = z.infer<typeof recurrenceSchema>;
+
+/**
+ * The first occurrence after `now`, stepping from `from` by the interval.
+ * Missed occurrences are skipped, so a worker that was down creates one
+ * task, not a backlog. Months keep the day, clamped to the month's end.
+ */
+export function nextOccurrence(
+  from: Date,
+  frequency: RecurrenceFrequency,
+  interval: number,
+  now: Date,
+): Date {
+  const anchorDay = from.getUTCDate();
+  let next = new Date(from.getTime());
+  let steps = 0;
+  while (next.getTime() <= now.getTime()) {
+    steps += 1;
+    if (frequency === 'monthly') {
+      const target = new Date(
+        Date.UTC(
+          from.getUTCFullYear(),
+          from.getUTCMonth() + steps * interval,
+          1,
+        ),
+      );
+      const last = new Date(
+        Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
+      ).getUTCDate();
+      target.setUTCDate(Math.min(anchorDay, last));
+      target.setUTCHours(
+        from.getUTCHours(),
+        from.getUTCMinutes(),
+        from.getUTCSeconds(),
+        0,
+      );
+      next = target;
+    } else {
+      const days = frequency === 'daily' ? interval : 7 * interval;
+      next = new Date(from.getTime() + steps * days * 86_400_000);
+    }
+  }
+  return next;
+}
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

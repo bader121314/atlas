@@ -9,6 +9,9 @@ import type {
 /** Rule actions can cause further rules this many levels deep, no more. */
 export const MAX_DEPTH = 3;
 
+/** Worker quota: rule applications per organization per hour. */
+export const HOURLY_QUOTA = 1000;
+
 interface EventRow {
   id: string;
   organization_id: string;
@@ -272,6 +275,16 @@ export async function runAutomations(
         } else if (depth > MAX_DEPTH) {
           status = 'skipped';
           detail = 'depth limit';
+        } else {
+          const used = await client.query<{ count: string }>(
+            `SELECT count(*) FROM automation_runs WHERE organization_id = $1
+               AND status = 'applied' AND created_at > now() - interval '1 hour'`,
+            [event.organization_id],
+          );
+          if (Number(used.rows[0]?.count) >= HOURLY_QUOTA) {
+            status = 'skipped';
+            detail = 'quota';
+          }
         }
         const claimed = await client.query(
           `INSERT INTO automation_runs (organization_id, project_id, rule_id, event_id, task_id, status, detail)

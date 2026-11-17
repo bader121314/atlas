@@ -92,6 +92,7 @@ export async function startFixtures() {
         'attachments',
         'exports',
         'api_tokens',
+        'task_recurrences',
         'automation_runs',
         'automation_rules',
         'webhook_deliveries',
