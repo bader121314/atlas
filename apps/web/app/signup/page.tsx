@@ -86,7 +86,7 @@ export default function SignupPage() {
           hint="At least 12 characters. A short phrase is easier to remember."
         />
         <button className="button" type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Creating account…' : 'Create account'}
+          {state === 'busy' ? t('Creating account…') : t('Create account')}
         </button>
       </form>
       <p className="switch">

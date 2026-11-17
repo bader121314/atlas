@@ -119,7 +119,7 @@ export default function OrganizationsPage() {
             </span>
           </div>
           <button className="button" type="submit" disabled={busy}>
-            {busy ? 'Creating…' : 'Create organization'}
+            {busy ? t('Creating…') : t('Create organization')}
           </button>
         </form>
       </section>

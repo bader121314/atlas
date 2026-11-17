@@ -44,7 +44,7 @@ function SsoForm() {
           autoComplete="email"
         />
         <button className="button" type="submit" disabled={busy}>
-          {busy ? 'Continuing…' : 'Continue'}
+          {busy ? t('Continuing…') : t('Continue')}
         </button>
       </form>
       <p className="switch">

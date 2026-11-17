@@ -102,7 +102,7 @@ export function MilestonesSection({
                   type="button"
                   onClick={() => void toggle(m)}
                 >
-                  {m.status === 'open' ? 'Close' : 'Reopen'}
+                  {m.status === 'open' ? t('Close') : t('Reopen')}
                 </button>
                 <button
                   className="button danger small"

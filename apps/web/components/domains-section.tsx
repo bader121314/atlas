@@ -96,7 +96,7 @@ export function DomainsSection({ slug }: { slug: string }) {
             <span className="grow">
               <span className="title">{domain.domain}</span>{' '}
               <span className="muted">
-                {domain.verified ? 'Verified' : 'Not verified yet'}
+                {domain.verified ? t('Verified') : t('Not verified yet')}
               </span>
               {domain.verified ? null : (
                 <>

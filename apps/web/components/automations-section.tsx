@@ -218,7 +218,7 @@ export function AutomationsSection({
                 }).then(load)
               }
             >
-              {r.enabled ? 'Turn off' : 'Turn on'}
+              {r.enabled ? t('Turn off') : t('Turn on')}
             </button>
             <button
               className="button danger small"
@@ -299,7 +299,7 @@ export function AutomationsSection({
           </div>
           <div className="field fill">
             <label htmlFor="ruleParam">
-              {action === 'comment' ? 'Comment' : 'Value'}
+              {action === 'comment' ? t('Comment') : t('Value')}
             </label>
             {paramField()}
           </div>

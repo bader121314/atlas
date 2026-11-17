@@ -177,7 +177,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
                   })
                 }
               >
-                {endpoint.status === 'active' ? 'Pause' : 'Resume'}
+                {endpoint.status === 'active' ? t('Pause') : t('Resume')}
               </button>
               <button
                 className="button danger small"

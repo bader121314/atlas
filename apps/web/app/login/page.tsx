@@ -98,7 +98,7 @@ function LoginForm() {
           autoComplete="current-password"
         />
         <button className="button" type="submit" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('Signing in…') : t('Sign in')}
         </button>
       </form>
       <p className="switch">

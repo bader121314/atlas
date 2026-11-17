@@ -72,7 +72,7 @@ function ResetForm() {
         type="submit"
         disabled={!token || state === 'busy'}
       >
-        {state === 'busy' ? 'Saving…' : 'Save new password'}
+        {state === 'busy' ? t('Saving…') : t('Save new password')}
       </button>
     </form>
   );

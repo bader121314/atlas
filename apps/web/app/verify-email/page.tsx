@@ -63,7 +63,7 @@ function Verify() {
           onClick={verify}
           disabled={!token || state === 'busy'}
         >
-          {state === 'busy' ? 'Verifying…' : 'Verify email'}
+          {state === 'busy' ? t('Verifying…') : t('Verify email')}
         </button>
       </p>
     </>

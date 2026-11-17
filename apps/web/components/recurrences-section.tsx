@@ -110,7 +110,7 @@ export function RecurrencesSection({
                     }).then(load)
                   }
                 >
-                  {r.enabled ? 'Pause' : 'Resume'}
+                  {r.enabled ? t('Pause') : t('Resume')}
                 </button>
                 <button
                   className="button danger small"

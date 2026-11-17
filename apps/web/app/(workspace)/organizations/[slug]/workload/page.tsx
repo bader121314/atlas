@@ -225,7 +225,7 @@ export default function WorkloadPage() {
             )}
             <div className="field">
               <label htmlFor="capacityHours">
-                {admin ? 'Hours per week' : 'Your hours per week'}
+                {admin ? t('Hours per week') : t('Your hours per week')}
               </label>
               <input
                 id="capacityHours"

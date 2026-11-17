@@ -307,7 +307,7 @@ export default function OrganizationPage() {
                       type="button"
                       onClick={() => void remove(member)}
                     >
-                      {self ? 'Leave' : 'Remove'}
+                      {self ? t('Leave') : t('Remove')}
                     </button>
                   ) : null}
                 </li>

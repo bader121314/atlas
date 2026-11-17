@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
             autoComplete="email"
           />
           <button className="button" type="submit" disabled={state === 'busy'}>
-            {state === 'busy' ? 'Sending…' : 'Send reset link'}
+            {state === 'busy' ? t('Sending…') : t('Send reset link')}
           </button>
         </form>
       )}

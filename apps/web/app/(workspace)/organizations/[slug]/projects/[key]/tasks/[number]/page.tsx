@@ -585,7 +585,9 @@ export default function TaskPage() {
                       <Link className="grow" href={`${base}/tasks/${d.number}`}>
                         {d.key} {d.title}
                       </Link>
-                      <span className="muted">{d.done ? 'Done' : 'Open'}</span>
+                      <span className="muted">
+                        {d.done ? t('Done') : t('Open')}
+                      </span>
                       {canWrite ? (
                         <button
                           className="button secondary small"

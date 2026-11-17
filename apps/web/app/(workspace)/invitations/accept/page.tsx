@@ -57,7 +57,7 @@ function Accept() {
           onClick={accept}
           disabled={!token || busy}
         >
-          {busy ? 'Joining…' : 'Accept invitation'}
+          {busy ? t('Joining…') : t('Accept invitation')}
         </button>
       </p>
       <p>
