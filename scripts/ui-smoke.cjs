@@ -401,6 +401,10 @@ const pages = [];
   await visitor.getByText(/COAST-1 Chart the harbour/).waitFor();
   await shot(visitor, '11m-public-link');
   await alice.getByRole('button', { name: 'I have copied it' }).click();
+  // The audit log records the new link.
+  await alice.goto(`${BASE}/organizations/${slug}/audit`);
+  await alice.getByText('share_link.created').waitFor();
+  await shot(alice, '11n-audit-log');
   await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();

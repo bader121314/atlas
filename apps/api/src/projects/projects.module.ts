@@ -24,6 +24,8 @@ import {
   ShareLinksController,
 } from '../shares/shares.controller';
 import { SharesService } from '../shares/shares.service';
+import { AuditLogController } from '../audit/audit-log.controller';
+import { AuditLogService } from '../audit/audit-log.service';
 import { WorkloadController } from '../workload/workload.controller';
 import { WorkloadService } from '../workload/workload.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -92,6 +94,7 @@ import { ViewsService } from './views.service';
     TimeReportController,
     ShareLinksController,
     PublicSharesController,
+    AuditLogController,
   ],
   providers: [
     ProjectsService,
@@ -121,6 +124,7 @@ import { ViewsService } from './views.service';
     WorkloadService,
     TimeService,
     SharesService,
+    AuditLogService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

@@ -85,7 +85,12 @@ export async function startFixtures() {
     });
     return {
       status: response.status,
-      json: text ? JSON.parse(text) : undefined,
+      // Non-JSON bodies (CSV downloads) are returned as text.
+      json: !text
+        ? undefined
+        : (headers['content-type'] ?? '').includes('json')
+          ? JSON.parse(text)
+          : text,
       headers,
     };
   }

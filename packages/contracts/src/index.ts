@@ -1171,6 +1171,53 @@ export const sharedProjectSchema = z
   .strict();
 export type SharedProject = z.infer<typeof sharedProjectSchema>;
 
+/** An organization's audit log (ADR-051). */
+export const auditQuerySchema = z
+  .object({
+    action: z
+      .string()
+      .regex(/^[a-z_.]{1,64}$/)
+      .optional(),
+    before: z.uuid().optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict();
+
+export const auditExportQuerySchema = z
+  .object({ from: z.iso.date(), to: z.iso.date() })
+  .strict()
+  .refine((q) => q.from <= q.to, 'from must not be after to')
+  .refine(
+    (q) => Date.parse(q.to) - Date.parse(q.from) <= 365 * 86_400_000,
+    'At most 366 days',
+  );
+
+export const auditEventSchema = z
+  .object({
+    id: z.uuid(),
+    action: z.string(),
+    actor: z
+      .object({ userId: z.uuid(), displayName: z.string() })
+      .strict()
+      .nullable(),
+    target: z.object({ type: z.string(), id: z.uuid() }).strict().nullable(),
+    ipSummary: z.string().nullable(),
+    userAgent: z.string().nullable(),
+    requestId: z.string().nullable(),
+    metadata: z.record(z.string(), z.unknown()),
+    occurredAt: z.iso.datetime(),
+  })
+  .strict();
+export type AuditEventView = z.infer<typeof auditEventSchema>;
+
+export const auditPageSchema = z
+  .object({
+    items: z.array(auditEventSchema),
+    nextBefore: z.uuid().nullable(),
+  })
+  .strict();
+export type AuditPage = z.infer<typeof auditPageSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;
