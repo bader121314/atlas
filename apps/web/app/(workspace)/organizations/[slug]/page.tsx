@@ -241,7 +241,10 @@ export default function OrganizationPage() {
       <ProjectsSection organization={organization} />
       {mine !== 'guest' ? (
         <p>
-          <Link href={`/organizations/${slug}/workload`}>
+          <Link
+            className="button secondary small"
+            href={`/organizations/${slug}/workload`}
+          >
             See the team&apos;s workload
           </Link>
         </p>
