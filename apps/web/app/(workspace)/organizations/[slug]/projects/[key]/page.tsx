@@ -13,6 +13,7 @@ import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../lib/live';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
+import { ShareLinksSection } from '../../../../../../components/share-links-section';
 import { RecurrencesSection } from '../../../../../../components/recurrences-section';
 import {
   CalendarView,
@@ -441,6 +442,9 @@ export default function ProjectPage() {
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}
       />
+      {project.role === 'manager' && project.status === 'active' ? (
+        <ShareLinksSection base={base} />
+      ) : null}
       {project.role === 'manager' && project.status === 'active' ? (
         <AutomationsSection
           base={base}

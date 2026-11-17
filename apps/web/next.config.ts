@@ -62,6 +62,16 @@ const config: NextConfig = {
             : []),
         ],
       },
+      {
+        // Public share links carry their token in the path (ADR-050): never
+        // leak it through Referer, and keep the pages out of search engines.
+        source: '/share/:path*',
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          { key: 'Cache-Control', value: 'no-store' },
+        ],
+      },
     ];
   },
 };

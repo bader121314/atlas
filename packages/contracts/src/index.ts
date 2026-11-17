@@ -1126,6 +1126,51 @@ export const timeReportSchema = z
   .strict();
 export type TimeReport = z.infer<typeof timeReportSchema>;
 
+/** Public read-only links to a project's task list (ADR-050). */
+export const createShareLinkRequestSchema = z
+  .object({ expiresInDays: z.number().int().min(1).max(90).default(30) })
+  .strict();
+
+export const shareLinkSchema = z
+  .object({
+    id: z.uuid(),
+    prefix: z.string(),
+    createdBy: z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    createdAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime(),
+    lastUsedAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type ShareLink = z.infer<typeof shareLinkSchema>;
+
+/** Public tokens: `ats_` and 43 base64url characters. */
+export const shareTokenSchema = z.string().regex(/^ats_[A-Za-z0-9_-]{43}$/);
+
+/**
+ * What a public link shows. Deliberately narrow: no descriptions, people,
+ * comments, files, custom fields or time.
+ */
+export const sharedProjectSchema = z
+  .object({
+    project: z.object({ key: z.string(), name: z.string() }).strict(),
+    tasks: z.array(
+      z
+        .object({
+          number: z.number().int(),
+          title: z.string(),
+          state: z.string(),
+          category: z.enum(['todo', 'in_progress', 'done']),
+          priority: z.string(),
+          dueOn: z.iso.date().nullable(),
+        })
+        .strict(),
+    ),
+    truncated: z.boolean(),
+    expiresAt: z.iso.datetime(),
+  })
+  .strict();
+export type SharedProject = z.infer<typeof sharedProjectSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

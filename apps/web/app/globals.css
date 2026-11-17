@@ -890,3 +890,10 @@ code.secret {
   color: var(--danger);
   font-weight: 600;
 }
+
+/* Public share pages (ADR-050): no app shell, one readable column. */
+.public {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}

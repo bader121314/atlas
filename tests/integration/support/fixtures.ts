@@ -63,20 +63,26 @@ export async function startFixtures() {
     return who;
   }
 
+  /** Calls the API as `who`, or anonymously when `who` is undefined. */
   async function call(
-    who: Account,
+    who: Account | undefined,
     method: string,
     path: string,
     body?: unknown,
-  ): Promise<{ status: number; json: unknown }> {
+  ): Promise<{
+    status: number;
+    json: unknown;
+    headers: Record<string, string>;
+  }> {
     const response = await api.api(method, path, {
-      cookie: who.cookie,
+      ...(who ? { cookie: who.cookie } : {}),
       ...(body === undefined ? {} : { body }),
     });
     const text = await response.text();
     return {
       status: response.status,
       json: text ? JSON.parse(text) : undefined,
+      headers: Object.fromEntries(response.headers),
     };
   }
 
