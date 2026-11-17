@@ -181,9 +181,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 21. Remaining M9 items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo. Next without approval: polish and
-    hardening (domain re-verification).
-22. Done (PR #74): requiring SSO ends existing sessions on the domain.
-23. Done (PR #73): project member management screen with guest label
+    hardening.
+22. Done (PR #75): daily re-check of verified domains (ADR-057).
+23. Done (PR #74): requiring SSO ends existing sessions on the domain.
+24. Done (PR #73): project member management screen with guest label
     scopes.
 
 ## Environment and versions

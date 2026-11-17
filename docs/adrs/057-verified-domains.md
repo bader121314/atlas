@@ -20,12 +20,16 @@ address. Both need proof that an organization controls a domain.
 - **Provisioning.** Once an organization has a verified domain, SCIM only
   provisions addresses on its verified domains (400 `invalidValue`
   otherwise). This closes the open item in ADR-055.
-- **Not rechecked.** A verified domain stays verified; periodic re-checks
-  (and expiry when the record disappears) are a follow-up.
+- **Re-checked daily.** The worker looks the record up again once a day
+  per verified domain. Three missed checks in a row (allowing for DNS
+  hiccups) end the verification, which also turns off SSO routing and the
+  provisioning limit for that domain until an owner verifies again; this is
+  audited as `org.domain.unverified`.
 
 ## Gates
 
 `tests/integration/domains.test.ts`: normalization and validation,
 duplicate refusal, failed then successful verification, a rival
 organization unable to verify or delete, provisioning limited to the
-domain, owner-only management.
+domain, owner-only management; `tests/integration/domain-rechecks.test.ts`
+for the daily re-check.

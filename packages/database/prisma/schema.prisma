@@ -536,6 +536,8 @@ model OrganizationDomain {
   createdByUserId String @map("created_by_user_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   verifiedAt DateTime? @map("verified_at") @db.Timestamptz(6)
+  checkedAt DateTime? @map("checked_at") @db.Timestamptz(6)
+  failedChecks Int @default(0) @map("failed_checks")
 
   @@unique([organizationId, domain], map: "organization_domains_org_domain_key")
   @@map("organization_domains")
