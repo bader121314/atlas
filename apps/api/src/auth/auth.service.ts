@@ -264,6 +264,57 @@ export class AuthService {
   }
 
   /**
+   * Resolves an API token (ADR-037): not revoked or expired, owned by an
+   * active user who is still an active member of the token's organization.
+   */
+  async authenticateApiToken(raw: string): Promise<AuthContext | undefined> {
+    if (!raw.startsWith('atl_')) return undefined;
+    const result = await this.database.pool.query<{
+      id: string;
+      organization_id: string;
+      scopes: string[];
+      user_id: string;
+      email_normalized: string;
+      display_name: string;
+    }>(
+      `SELECT t.id, t.organization_id, t.scopes, u.id AS user_id,
+         u.email_normalized, u.display_name
+       FROM api_tokens t
+       JOIN users u ON u.id = t.user_id
+       JOIN organization_memberships m
+         ON m.organization_id = t.organization_id AND m.user_id = t.user_id
+       WHERE t.token_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()
+         AND u.status = 'active' AND m.state = 'active'`,
+      [this.digest(raw)],
+    );
+    const row = result.rows[0];
+    if (!row) return undefined;
+    await this.database.pool.query(
+      `UPDATE api_tokens SET last_used_at = now()
+       WHERE id = $1 AND (last_used_at IS NULL OR last_used_at < now() - $2::interval)`,
+      [row.id, LAST_SEEN_RESOLUTION],
+    );
+    return {
+      sessionId: `token:${row.id}`,
+      user: {
+        id: row.user_id,
+        email: row.email_normalized,
+        displayName: row.display_name,
+      },
+      token: {
+        id: row.id,
+        organizationId: row.organization_id,
+        scopes: row.scopes,
+      },
+    };
+  }
+
+  /** The digest stored for an API token (shared with token creation). */
+  tokenDigest(raw: string): Buffer {
+    return this.digest(raw);
+  }
+
+  /**
    * Emails a single-use reset link to verified, active accounts and
    * invalidates earlier links. Silent otherwise, so responses match.
    */

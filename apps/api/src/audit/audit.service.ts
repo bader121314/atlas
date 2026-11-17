@@ -3,6 +3,16 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from '../database.service';
 import { summarizeIp } from './ip-summary';
 
+const AUDIT_TARGETS = [
+  'user',
+  'session',
+  'organization',
+  'invitation',
+  'project',
+  'api_token',
+] as const;
+type AuditTargetType = (typeof AUDIT_TARGETS)[number];
+
 /** Security-relevant actions. Add new names here, never free text. */
 export type AuditAction =
   | 'auth.signup.created'
@@ -25,7 +35,9 @@ export type AuditAction =
   | 'project.created'
   | 'project.updated'
   | 'project.member.set'
-  | 'project.member.removed';
+  | 'project.member.removed'
+  | 'api_token.created'
+  | 'api_token.revoked';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {
@@ -40,7 +52,7 @@ export interface AuditEvent {
   actorUserId?: string | null;
   organizationId?: string | null;
   target?: {
-    type: 'user' | 'session' | 'organization' | 'invitation' | 'project';
+    type: AuditTargetType;
     id: string;
   };
   /** Small, non-sensitive facts only: never passwords, tokens or emails. */

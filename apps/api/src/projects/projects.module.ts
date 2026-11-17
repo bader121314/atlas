@@ -14,6 +14,8 @@ import { NotificationsController } from '../notifications/notifications.controll
 import { NotificationsService } from '../notifications/notifications.service';
 import { SearchController } from '../search/search.controller';
 import { SearchService } from '../search/search.service';
+import { ApiTokensController } from '../tokens/api-tokens.controller';
+import { ApiTokensService } from '../tokens/api-tokens.service';
 import { WebhooksController } from '../webhooks/webhooks.controller';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { ActivityService } from './activity.service';
@@ -69,6 +71,7 @@ import { ViewsService } from './views.service';
     AttachmentsController,
     ExportsController,
     WebhooksController,
+    ApiTokensController,
   ],
   providers: [
     ProjectsService,
@@ -92,6 +95,7 @@ import { ViewsService } from './views.service';
     StorageProvider,
     ExportsService,
     WebhooksService,
+    ApiTokensService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

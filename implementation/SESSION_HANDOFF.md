@@ -130,8 +130,9 @@ Read `docs/08` M6. In order:
 1. Done (PR #36): signed outbound webhooks planned from the outbox, SSRF
    checks before saving and after DNS, retries, pausing, delivery history,
    replay and ping; admin UI on the organization page (ADR-036).
-2. Scoped API tokens (read tasks, write tasks) for scripts, hashed at rest,
-   usable instead of the session cookie.
+2. Done (PR #37): scoped personal API tokens (tasks:read, tasks:write),
+   bearer auth on tenant routes only, scope checks in ProjectGuard, audit,
+   management UI on the organization page (ADR-037).
 3. Automation rules: trigger (task created, status changed), conditions
    (priority, label, assignee), actions (assign, add label, set priority,
    comment); idempotent per event; loop protection (actions by rules do not

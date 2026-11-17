@@ -5,9 +5,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { sessionCookieName } from './cookies';
-import { header, readCookie } from './http';
+import {
+  ORGANIZATION_PERMISSION,
+  bearerToken,
+  header,
+  readCookie,
+} from './http';
 import type { HttpRequest } from './http';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -24,6 +30,9 @@ export class OriginGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<HttpRequest>();
     if (SAFE_METHODS.has(request.method.toUpperCase())) return true;
+    // Bearer tokens are never sent by browsers on their own, so cross-site
+    // forgery does not apply; SessionGuard authenticates them.
+    if (bearerToken(request)) return true;
     if (header(request, 'origin') !== this.auth.config.WEB_ORIGIN) {
       throw new ForbiddenException();
     }
@@ -34,10 +43,28 @@ export class OriginGuard implements CanActivate {
 /** Requires a live session cookie and attaches the caller to the request. */
 @Injectable()
 export class SessionGuard implements CanActivate {
-  constructor(@Inject(AuthService) private readonly auth: AuthService) {}
+  constructor(
+    @Inject(AuthService) private readonly auth: AuthService,
+    @Inject(Reflector) private readonly reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<HttpRequest>();
+    const bearer = bearerToken(request);
+    if (bearer) {
+      // Tokens only reach tenant routes; account and session routes need a
+      // signed-in browser.
+      const tenantRoute = this.reflector.get<string | undefined>(
+        ORGANIZATION_PERMISSION,
+        context.getHandler(),
+      );
+      const caller = tenantRoute
+        ? await this.auth.authenticateApiToken(bearer)
+        : undefined;
+      if (!caller) throw new UnauthorizedException();
+      request.auth = caller;
+      return true;
+    }
     const token = readCookie(request, sessionCookieName());
     const session = token ? await this.auth.authenticate(token) : undefined;
     if (!session) throw new UnauthorizedException();

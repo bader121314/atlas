@@ -18,6 +18,18 @@ export interface HttpResponse {
 export interface AuthContext {
   sessionId: string;
   user: { id: string; email: string; displayName: string };
+  /** Set when the caller used an API token instead of a session (ADR-037). */
+  token?: { id: string; organizationId: string; scopes: string[] };
+}
+
+/** Metadata key of RequirePermission; tenant routes are the only token routes. */
+export const ORGANIZATION_PERMISSION = 'atlas:organization-permission';
+
+/** The bearer token in the Authorization header, if any. */
+export function bearerToken(request: HttpRequest): string | undefined {
+  const value = header(request, 'authorization');
+  const match = value ? /^Bearer\s+(\S+)$/i.exec(value) : null;
+  return match?.[1];
 }
 
 /** Resolved by TenantGuard from the route, never from client-supplied ids. */

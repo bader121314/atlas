@@ -763,6 +763,34 @@ export const webhookDeliverySchema = z
   .strict();
 export type WebhookDelivery = z.infer<typeof webhookDeliverySchema>;
 
+/** API token scopes (ADR-037). */
+export const apiTokenScopes = ['tasks:read', 'tasks:write'] as const;
+
+export const createApiTokenRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(60),
+    scopes: z
+      .array(z.enum(apiTokenScopes))
+      .min(1)
+      .refine((list) => new Set(list).size === list.length, 'Duplicate scope'),
+    expiresInDays: z.number().int().min(1).max(365).default(90),
+  })
+  .strict();
+export type CreateApiTokenRequest = z.infer<typeof createApiTokenRequestSchema>;
+
+export const apiTokenSchema = z
+  .object({
+    id: z.uuid(),
+    name: z.string(),
+    prefix: z.string(),
+    scopes: z.array(z.enum(apiTokenScopes)),
+    createdAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime(),
+    lastUsedAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type ApiToken = z.infer<typeof apiTokenSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;
