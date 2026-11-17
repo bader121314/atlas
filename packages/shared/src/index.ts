@@ -45,3 +45,12 @@ export {
 export { Counter, Histogram, Registry, metricsAuthorized } from './metrics';
 export type { GaugeReading } from './metrics';
 export { csvCell, toCsv } from './csv';
+export {
+  PUSH_SERVICE_HOSTS,
+  encryptPush,
+  isPushServiceUrl,
+  pushAllowedHosts,
+  vapidAuthorization,
+  vapidKeys,
+} from './web-push';
+export type { PushTarget, VapidKeys } from './web-push';

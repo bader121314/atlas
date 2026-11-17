@@ -326,6 +326,7 @@ model Notification {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   readAt DateTime? @map("read_at") @db.Timestamptz(6)
   emailStatus String @default("pending") @map("email_status") @db.VarChar(16)
+  pushStatus String @default("pending") @map("push_status") @db.VarChar(16)
   @@unique([recipientUserId, sourceEventId], map: "notifications_dedupe_key")
   @@map("notifications")
 }
@@ -565,4 +566,18 @@ model SsoState {
 
   @@index([expiresAt], map: "sso_states_expires_idx")
   @@map("sso_states")
+}
+
+model PushSubscription {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  endpoint String @unique(map: "push_subscriptions_endpoint_key") @db.VarChar(1000)
+  p256dh String @db.VarChar(100)
+  auth String @db.VarChar(40)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSuccessAt DateTime? @map("last_success_at") @db.Timestamptz(6)
+  failures Int @default(0)
+
+  @@index([userId], map: "push_subscriptions_user_idx")
+  @@map("push_subscriptions")
 }

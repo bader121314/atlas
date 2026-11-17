@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Notice } from '../../../../../components/form';
 import { api, describeFailure } from '../../../../../lib/api';
 import type { AppNotification } from '../../../../../lib/api';
+import { PushToggle } from '../../../../../components/push-toggle';
 
 const when = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -209,6 +210,7 @@ export default function NotificationsPage() {
               </label>
             ))}
           </fieldset>
+          <PushToggle />
         </section>
       )}
     </>

@@ -27,6 +27,7 @@ import { SharesService } from '../shares/shares.service';
 import { AuditLogController } from '../audit/audit-log.controller';
 import { AuditLogService } from '../audit/audit-log.service';
 import { UsageController } from '../usage/usage.controller';
+import { PushController } from '../push/push.controller';
 import { WorkloadController } from '../workload/workload.controller';
 import { WorkloadService } from '../workload/workload.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -97,6 +98,7 @@ import { ViewsService } from './views.service';
     PublicSharesController,
     AuditLogController,
     UsageController,
+    PushController,
   ],
   providers: [
     ProjectsService,

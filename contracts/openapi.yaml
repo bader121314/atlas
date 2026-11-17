@@ -1373,6 +1373,28 @@ paths:
       description: '?state=&code=. On success sets the session cookie and redirects to the organization; otherwise to /login/sso?error=failed|suspended|unavailable.'
       responses:
         '302': { description: Redirect }
+  /push/config:
+    get:
+      operationId: pushConfig
+      security: [{ sessionCookie: [] }]
+      description: '{ publicKey } (VAPID application server key) or null when push is off. ADR-060.'
+      responses:
+        '200': { description: Config }
+  /push/subscriptions:
+    post:
+      operationId: subscribePush
+      security: [{ sessionCookie: [] }]
+      description: 'Body: PushSubscription.toJSON() ({ endpoint, keys: { p256dh, auth } }). Endpoint must be https on a known push service. At most 10 per person.'
+      responses:
+        '204': { description: Subscribed }
+        '400': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: unsubscribePush
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { endpoint }.'
+      responses:
+        '204': { description: Removed }
 components:
   parameters:
     Slug:
