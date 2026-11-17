@@ -920,6 +920,14 @@ paths:
         '200': { description: Matching tasks }
         '400': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+  /organizations/{slug}/projects/{key}/analytics:
+    get:
+      operationId: projectAnalytics
+      security: [{ sessionCookie: [] }]
+      description: '{ total, done, overdue, unassigned, byState [{ stateId, label, category, count }], weeks [{ weekStart, created, completed }] (8, UTC Mondays), medianLeadDays (null when none finished in 90 days), openByAssignee [{ userId, displayName, open }] }. Any project role. ADR-033.'
+      responses:
+        '200': { description: Project numbers }
+        '404': { description: Unknown project, or no access }
 components:
   parameters:
     Slug:

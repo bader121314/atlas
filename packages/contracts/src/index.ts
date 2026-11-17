@@ -608,6 +608,47 @@ export const searchResultSchema = z
   .strict();
 export type SearchResult = z.infer<typeof searchResultSchema>;
 
+/** Project numbers for the dashboard (ADR-033). */
+export const projectAnalyticsSchema = z
+  .object({
+    total: z.number().int(),
+    done: z.number().int(),
+    overdue: z.number().int(),
+    unassigned: z.number().int(),
+    byState: z.array(
+      z
+        .object({
+          stateId: z.uuid(),
+          label: z.string(),
+          category: z.enum(['todo', 'in_progress', 'done']),
+          count: z.number().int(),
+        })
+        .strict(),
+    ),
+    weeks: z.array(
+      z
+        .object({
+          weekStart: z.iso.date(),
+          created: z.number().int(),
+          completed: z.number().int(),
+        })
+        .strict(),
+    ),
+    /** Median days from creation to completion, last 90 days. */
+    medianLeadDays: z.number().nullable(),
+    openByAssignee: z.array(
+      z
+        .object({
+          userId: z.uuid(),
+          displayName: z.string(),
+          open: z.number().int(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type ProjectAnalytics = z.infer<typeof projectAnalyticsSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

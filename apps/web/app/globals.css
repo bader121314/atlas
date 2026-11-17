@@ -805,3 +805,49 @@ kbd {
   border-left: 3px solid var(--sea);
   padding-left: var(--space-3);
 }
+
+/* Project numbers */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+.stats div {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+}
+.stats dt {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.numbers-grid caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: var(--space-2);
+}
+.bar {
+  display: inline-block;
+  block-size: 0.6rem;
+  margin-inline-end: var(--space-2);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.bar.created {
+  background: var(--contour);
+}
+.bar.completed {
+  background: var(--sea);
+}

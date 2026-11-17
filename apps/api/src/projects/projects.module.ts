@@ -15,6 +15,8 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { SearchController } from '../search/search.controller';
 import { SearchService } from '../search/search.service';
 import { ActivityService } from './activity.service';
+import { AnalyticsController } from './analytics.controller';
+import { AnalyticsService } from './analytics.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
 import { FieldsController } from './fields.controller';
@@ -57,6 +59,7 @@ import { ViewsService } from './views.service';
     PresenceController,
     NotificationsController,
     SearchController,
+    AnalyticsController,
   ],
   providers: [
     ProjectsService,
@@ -75,6 +78,7 @@ import { ViewsService } from './views.service';
     PresenceService,
     NotificationsService,
     SearchService,
+    AnalyticsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

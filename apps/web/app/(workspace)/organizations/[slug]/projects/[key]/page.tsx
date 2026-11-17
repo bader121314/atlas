@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
+import { AnalyticsSection } from '../../../../../../components/analytics-section';
 import { FieldsSection } from '../../../../../../components/custom-fields';
 import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
@@ -418,6 +419,10 @@ export default function ProjectPage() {
           ))}
         </ul>
       )}
+      <AnalyticsSection
+        base={base}
+        refreshKey={tasks.reduce((n, t) => n + t.version, 0)}
+      />
       <MilestonesSection
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}
