@@ -124,8 +124,9 @@ whatever is installed; check before designing.
 1. Done (PR #31): full-text search over tasks and comments with access in
    the query, prefix matching in any script, task keys; search page and `/`
    shortcut (ADR-032).
-2. Project analytics: counts by state, throughput per week, overdue and
-   cycle time, from SQL; a dashboard section on the project page.
+2. Done (PR #32): project numbers from SQL (status counts, overdue,
+   weekly trend, median lead time, open per assignee) and a dashboard
+   section on the project page (ADR-033).
 3. Attachments: presigned uploads to object storage, size and type limits,
    content sniffing, quarantine until scanned (scanner stub), signed
    downloads.
