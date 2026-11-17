@@ -65,8 +65,9 @@ The whole stack also runs in containers:
   tracking and a team workload view.
 - **Collaboration:** comments, field-level history, live updates over
   Server-Sent Events with replay after a dropped connection, presence,
-  notifications in an inbox and by email with per-kind muting and daily
-  digests, and expiring public read-only links for people outside the team.
+  notifications in an inbox, by email (per-kind muting, daily digests) and
+  as browser push, expiring public read-only links for people outside the
+  team, and task edits kept while offline.
 - **Files, search and numbers:** uploads straight to object storage, held in
   quarantine until their content is checked; full-text search in any
   language that never reveals private projects; project analytics; CSV
@@ -76,8 +77,10 @@ The whole stack also runs in containers:
   webhooks with SSRF protection, scoped API tokens, and
   [examples](examples) of a client and a webhook receiver.
 - **Accounts and security:** email verification, password reset and change,
-  session management, rate limits, audit log, content security policy; see
-  the [security review](docs/15-security-review.md).
+  session management, rate limits, an audit log owners can export, content
+  security policy; see the [security review](docs/15-security-review.md).
+- **Enterprise:** single sign-on with OpenID Connect, SCIM provisioning,
+  verified email domains, label-scoped guest access and usage metering.
 - **Accessibility:** keyboard shortcuts and a skip link, WCAG contrast checks
   on the colour tokens, an axe-core audit of every page the browser test
   visits at phone, tablet and desktop widths.
@@ -111,7 +114,7 @@ webhooks and rule runs, each exactly once or deduplicated by event id. See
 
 Every pull request runs, on GitHub Actions:
 
-- 205 unit tests and 143 integration tests against real PostgreSQL and
+- 228 unit tests and 157 integration tests against real PostgreSQL and
   Redis, including negative tests for every tenant-scoped route;
 - a browser test that drives three users through signup, invitations,
   projects, views, live updates, uploads, notifications, search and exports

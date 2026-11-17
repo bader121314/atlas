@@ -1,6 +1,6 @@
 # 20 — M9 Progress Report: First Expansion Batch
 
-**Status:** two batches complete; M9 stays open as the expansion backlog.
+**Status:** three batches complete; M9 stays open as the expansion backlog.
 **Date:** 2026-11-17.
 **Scope reference:** `docs/08-milestones.md`, M9. Each item below shipped
 with an ADR, a data and threat model and acceptance gates, as M9 requires.
@@ -19,10 +19,16 @@ with an ADR, a data and threat model and acceptance gates, as M9 requires.
 | Installable app and offline page       | 053 | #61      | Manifest served; offline navigation shows only the offline page; pages and API never cached (browser test)                                       |
 | Start, time and estimate in exports    | 049 | #62      | Columns appended after existing ones; totals match logged entries (`exports`)                                                                    |
 | Estimates and weekly capacity          | 054 | #63, #64 | Estimates shared between assignees; capacity set by self or admin only; outsiders refused (`workload`)                                           |
+| SCIM 2.0 user provisioning             | 055 | #65      | Membership-only changes; owners and admins protected; cross-tenant 404; revoked tokens refused (`scim`)                                          |
+| Usage metering                         | 056 | #66      | Counts per organization only; refused requests not metered; owners and admins only (`usage`)                                                     |
+| Verified email domains                 | 057 | #67      | DNS proof; one holder per domain; provisioning limited to verified domains (`domains`)                                                           |
+| Single sign-on (OpenID Connect)        | 058 | #68      | PKCE, single-use state, nonce, JWKS signatures, verified-domain addresses, require-SSO with owner break-glass (`sso`)                            |
+| Label-scoped guest access              | 059 | #69      | One predicate on every task read path; analytics refused; notifications and mentions fenced (`guest-scope`)                                      |
+| Browser push notifications             | 060 | #70      | RFC 8291 encryption and VAPID; push-service hosts only; gone subscriptions removed (`web-push`)                                                  |
+| Offline task edits                     | 061 | #71      | Kept in session storage, sent once with the original version; conflicts refused (`offline-edits`, browser test)                                  |
 
-**Test totals:** 212 unit tests and 147 integration tests (after PR #64), plus the browser
-test (which now logs time and opens a public link signed out), image
-builds, Terraform validation and the release drill.
+**Test totals:** 228 unit tests and 157 integration tests (after PR #71), plus the
+browser test, image builds, Terraform validation and the release drill.
 
 ## Data and contract changes
 
@@ -46,6 +52,14 @@ returns `email` for older clients.
 
 ## Remaining M9 candidates
 
-Fine-grained ABAC, SSO/SAML, SCIM, multi-region recovery, a search index
-service, billing and metering, offline editing and push notifications. Hosted items still need
-approval for running costs (AGENTS.md).
+Each needs a decision or a hosted service before work starts (AGENTS.md):
+
+- **Billing:** plans, limits and payments on top of usage metering
+  (ADR-056); needs a payment provider account (test mode is free) and
+  pricing decisions.
+- **Multi-region recovery:** Terraform for a second region and a recovery
+  drill; verifying it needs a second running region.
+- **Search index service:** OpenSearch behind the existing search API;
+  production needs a hosted cluster.
+- **SAML,** if a customer's provider lacks OpenID Connect.
+- **Hosted demo,** deferred since M8 for the same cost reason.
