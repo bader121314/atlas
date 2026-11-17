@@ -9,6 +9,7 @@ import type {
   AutomationConditions,
   AutomationRule,
   CreateAutomationRequest,
+  UpdateAutomationRequest,
 } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
@@ -65,7 +66,7 @@ export class AutomationsService {
   private async validate(
     tenant: TenantContext,
     project: ProjectContext,
-    input: Partial<CreateAutomationRequest>,
+    input: UpdateAutomationRequest,
   ): Promise<void> {
     const states: string[] = [];
     const labels: string[] = [];
@@ -144,7 +145,7 @@ export class AutomationsService {
     tenant: TenantContext,
     project: ProjectContext,
     id: string,
-    input: Partial<CreateAutomationRequest>,
+    input: UpdateAutomationRequest,
   ): Promise<AutomationRule> {
     await this.validate(tenant, project, input);
     const result = await this.database.pool.query(

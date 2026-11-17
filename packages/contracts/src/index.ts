@@ -845,6 +845,9 @@ export type CreateAutomationRequest = z.infer<
 export const updateAutomationRequestSchema = createAutomationRequestSchema
   .partial()
   .strict();
+export type UpdateAutomationRequest = z.infer<
+  typeof updateAutomationRequestSchema
+>;
 
 export const simulateAutomationRequestSchema = z
   .object({ conditions: automationConditionsSchema })
