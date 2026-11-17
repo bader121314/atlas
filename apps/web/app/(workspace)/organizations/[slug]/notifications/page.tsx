@@ -26,6 +26,7 @@ export default function NotificationsPage() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [email, setEmail] = useState<boolean>();
   const [error, setError] = useState('');
+  const [missing, setMissing] = useState(false);
 
   const load = useCallback(async () => {
     const [list, settings] = await Promise.all([
@@ -34,6 +35,10 @@ export default function NotificationsPage() {
       ),
       api<{ email: boolean }>(`/organizations/${slug}/notification-settings`),
     ]);
+    if (list.status === 404) {
+      setMissing(true);
+      return;
+    }
     setItems(list.data ?? []);
     if (settings.data) setEmail(settings.data.email);
   }, [slug, unreadOnly]);
@@ -67,6 +72,18 @@ export default function NotificationsPage() {
       { method: 'PUT', body: { email: next } },
     );
     if (result.data) setEmail(result.data.email);
+  }
+
+  if (missing) {
+    return (
+      <>
+        <h1>Organization not found</h1>
+        <p>It does not exist, or you are not a member.</p>
+        <p>
+          <Link href="/organizations">Your organizations</Link>
+        </p>
+      </>
+    );
   }
 
   const unread = items?.filter((i) => !i.readAt).length ?? 0;
