@@ -160,7 +160,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 6. Done (PR #58): M9 progress report (docs/20).
 7. Done (PR #59): organization audit log view and CSV export (ADR-051).
 8. Done (PR #60): start dates and a timeline view (ADR-052).
-9. Next M9 item: installable PWA basics (manifest, icons, offline page).
+9. Done (PR #61): installable app with an offline page (ADR-053).
+10. Next M9 candidates: time totals in exports and webhooks, capacity per
+    person on the workload view, then larger items (ABAC, SSO/SAML, SCIM)
+    that need approval or hosted services.
 
 ## Environment and versions
 
