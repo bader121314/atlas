@@ -526,6 +526,30 @@ export const setFieldValueRequestSchema = z
   .object({ value: z.union([z.string().max(500), z.number(), z.null()]) })
   .strict();
 
+/**
+ * A project event as published to Redis and streamed to browsers (ADR-028).
+ * Deliberately minimal: clients refetch what changed through the API, which
+ * applies the usual access checks.
+ */
+export const projectEventSchema = z
+  .object({
+    id: z.uuid(),
+    type: z.string().max(64),
+    organizationId: z.uuid(),
+    projectId: z.uuid(),
+    taskId: z.uuid(),
+    version: z.number().int(),
+    actorUserId: z.uuid().nullable(),
+    occurredAt: z.iso.datetime(),
+  })
+  .strict();
+export type ProjectEvent = z.infer<typeof projectEventSchema>;
+
+/** Redis channel for one project's events. */
+export function projectChannel(organizationId: string, projectId: string) {
+  return `atlas:events:${organizationId}:${projectId}`;
+}
+
 export const sessionResponseSchema = z
   .object({
     user: z

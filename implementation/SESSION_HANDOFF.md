@@ -114,9 +114,9 @@ the type and lint check. Playwright labels match substrings: use
 Constraint: new npm packages cannot be added from this workspace (no registry
 access, lockfile is authoritative), so M4 uses what is installed.
 
-1. Outbox dispatcher in `apps/worker`: claim unpublished `outbox_events` with
-   `FOR UPDATE SKIP LOCKED`, publish to Redis pub/sub per project, mark
-   published; retries with backoff; idempotent by event id.
+1. Done (PR #25): outbox dispatcher in `apps/worker` with SKIP LOCKED
+   claims, Redis channel per project, per-event backoff, 24-hour replay
+   window and pruning (ADR-028).
 2. Event stream to browsers: Server-Sent Events from the API (no new
    dependency; writes stay REST), authenticated by the session cookie,
    authorized per project on connect and revalidated; `Last-Event-ID`
