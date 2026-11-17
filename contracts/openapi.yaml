@@ -565,6 +565,17 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '404': { description: No explicit role, or no access }
   /organizations/{slug}/projects/{key}/states:
+    post:
+      operationId: createWorkflowState
+      security: [{ sessionCookie: [] }]
+      description: 'Body: label (1-50), category (todo | in_progress | done). Manager. Up to 20 states (409 beyond).'
+      responses:
+        '201':
+          {
+            description: 'Created at the end, with a stable key derived from the label',
+          }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: State limit reached }
     get:
       operationId: listWorkflowStates
       security: [{ sessionCookie: [] }]
@@ -689,6 +700,34 @@ paths:
           { description: A label is unknown or belongs to another organization }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { description: Unknown task or no access }
+  /organizations/{slug}/projects/{key}/states/order:
+    put:
+      operationId: reorderWorkflowStates
+      security: [{ sessionCookie: [] }]
+      description: 'Body: stateIds listing every state exactly once. Manager.'
+      responses:
+        '200': { description: States in the new order }
+        '400': { description: Missing, duplicate or foreign state ids }
+  /organizations/{slug}/projects/{key}/states/{id}:
+    patch:
+      operationId: updateWorkflowState
+      security: [{ sessionCookie: [] }]
+      description: 'Body: label?, category?. Changing category updates completion of its tasks. Manager.'
+      responses:
+        '200': { description: Updated }
+        '404': { description: Unknown state }
+    delete:
+      operationId: deleteWorkflowState
+      security: [{ sessionCookie: [] }]
+      description: 'Query: moveTo (required if the state has tasks). Manager.'
+      responses:
+        '204': { description: Deleted; tasks moved }
+        '400': { description: moveTo is unknown or the state itself }
+        '409':
+          {
+            description: Tasks exist and no moveTo was given,
+            or it is the last state,
+          }
 components:
   parameters:
     Slug:

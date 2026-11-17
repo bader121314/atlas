@@ -181,6 +181,9 @@ const pages = [];
     .getByText('Chart the harbour')
     .waitFor();
   await shot(alice, '11b-board');
+  await alice.getByLabel('New status').fill('In review');
+  await alice.getByRole('button', { name: 'Add status' }).click();
+  await alice.getByRole('region', { name: 'In review' }).waitFor();
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 

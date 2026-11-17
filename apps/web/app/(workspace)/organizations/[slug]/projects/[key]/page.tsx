@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
+import { WorkflowSettings } from '../../../../../../components/workflow-settings';
 import { api, describeFailure, priorityLabel } from '../../../../../../lib/api';
 import type { Project, Task, WorkflowState } from '../../../../../../lib/api';
 
@@ -207,6 +208,17 @@ export default function ProjectPage() {
           ))}
         </ul>
       )}
+      {project.role === 'manager' && project.status === 'active' ? (
+        <WorkflowSettings
+          base={base}
+          states={states}
+          onChange={async () => {
+            const refreshed = await api<WorkflowState[]>(`${base}/states`);
+            setStates(refreshed.data ?? []);
+            setTasks(await allTasks(base));
+          }}
+        />
+      ) : null}
     </>
   );
 }
