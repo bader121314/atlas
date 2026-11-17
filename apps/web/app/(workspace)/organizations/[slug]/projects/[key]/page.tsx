@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
 import { AnalyticsSection } from '../../../../../../components/analytics-section';
+import { AutomationsSection } from '../../../../../../components/automations-section';
 import { FieldsSection } from '../../../../../../components/custom-fields';
 import { ExportsSection } from '../../../../../../components/exports-section';
 import { LiveStatusBadge } from '../../../../../../components/live-status';
@@ -431,6 +432,14 @@ export default function ProjectPage() {
         base={base}
         canManage={project.role === 'manager' && project.status === 'active'}
       />
+      {project.role === 'manager' && project.status === 'active' ? (
+        <AutomationsSection
+          base={base}
+          slug={slug}
+          states={states}
+          labels={labels}
+        />
+      ) : null}
       {project.role === 'manager' && project.status === 'active' ? (
         <FieldsSection
           base={base}

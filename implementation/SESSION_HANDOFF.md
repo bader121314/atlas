@@ -133,10 +133,10 @@ Read `docs/08` M6. In order:
 2. Done (PR #37): scoped personal API tokens (tasks:read, tasks:write),
    bearer auth on tenant routes only, scope checks in ProjectGuard, audit,
    management UI on the organization page (ADR-037).
-3. Automation rules: trigger (task created, status changed), conditions
-   (priority, label, assignee), actions (assign, add label, set priority,
-   comment); idempotent per event; loop protection (actions by rules do not
-   trigger rules beyond a depth); simulation against recent tasks.
+3. Done (PR #38): automation rules run by the worker from the outbox, once
+   per (rule, event), with depth and self-trigger loop protection, savepoint
+   rollback per rule, simulation, and a manager section on the project page
+   (ADR-038).
 4. Recurring tasks.
 5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client

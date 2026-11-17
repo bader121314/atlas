@@ -131,7 +131,8 @@ export async function prunePublished(
   const result = await pool.query(
     `DELETE FROM outbox_events
      WHERE published_at < now() - ($1 * interval '1 hour')
-       AND notified_at IS NOT NULL AND webhooks_at IS NOT NULL`,
+       AND notified_at IS NOT NULL AND webhooks_at IS NOT NULL
+       AND automations_at IS NOT NULL`,
     [olderThanHours],
   );
   return result.rowCount ?? 0;
