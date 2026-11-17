@@ -8,9 +8,10 @@ on every change.
 
 **Status:** milestones M0 (foundation) and M1 (identity, organizations,
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
-M2 (projects and tasks) and M3 (views, planning and accessibility) are
-complete too; see the [M2](docs/10-m2-exit-report.md) and
-[M3](docs/11-m3-exit-report.md) exit reports. Not deployed; no
+M2 (projects and tasks), M3 (views, planning and accessibility) and M4
+(real-time updates and notifications) are complete too; see the
+[M2](docs/10-m2-exit-report.md), [M3](docs/11-m3-exit-report.md) and
+[M4](docs/12-m4-exit-report.md) exit reports. Not deployed; no
 production-readiness claims.
 
 | Task board                                        | Task with comments and history                  |
@@ -40,6 +41,11 @@ production-readiness claims.
   keyboard alternative; list, table and calendar views with filters and
   saved views; task dependencies with loop protection; milestones with
   progress; custom fields (text, number, date, choice list).
+- **Real time:** changes by others appear on open boards and task pages
+  without reloading (Server-Sent Events fed by a transactional outbox and
+  Redis), with replay after a dropped connection; you can see who else is
+  viewing a task; assignment and comment notifications in an inbox, and by
+  email if unread after two minutes.
 - **Accessibility:** keyboard shortcuts and a skip link; colour tokens checked
   against WCAG contrast minimums; an axe-core audit of every page the
   browser test visits, at phone, tablet and desktop widths.
@@ -51,9 +57,10 @@ production-readiness claims.
 and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
 Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
 
-**How it is verified:** 122 unit tests and 87 integration tests against real
+**How it is verified:** 129 unit tests and 104 integration tests against real
 PostgreSQL and Redis, plus a browser test that drives three users through
-signup, invitations, projects, tasks and views, and audits accessibility. Design decisions are recorded as ADRs in
+signup, invitations, projects, tasks, views, live updates and
+notifications, and audits accessibility. Design decisions are recorded as ADRs in
 [`docs/adrs`](docs/adrs).
 
 **Owner:** Bader Altemane
@@ -151,6 +158,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [M1 exit report](docs/09-m1-exit-report.md)
 - [M2 exit report](docs/10-m2-exit-report.md)
 - [M3 exit report](docs/11-m3-exit-report.md)
+- [M4 exit report](docs/12-m4-exit-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 

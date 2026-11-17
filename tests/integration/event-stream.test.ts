@@ -231,4 +231,21 @@ describe('project event stream', () => {
     await stream.until((f) => f.some((x) => x.event === 'revoked'));
     await stream.until(() => stream.ended());
   });
+
+  it('closes the stream when a project stops being visible to the reader', async () => {
+    const { owner, slug, base } = await setup();
+    const member = await fx.join(slug, owner, 'member');
+    const stream = await openStream(member, `${base}/events`);
+    await stream.until((f) => f.some((x) => x.event === 'ready'));
+    await fx.call(owner, 'PATCH', `/organizations/${slug}/projects/LIVE`, {
+      version: 1,
+      visibility: 'private',
+    });
+    await stream.until((f) => f.some((x) => x.event === 'revoked'));
+    await stream.until(() => stream.ended());
+    // The owner, a manager of every project, keeps streaming.
+    const kept = await openStream(owner, `${base}/events`);
+    await kept.until((f) => f.some((x) => x.event === 'ready'));
+    await kept.close();
+  });
 });

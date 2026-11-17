@@ -109,29 +109,30 @@ keep them on one line. The local workspace may have no `node_modules`; CI is
 the type and lint check. Playwright labels match substrings: use
 `{ exact: true }` (the shortcut dialog is labelled "Keyboard shortcuts").
 
-### M4 — next (real-time and notifications)
+### M4 — complete
 
-Constraint: new npm packages cannot be added from this workspace (no registry
-access, lockfile is authoritative), so M4 uses what is installed.
+PRs #25–#29 (ADR-028 to ADR-031); exit report `docs/12-m4-exit-report.md`.
+The worker runs the outbox dispatcher, the notifier and the email sender;
+the smoke job starts it with `NOTIFICATION_EMAIL_DELAY_MS=0`.
 
-1. Done (PR #25): outbox dispatcher in `apps/worker` with SKIP LOCKED
-   claims, Redis channel per project, per-event backoff, 24-hour replay
-   window and pruning (ADR-028).
-2. Done (PR #26): Server-Sent Events per project with guard rechecks,
-   Redis fan-out per instance, Last-Event-ID replay and resync (ADR-029).
-3. Done (PR #27): live project and task pages (`useProjectEvents`), a
-   status indicator, and on the task page a prompt instead of replacing text
-   being typed. The smoke job now runs the worker.
-4. Done (PR #28): task presence in a Redis sorted set with 45-second expiry,
-   heartbeats from the task page (ADR-030).
-5. Done (PR #29): notifications from the outbox (assignment,
-   comments), inbox API with access checks, delayed email with an opt-out
-   (ADR-031); inbox page and unread badge in the web app.
-6. Exit tests: delivery across two API instances, revocation cuts the stream,
-   nothing published before commit, retry and dedup, resync after disconnect.
-7. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
+### M5 — next (attachments, search and analytics)
+
+Read `docs/08` M5. Constraint: no new npm packages (no registry access), so
+uploads use the MinIO/S3 API through signed requests written by hand or
+whatever is installed; check before designing.
+
+1. Full-text search across tasks and comments: generated `tsvector`
+   columns, GIN indexes, queries always filtered by organization and by the
+   projects the caller can read; search page and `/` shortcut.
+2. Project analytics: counts by state, throughput per week, overdue and
+   cycle time, from SQL; a dashboard section on the project page.
+3. Attachments: presigned uploads to object storage, size and type limits,
+   content sniffing, quarantine until scanned (scanner stub), signed
+   downloads.
+4. Background CSV export of a project's tasks via the worker.
+5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client
-   generation and contract tests.
+   generation and contract tests, mentions.
 
 ## Environment and versions
 
