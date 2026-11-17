@@ -115,25 +115,30 @@ PRs #25–#29 (ADR-028 to ADR-031); exit report `docs/12-m4-exit-report.md`.
 The worker runs the outbox dispatcher, the notifier and the email sender;
 the smoke job starts it with `NOTIFICATION_EMAIL_DELAY_MS=0`.
 
-### M5 — next (attachments, search and analytics)
+### M5 — complete
 
-Read `docs/08` M5. Constraint: no new npm packages (no registry access), so
-uploads use the MinIO/S3 API through signed requests written by hand or
-whatever is installed; check before designing.
+PRs #31–#34 (ADR-032 to ADR-035); exit report `docs/13-m5-exit-report.md`.
+Storage settings: `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`,
+`STORAGE_SECRET_KEY` (optional `STORAGE_REGION`, `STORAGE_STYLE`). The smoke
+job runs the S3 test double from `packages/shared/dist/testing/fake-s3.js`.
+Worker jobs each have their own busy flag (a shared one starved exports).
 
-1. Done (PR #31): full-text search over tasks and comments with access in
-   the query, prefix matching in any script, task keys; search page and `/`
-   shortcut (ADR-032).
-2. Done (PR #32): project numbers from SQL (status counts, overdue,
-   weekly trend, median lead time, open per assignee) and a dashboard
-   section on the project page (ADR-033).
-3. Done (PR #33): attachments with presigned uploads (SigV4 on
-   node:crypto), quarantine until magic-byte and malware checks pass, signed
-   downloads; S3 test double in `packages/shared/src/testing` used by
-   integration and smoke tests (ADR-034).
-4. Done (PR #34): background CSV exports with a `task.export` permission,
-   access rechecked by the worker, 24-hour expiry, formula-safe cells
-   (ADR-035).
+### M6 — next (automation and integrations)
+
+Read `docs/08` M6. In order:
+
+1. Outbound webhooks: per-organization endpoints, HMAC-SHA256 signatures
+   with timestamp and event id headers, SSRF protection (resolve and refuse
+   private, loopback and link-local addresses, https only outside
+   development), retries with backoff from the outbox, delivery history,
+   pause after repeated failures, replay endpoint.
+2. Scoped API tokens (read tasks, write tasks) for scripts, hashed at rest,
+   usable instead of the session cookie.
+3. Automation rules: trigger (task created, status changed), conditions
+   (priority, label, assignee), actions (assign, add label, set priority,
+   comment); idempotent per event; loop protection (actions by rules do not
+   trigger rules beyond a depth); simulation against recent tasks.
+4. Recurring tasks.
 5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client
    generation and contract tests, mentions.
