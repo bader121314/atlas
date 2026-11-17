@@ -8,6 +8,7 @@ import { parseEnvironment } from '@atlas/config';
 import { emailBatch } from './email';
 import type { MailMessage } from './email';
 import { notifyBatch } from './notifier';
+import { tracked } from '../metrics';
 
 const NOTIFY_MS = 1000;
 const EMAIL_MS = 15_000;
@@ -85,7 +86,7 @@ export class NotificationsService
     if (this.busy[name]) return;
     this.busy[name] = true;
     try {
-      await run();
+      await tracked(name, run);
     } catch {
       this.logger.error(`${name} batch failed; retrying`);
     } finally {

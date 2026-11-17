@@ -5,6 +5,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { vi } from 'vitest';
 import { Client } from 'pg';
 import { AppModule } from '../../../apps/api/src/app.module';
+import { httpMetrics } from '../../../apps/api/src/metrics/metrics';
 import { Mailer } from '../../../apps/api/src/auth/mailer';
 import type { MailMessage } from '../../../apps/api/src/auth/mailer';
 import {
@@ -66,6 +67,7 @@ export async function startAuthApp() {
     .compile();
   const app: App = module.createNestApplication();
   app.use(requestLogging(() => undefined, false));
+  app.use(httpMetrics());
   app.setGlobalPrefix('v1');
   app.useGlobalFilters(new ProblemFilter());
   await app.listen(0, '127.0.0.1');

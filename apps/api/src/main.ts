@@ -8,6 +8,7 @@ import {
   trustProxySetting,
 } from '@atlas/shared';
 import { AppModule } from './app.module';
+import { httpMetrics } from './metrics/metrics';
 async function bootstrap(): Promise<void> {
   const config = parseEnvironment(process.env);
   // Fail fast at startup; auth settings are otherwise read on first use.
@@ -20,6 +21,7 @@ async function bootstrap(): Promise<void> {
     .getInstance()
     .set('trust proxy', trustProxySetting(process.env.TRUST_PROXY));
   app.use(requestLogging());
+  app.use(httpMetrics());
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new ProblemFilter());
   app.enableShutdownHooks();

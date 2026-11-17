@@ -140,8 +140,9 @@ installed; keep modules small and documented). Suggested order:
 
 1. Done (PR #41): request ids in responses, problem details, audit events
    and JSON request logs; `TRUST_PROXY` for client addresses (ADR-040).
-2. Metrics endpoint (Prometheus text format, no dependency) for HTTP,
-   worker loops and outbox lag; health details for readiness.
+2. Done (PR #42): Prometheus metrics on the API and worker behind
+   `METRICS_TOKEN`: HTTP by route pattern, outbox lag, worker backlogs and
+   batch results (ADR-041).
 3. Dockerfiles for web, API and worker; a compose file for a full local
    stack; CI builds the images.
 4. Terraform skeleton for AWS (VPC, RDS, ElastiCache, S3, ECS services,

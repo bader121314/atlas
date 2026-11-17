@@ -8,6 +8,7 @@ import { parseEnvironment } from '@atlas/config';
 import { ObjectStore, storageSettings } from '@atlas/shared';
 import { expireExports, runExports } from '../exports/exporter';
 import { checkBatch, removeAbandoned } from './checker';
+import { tracked } from '../metrics';
 
 const CHECK_MS = 2000;
 const CLEANUP_MS = 10 * 60 * 1000;
@@ -39,7 +40,7 @@ export class AttachmentChecksService
       if (this.busy.has(name)) return;
       this.busy.add(name);
       try {
-        await run();
+        await tracked(name, run);
       } catch {
         this.logger.error('attachment checks failed; retrying');
       } finally {

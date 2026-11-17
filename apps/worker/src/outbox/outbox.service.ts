@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { createClient } from 'redis';
 import { parseEnvironment } from '@atlas/config';
 import { dispatchBatch, prunePublished } from './dispatcher';
+import { tracked } from '../metrics';
 
 const IDLE_MS = 500;
 const ERROR_MS = 2000;
@@ -49,8 +50,10 @@ export class OutboxService
       let delay = IDLE_MS;
       try {
         if (!redis.isOpen) await redis.connect();
-        const result = await dispatchBatch(pool, (channel, message) =>
-          redis.publish(channel, message),
+        const result = await tracked('outbox', () =>
+          dispatchBatch(pool, (channel, message) =>
+            redis.publish(channel, message),
+          ),
         );
         if (result.published > 0 && result.failed === 0) delay = 0;
         if (result.failed > 0) delay = ERROR_MS;
