@@ -25,6 +25,7 @@ export const DEFAULT_RATE_LIMITS = {
   resetRequestPerIp: { limit: 10, windowSeconds: 60 * 60 },
   resetRequestPerAccount: { limit: 3, windowSeconds: 60 * 60 },
   resetConfirmPerIp: { limit: 30, windowSeconds: 15 * 60 },
+  passwordChangePerAccount: { limit: 10, windowSeconds: 15 * 60 },
   orgCreatePerAccount: { limit: 10, windowSeconds: 60 * 60 },
   invitePerAccount: { limit: 50, windowSeconds: 60 * 60 },
   acceptInvitePerIp: { limit: 30, windowSeconds: 15 * 60 },

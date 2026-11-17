@@ -1129,6 +1129,16 @@ paths:
       security: [{ sessionCookie: [] }]
       responses:
         '204': { description: Deleted; tasks already created stay }
+  /auth/password:
+    post:
+      operationId: changePassword
+      security: [{ sessionCookie: [] }]
+      description: 'Body: currentPassword, newPassword (12-128). Signs out every other session; audited as auth.password.changed. Rate limited per account.'
+      responses:
+        '204': { description: Changed }
+        '400': { description: Wrong current password or weak new one }
+        '401': { description: Not signed in }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
 components:
   parameters:
     Slug:

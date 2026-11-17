@@ -151,8 +151,8 @@ installed; keep modules small and documented). Suggested order:
    runbooks for deploy, rollback, backup and restore, outbox lag (ADR-043).
 5. Done (PR #45): security review (`docs/15`), content security policy and
    permissions policy, load test script run in the smoke job (`docs/16`).
-6. Carry-overs: change password while signed in, multiple assignees,
-   mentions.
+6. Done (PR #46): change password while signed in (signs out other
+   devices, audited). Remaining carry-overs: multiple assignees, mentions.
 
 ## Environment and versions
 

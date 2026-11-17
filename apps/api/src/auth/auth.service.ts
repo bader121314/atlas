@@ -411,6 +411,48 @@ export class AuthService {
     });
   }
 
+  /**
+   * Changes the password of a signed-in user who proves the current one,
+   * and signs out every other device. Returns false if the current
+   * password is wrong.
+   */
+  async changePassword(
+    caller: AuthContext,
+    currentPassword: string,
+    newPassword: string,
+    request: RequestMeta,
+  ): Promise<boolean> {
+    const user = await this.database.pool.query<{ password_hash: string }>(
+      `SELECT password_hash FROM users WHERE id = $1 AND status = 'active'`,
+      [caller.user.id],
+    );
+    const hash = user.rows[0]?.password_hash;
+    if (!hash || !(await verifyPassword(currentPassword, hash))) return false;
+    const passwordHash = await hashPassword(newPassword);
+    await this.database.transaction(async (client) => {
+      await client.query(
+        'UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1',
+        [caller.user.id, passwordHash],
+      );
+      const revoked = await client.query(
+        `UPDATE sessions SET revoked_at = now()
+         WHERE user_id = $1 AND id <> $2 AND revoked_at IS NULL`,
+        [caller.user.id, caller.sessionId],
+      );
+      await this.audit.record(
+        {
+          action: 'auth.password.changed',
+          actorUserId: caller.user.id,
+          target: { type: 'user', id: caller.user.id },
+          metadata: { otherSessionsRevoked: revoked.rowCount ?? 0 },
+          request,
+        },
+        client,
+      );
+    });
+    return true;
+  }
+
   /** Active sessions for one user; never returns another user's sessions. */
   async listSessions(
     userId: string,
