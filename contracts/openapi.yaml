@@ -863,6 +863,20 @@ paths:
         '401': { description: Not signed in }
         '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
         '503': { description: Event delivery is unavailable; retry }
+  /organizations/{slug}/projects/{key}/tasks/{number}/presence:
+    put:
+      operationId: heartbeatPresence
+      security: [{ sessionCookie: [] }]
+      description: 'Marks the caller as viewing the task for 45 seconds and returns { viewers: [{ userId, displayName }] }. Any project role. ADR-030.'
+      responses:
+        '200': { description: Everyone viewing the task, the caller included }
+        '404': { description: Unknown task, or no access }
+        '503': { description: Presence is unavailable }
+    delete:
+      operationId: leavePresence
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: The caller is no longer shown }
 components:
   parameters:
     Slug:

@@ -122,7 +122,8 @@ access, lockfile is authoritative), so M4 uses what is installed.
 3. Done (PR #27): live project and task pages (`useProjectEvents`), a
    status indicator, and on the task page a prompt instead of replacing text
    being typed. The smoke job now runs the worker.
-4. Presence (ephemeral, Redis with expiry) on the task page.
+4. Done (PR #28): task presence in a Redis sorted set with 45-second expiry,
+   heartbeats from the task page (ADR-030).
 5. In-app notifications (assignment, mention, comment on watched task) and
    the email worker.
 6. Exit tests: delivery across two API instances, revocation cuts the stream,

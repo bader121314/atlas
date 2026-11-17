@@ -11,6 +11,10 @@ import { LiveStatusBadge } from '../../../../../../../../components/live-status'
 import { useShortcuts } from '../../../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../../../lib/live';
 import {
+  presenceText,
+  usePresence,
+} from '../../../../../../../../lib/presence';
+import {
   PRIORITIES,
   api,
   describeFailure,
@@ -186,6 +190,7 @@ export default function TaskPage() {
     setStale(false);
     await loadThread();
   }, [base, number, loadThread]);
+  const viewers = usePresence(`${base}/tasks/${number}/presence`, user.id);
   const live = useProjectEvents(base, {
     onEvent: (event) => {
       if (!task || event.taskId !== task.id) return;
@@ -377,6 +382,11 @@ export default function TaskPage() {
         <Link href={base}>{project.name}</Link> / {task.key}
       </p>
       <LiveStatusBadge status={live} />
+      {viewers.length > 0 ? (
+        <p className="presence" aria-live="polite">
+          {presenceText(viewers)}
+        </p>
+      ) : null}
       {stale ? (
         <Notice>
           <p>

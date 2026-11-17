@@ -12,6 +12,6 @@ import {
     RateLimitService,
     { provide: RateLimitSettings, useValue: defaultRateLimitSettings },
   ],
-  exports: [RateLimitService],
+  exports: [RateLimitService, RedisService],
 })
 export class RateLimitModule {}
