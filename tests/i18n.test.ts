@@ -30,8 +30,10 @@ describe('Arabic interface text (ADR-063)', () => {
     join(root, 'lib/api.ts'),
   ]) {
     const text = readFileSync(file, 'utf8');
-    for (const match of text.matchAll(/\bt[r]?\(\s*'((?:[^'\\]|\\.)*)'/g))
-      used.add((match[1] ?? '').replace(/\\'/g, "'"));
+    for (const match of text.matchAll(
+      /\bt[r]?\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g,
+    ))
+      used.add((match[1] ?? match[2] ?? '').replace(/\\(['"])/g, '$1'));
   }
 
   it('translates every text the interface uses', () => {
