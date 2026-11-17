@@ -167,8 +167,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 12. Done (PR #64): time logged shown against the estimate on the task page.
 13. Done (PR #65): SCIM 2.0 user provisioning (ADR-055).
 14. Done (PR #66): usage metering per organization (ADR-056).
-15. Next M9 candidates: SSO with OpenID Connect and verified domains (no
-    hosted cost: customers bring their provider; tests use a local fake).
+15. Done (PR #67): verified email domains; SCIM limited to them (ADR-057).
+16. Next: SSO with OpenID Connect for verified domains (customers bring
+    their provider; tests use a local fake). Billing waits for a decision
+    on Stripe test mode (asked; deferred by the user for now).
 
 ## Environment and versions
 

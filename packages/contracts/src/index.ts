@@ -1266,6 +1266,30 @@ export const usageSchema = z
   .strict();
 export type Usage = z.infer<typeof usageSchema>;
 
+/** Email domains an organization controls (ADR-057). */
+export const addDomainRequestSchema = z
+  .object({
+    domain: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(253)
+      .regex(/^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/),
+  })
+  .strict();
+
+export const organizationDomainSchema = z
+  .object({
+    id: z.uuid(),
+    domain: z.string(),
+    verified: z.boolean(),
+    verifiedAt: z.iso.datetime().nullable(),
+    /** The DNS TXT record that proves control. */
+    record: z.object({ name: z.string(), value: z.string() }).strict(),
+  })
+  .strict();
+export type OrganizationDomain = z.infer<typeof organizationDomainSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

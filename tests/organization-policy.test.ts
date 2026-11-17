@@ -24,6 +24,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'audit.read': true,
     'scim.manage': true,
     'usage.read': true,
+    'domains.manage': true,
   },
   admin: {
     'organization.read': true,
@@ -38,6 +39,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'audit.read': true,
     'scim.manage': false,
     'usage.read': true,
+    'domains.manage': false,
   },
   member: {
     'organization.read': true,
@@ -52,6 +54,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'audit.read': false,
     'scim.manage': false,
     'usage.read': false,
+    'domains.manage': false,
   },
   guest: {
     'organization.read': true,
@@ -66,6 +69,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'audit.read': false,
     'scim.manage': false,
     'usage.read': false,
+    'domains.manage': false,
   },
 };
 

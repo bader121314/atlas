@@ -1304,6 +1304,34 @@ paths:
       responses:
         '200': { description: Usage }
         '403': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/domains:
+    get:
+      operationId: listDomains
+      security: [{ sessionCookie: [] }]
+      description: 'Domains with verified flag and the TXT record that proves control. Owners only. ADR-057.'
+      responses:
+        '200': { description: Domains }
+    post:
+      operationId: addDomain
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { domain }. At most 10.'
+      responses:
+        '201': { description: Domain }
+        '409': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/domains/{id}/verify:
+    post:
+      operationId: verifyDomain
+      security: [{ sessionCookie: [] }]
+      description: 'Looks up the TXT record. 409 when missing or verified by another organization.'
+      responses:
+        '200': { description: Domain }
+        '409': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/domains/{id}:
+    delete:
+      operationId: removeDomain
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Removed }
 components:
   parameters:
     Slug:

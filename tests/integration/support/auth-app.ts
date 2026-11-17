@@ -143,5 +143,16 @@ export async function startAuthApp() {
     }
   }
 
-  return { mailer, request, api, email, verifiedAccount, login, close, root };
+  return {
+    mailer,
+    request,
+    api,
+    email,
+    verifiedAccount,
+    login,
+    close,
+    root,
+    /** The running application, for replacing outside services in tests. */
+    app,
+  };
 }
