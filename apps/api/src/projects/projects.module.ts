@@ -17,6 +17,8 @@ import { SearchService } from '../search/search.service';
 import { ApiTokensController } from '../tokens/api-tokens.controller';
 import { ApiTokensService } from '../tokens/api-tokens.service';
 import { WebhooksController } from '../webhooks/webhooks.controller';
+import { WorkloadController } from '../workload/workload.controller';
+import { WorkloadService } from '../workload/workload.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { ActivityService } from './activity.service';
 import { AnalyticsController } from './analytics.controller';
@@ -78,6 +80,7 @@ import { ViewsService } from './views.service';
     ApiTokensController,
     AutomationsController,
     RecurrencesController,
+    WorkloadController,
   ],
   providers: [
     ProjectsService,
@@ -104,6 +107,7 @@ import { ViewsService } from './views.service';
     ApiTokensService,
     AutomationsService,
     RecurrencesService,
+    WorkloadService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

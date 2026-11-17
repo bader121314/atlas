@@ -239,6 +239,16 @@ export default function OrganizationPage() {
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
       <ProjectsSection organization={organization} />
+      {mine !== 'guest' ? (
+        <p>
+          <Link
+            className="button secondary small"
+            href={`/organizations/${slug}/workload`}
+          >
+            See the team&apos;s workload
+          </Link>
+        </p>
+      ) : null}
 
       <section className="section" aria-labelledby="members-heading">
         <h2 id="members-heading">Members</h2>

@@ -1015,6 +1015,31 @@ export function nextOccurrence(
   return next;
 }
 
+export const workloadQuerySchema = z
+  .object({ weeks: z.coerce.number().int().min(1).max(12).default(6) })
+  .strict();
+
+/** Open assigned tasks per person and week of due date (ADR-047). */
+export const workloadSchema = z
+  .object({
+    weekStarts: z.array(z.iso.date()),
+    people: z.array(
+      z
+        .object({
+          userId: z.uuid(),
+          displayName: z.string(),
+          overdue: z.number().int(),
+          weeks: z.array(z.number().int()),
+          later: z.number().int(),
+          noDueDate: z.number().int(),
+          total: z.number().int(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type Workload = z.infer<typeof workloadSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

@@ -13,6 +13,8 @@
   --ok-soft: #e6f2ed;
   --line-strong: #7f908a;
   --column: #e8efec;
+  --load-2: #cfe3db;
+  --load-3: #b7d4c8;
   --on-sea: #ffffff;
   --on-map: #e8f1ee;
   --label-slate: #475569;
@@ -864,4 +866,27 @@ kbd {
 }
 code.secret {
   word-break: break-all;
+}
+
+/* Workload: shading only supports the numbers, which are always shown. */
+.workload td {
+  text-align: center;
+}
+.workload .load-0 {
+  color: var(--ink-soft);
+}
+.workload .load-1 {
+  background: var(--ok-soft);
+}
+.workload .load-2 {
+  background: var(--load-2);
+}
+.workload .load-3 {
+  background: var(--load-3);
+  font-weight: 600;
+}
+.workload .load-over {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 600;
 }
