@@ -9,6 +9,7 @@ import type { Health } from '@atlas/contracts';
 import { AttachmentChecksService } from './attachments/attachments.service';
 import { NotificationsService } from './notifications/notifications.service';
 import { OutboxService } from './outbox/outbox.service';
+import { WebhooksService } from './webhooks/webhooks.service';
 @Controller('health')
 export class HealthController {
   @Get('ready') async ready(): Promise<Health> {
@@ -25,6 +26,11 @@ export class HealthController {
 }
 @Module({
   controllers: [HealthController],
-  providers: [OutboxService, NotificationsService, AttachmentChecksService],
+  providers: [
+    OutboxService,
+    NotificationsService,
+    AttachmentChecksService,
+    WebhooksService,
+  ],
 })
 export class AppModule {}

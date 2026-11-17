@@ -704,6 +704,65 @@ export const exportSchema = z
   .strict();
 export type TaskExport = z.infer<typeof exportSchema>;
 
+/** Event types for webhooks; must match WEBHOOK_EVENTS in @atlas/shared. */
+export const webhookEventTypes = [
+  'task.created',
+  'task.updated',
+  'comment.created',
+] as const;
+const webhookEvents = z
+  .array(z.enum(webhookEventTypes))
+  .min(1)
+  .refine((list) => new Set(list).size === list.length, 'Duplicate event');
+
+export const createWebhookRequestSchema = z
+  .object({
+    url: z.string().trim().min(1).max(2000),
+    description: z.string().trim().max(200).default(''),
+    events: webhookEvents,
+  })
+  .strict();
+export type CreateWebhookRequest = z.infer<typeof createWebhookRequestSchema>;
+
+export const updateWebhookRequestSchema = z
+  .object({
+    url: z.string().trim().min(1).max(2000).optional(),
+    description: z.string().trim().max(200).optional(),
+    events: webhookEvents.optional(),
+    status: z.enum(['active', 'paused']).optional(),
+  })
+  .strict();
+export type UpdateWebhookRequest = z.infer<typeof updateWebhookRequestSchema>;
+
+/** A webhook endpoint (ADR-036); the secret is only returned at creation. */
+export const webhookEndpointSchema = z
+  .object({
+    id: z.uuid(),
+    url: z.string(),
+    description: z.string(),
+    events: z.array(z.enum(webhookEventTypes)),
+    status: z.enum(['active', 'paused']),
+    consecutiveFailures: z.number().int(),
+    createdAt: z.iso.datetime(),
+  })
+  .strict();
+export type WebhookEndpoint = z.infer<typeof webhookEndpointSchema>;
+
+export const webhookDeliverySchema = z
+  .object({
+    id: z.uuid(),
+    eventId: z.uuid(),
+    eventType: z.string(),
+    status: z.enum(['pending', 'delivered', 'failed']),
+    attempts: z.number().int(),
+    lastStatusCode: z.number().int().nullable(),
+    lastError: z.string().nullable(),
+    createdAt: z.iso.datetime(),
+    deliveredAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type WebhookDelivery = z.infer<typeof webhookDeliverySchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

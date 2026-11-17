@@ -127,11 +127,9 @@ Worker jobs each have their own busy flag (a shared one starved exports).
 
 Read `docs/08` M6. In order:
 
-1. Outbound webhooks: per-organization endpoints, HMAC-SHA256 signatures
-   with timestamp and event id headers, SSRF protection (resolve and refuse
-   private, loopback and link-local addresses, https only outside
-   development), retries with backoff from the outbox, delivery history,
-   pause after repeated failures, replay endpoint.
+1. Done (PR #36): signed outbound webhooks planned from the outbox, SSRF
+   checks before saving and after DNS, retries, pausing, delivery history,
+   replay and ping; admin UI on the organization page (ADR-036).
 2. Scoped API tokens (read tasks, write tasks) for scripts, hashed at rest,
    usable instead of the session cookie.
 3. Automation rules: trigger (task created, status changed), conditions

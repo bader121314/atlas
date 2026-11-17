@@ -18,6 +18,7 @@ export const ORGANIZATION_ACTIONS = [
   'projects.create',
   'labels.manage',
   'labels.delete',
+  'webhooks.manage',
 ] as const;
 export type OrganizationAction = (typeof ORGANIZATION_ACTIONS)[number];
 
@@ -30,6 +31,7 @@ const GRANTS: Record<OrganizationAction, readonly OrganizationRole[]> = {
   'projects.create': ['owner', 'admin', 'member'],
   'labels.manage': ['owner', 'admin', 'member'],
   'labels.delete': ['owner', 'admin'],
+  'webhooks.manage': ['owner', 'admin'],
 };
 
 export function isOrganizationRole(value: string): value is OrganizationRole {
