@@ -78,6 +78,7 @@ model OrganizationMembership {
   role String
   state String @default("active")
   weeklyCapacityMinutes Int? @map("weekly_capacity_minutes")
+  scimExternalId String? @map("scim_external_id") @db.VarChar(256)
   joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -500,4 +501,18 @@ model ShareLink {
 
   @@index([organizationId, projectId], map: "share_links_project_idx")
   @@map("share_links")
+}
+
+model ScimToken {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  prefix String @db.VarChar(16)
+  tokenHash Bytes @unique(map: "scim_tokens_token_hash_key") @map("token_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  @@index([organizationId], map: "scim_tokens_organization_idx")
+  @@map("scim_tokens")
 }

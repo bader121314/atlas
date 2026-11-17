@@ -11,6 +11,7 @@ export const AUDIT_TARGETS = [
   'project',
   'api_token',
   'share_link',
+  'scim_token',
 ] as const;
 type AuditTargetType = (typeof AUDIT_TARGETS)[number];
 
@@ -42,7 +43,12 @@ export type AuditAction =
   | 'api_token.revoked'
   | 'share_link.created'
   | 'share_link.revoked'
-  | 'org.audit.exported';
+  | 'org.audit.exported'
+  | 'org.member.provisioned'
+  | 'org.member.deprovisioned'
+  | 'org.member.reactivated'
+  | 'scim_token.created'
+  | 'scim_token.revoked';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {

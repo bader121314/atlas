@@ -8,6 +8,7 @@ import { useShell } from '../../../../components/app-shell';
 import { Field, Notice, value } from '../../../../components/form';
 import { ApiTokensSection } from '../../../../components/api-tokens-section';
 import { ProjectsSection } from '../../../../components/projects-section';
+import { ScimSection } from '../../../../components/scim-section';
 import { WebhooksSection } from '../../../../components/webhooks-section';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
@@ -407,6 +408,7 @@ export default function OrganizationPage() {
           </section>
         </>
       ) : null}
+      {mine === 'owner' ? <ScimSection slug={slug} /> : null}
       {mine !== 'guest' ? <ApiTokensSection slug={slug} /> : null}
     </>
   );

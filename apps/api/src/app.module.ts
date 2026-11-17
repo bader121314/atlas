@@ -11,6 +11,7 @@ import { DatabaseModule } from './database.module';
 import { MetricsController } from './metrics/metrics.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
+import { ScimModule } from './scim/scim.module';
 @Controller('health')
 export class HealthController {
   @Get('ready') async ready(): Promise<Health> {
@@ -26,7 +27,13 @@ export class HealthController {
   }
 }
 @Module({
-  imports: [AuthModule, OrganizationsModule, ProjectsModule, DatabaseModule],
+  imports: [
+    AuthModule,
+    OrganizationsModule,
+    ProjectsModule,
+    ScimModule,
+    DatabaseModule,
+  ],
   controllers: [HealthController, MetricsController],
 })
 export class AppModule {}

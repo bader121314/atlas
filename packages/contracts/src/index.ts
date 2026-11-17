@@ -1267,3 +1267,24 @@ export function parseRequest<T>(
   const result = schema.safeParse(input);
   return result.success ? result.data : undefined;
 }
+
+export {
+  parseFilter as parseScimFilter,
+  scimBoolean,
+  scimListQuerySchema,
+  scimPatchSchema,
+  scimUserSchema,
+} from './scim';
+export type { ScimUserInput } from './scim';
+
+/** An organization's SCIM token as listed to owners (ADR-055). */
+export const scimTokenSchema = z
+  .object({
+    id: z.uuid(),
+    prefix: z.string(),
+    createdBy: z.object({ userId: z.uuid(), displayName: z.string() }).strict(),
+    createdAt: z.iso.datetime(),
+    lastUsedAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type ScimToken = z.infer<typeof scimTokenSchema>;

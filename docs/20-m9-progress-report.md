@@ -20,7 +20,7 @@ with an ADR, a data and threat model and acceptance gates, as M9 requires.
 | Start, time and estimate in exports    | 049 | #62      | Columns appended after existing ones; totals match logged entries (`exports`)                                                                    |
 | Estimates and weekly capacity          | 054 | #63, #64 | Estimates shared between assignees; capacity set by self or admin only; outsiders refused (`workload`)                                           |
 
-**Test totals:** 205 unit tests and 143 integration tests, plus the browser
+**Test totals:** 212 unit tests and 147 integration tests (after PR #64), plus the browser
 test (which now logs time and opens a public link signed out), image
 builds, Terraform validation and the release drill.
 
