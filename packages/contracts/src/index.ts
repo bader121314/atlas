@@ -589,6 +589,25 @@ export const notificationSettingsSchema = z
   .strict();
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
+export const searchQuerySchema = z
+  .object({ q: z.string().trim().min(1).max(200) })
+  .strict();
+
+/** One task found by search (ADR-032). */
+export const searchResultSchema = z
+  .object({
+    key: z.string(),
+    projectKey: z.string(),
+    projectName: z.string(),
+    number: z.number().int(),
+    title: z.string(),
+    state: z.string(),
+    /** Where the words matched: the task itself or one of its comments. */
+    matchedIn: z.enum(['task', 'comment']),
+  })
+  .strict();
+export type SearchResult = z.infer<typeof searchResultSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

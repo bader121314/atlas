@@ -121,9 +121,9 @@ Read `docs/08` M5. Constraint: no new npm packages (no registry access), so
 uploads use the MinIO/S3 API through signed requests written by hand or
 whatever is installed; check before designing.
 
-1. Full-text search across tasks and comments: generated `tsvector`
-   columns, GIN indexes, queries always filtered by organization and by the
-   projects the caller can read; search page and `/` shortcut.
+1. Done (PR #31): full-text search over tasks and comments with access in
+   the query, prefix matching in any script, task keys; search page and `/`
+   shortcut (ADR-032).
 2. Project analytics: counts by state, throughput per week, overdue and
    cycle time, from SQL; a dashboard section on the project page.
 3. Attachments: presigned uploads to object storage, size and type limits,

@@ -48,6 +48,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         run: () => router.push('/organizations'),
       },
       {
+        keys: '/',
+        description: 'Search this organization',
+        run: () => {
+          const slug = window.location.pathname.split('/')[2];
+          if (!window.location.pathname.startsWith('/organizations/') || !slug)
+            return;
+          const box = document.getElementById('searchQuery');
+          if (box) box.focus();
+          else router.push(`/organizations/${slug}/search`);
+        },
+      },
+      {
         keys: 'g n',
         description: 'Go to notifications in this organization',
         run: () => {
@@ -165,6 +177,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </label>
           ) : null}
           <span className="spacer" />
+          {currentSlug ? (
+            <Link href={`/organizations/${currentSlug}/search`}>Search</Link>
+          ) : null}
           {currentSlug ? (
             <Link href={`/organizations/${currentSlug}/notifications`}>
               Notifications
