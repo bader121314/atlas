@@ -1,161 +1,149 @@
 # Atlas
 
-Atlas is a multi-tenant workspace where teams organize their work. Many
-organizations share one application and database, and none can see another's
-data: that guarantee is enforced in the API on every request and again by
-constraints inside PostgreSQL, and both layers are attacked by automated tests
-on every change.
+Atlas is a multi-tenant work management app: organizations, projects and
+tasks with boards, tables and calendars, live updates, notifications,
+search, files, automation rules, webhooks and an API for scripts. Many
+organizations share one application and database, and none can see
+another's data: the API checks every request, PostgreSQL constraints back it
+up, and both are attacked by automated tests on every change.
 
-**Status:** milestones M0 (foundation) and M1 (identity, organizations,
-tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
-M2 (projects and tasks), M3 (views, planning and accessibility), M4
-(real-time updates and notifications), M5 (attachments, search and
-analytics), M6 (automation and integrations) and M7 (hardening and
-operations) are complete too; see the [M2](docs/10-m2-exit-report.md),
-[M3](docs/11-m3-exit-report.md), [M4](docs/12-m4-exit-report.md),
-[M5](docs/13-m5-exit-report.md), [M6](docs/14-m6-exit-report.md) and
-[M7](docs/17-m7-exit-report.md) exit reports. Not deployed; no
-production-readiness claims.
+Built by Bader Altemane as a portfolio project ([case study](docs/18-case-study.md)), milestone by milestone, with
+every design decision recorded as an [ADR](docs/adrs) and every milestone
+closed by an exit report. **It is not deployed**; the AWS stack is written
+and validated but has not been applied, and the limitations are listed in
+the [M7 exit report](docs/17-m7-exit-report.md).
 
-| Task board                                        | Task with comments and history                  |
-| ------------------------------------------------- | ----------------------------------------------- |
-| ![Task board](docs/screenshots/16-task-board.png) | ![Task page](docs/screenshots/17-task-page.png) |
+| Board with live updates                           | Table with custom fields                              |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| ![Project board](docs/screenshots/demo-board.png) | ![Table view](docs/screenshots/demo-table.png)        |
+| **Task with dependencies, files and history**     | **Project numbers**                                   |
+| ![Task page](docs/screenshots/demo-task.png)      | ![Project numbers](docs/screenshots/demo-numbers.png) |
 
-| Sign in                                   | Organization owner                                       |
-| ----------------------------------------- | -------------------------------------------------------- |
-| ![Sign in](docs/screenshots/01-login.png) | ![Organization](docs/screenshots/07-invitation-sent.png) |
+More: [search](docs/screenshots/demo-search.png),
+[task on a phone](docs/screenshots/demo-task-phone.png),
+[sign in](docs/screenshots/01-login.png) ([phone](docs/screenshots/15-login-mobile.png)),
+[accepting an invitation](docs/screenshots/08-accept-invitation.png),
+[members](docs/screenshots/12-member-removed.png),
+[signed-in devices](docs/screenshots/14-account-sessions.png).
 
-## What works today
+## Try it in five minutes
 
-- **Accounts:** signup with email verification, sign-in, password reset that
-  signs out every device, and a list of signed-in devices you can revoke.
-- **Organizations:** create, switch, rename; invite people by email; change
-  roles; remove members or leave. Admins can never grant or touch admin or
-  owner roles, and every organization always keeps an owner.
-- **Security:** Argon2id passwords; opaque session tokens stored only as
-  HMAC digests in HttpOnly cookies; exact-Origin checks on every write; Redis
-  rate limits that fail closed; an append-only audit log written in the same
-  transaction as each change.
-- **Projects and tasks:** projects with organization-wide or private
-  visibility and per-project roles; numbered tasks with status, priority,
-  assignee and due date on a board or list; comments; a change history; and
-  edit-conflict detection so two people never silently overwrite each other.
-- **Views and planning:** custom workflow states; drag-and-drop board with a
-  keyboard alternative; list, table and calendar views with filters and
-  saved views; task dependencies with loop protection; milestones with
-  progress; custom fields (text, number, date, choice list).
-- **Real time:** changes by others appear on open boards and task pages
-  without reloading (Server-Sent Events fed by a transactional outbox and
-  Redis), with replay after a dropped connection; you can see who else is
-  viewing a task; assignment and comment notifications in an inbox, and by
-  email if unread after two minutes.
-- **Files, search and numbers:** attachments uploaded straight to S3-compatible
-  storage and held in quarantine until their content is checked; full-text
-  search across tasks and comments that never reveals private projects;
-  project numbers computed from the task rows; background CSV exports that
-  expire after a day.
-- **Automation and integrations:** rules that react to task events with
-  loop protection and a preview; recurring tasks; signed outbound webhooks
-  with SSRF protection, retries and replay; scoped API tokens for scripts,
-  with a small client and webhook receiver in [`examples`](examples).
-- **Accessibility:** keyboard shortcuts and a skip link; colour tokens checked
-  against WCAG contrast minimums; an axe-core audit of every page the
-  browser test visits, at phone, tablet and desktop widths.
-- **Isolation:** outsiders get the same 404 as for an organization that does
-  not exist; composite foreign keys and triggers stop cross-tenant links even
-  if application code is wrong.
+With Docker and Node.js 24:
 
-**Stack:** TypeScript (strict) monorepo with pnpm and Turborepo; Next.js 16
-and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
-Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
-
-**How it is verified:** 187 unit tests and 134 integration tests against real
-PostgreSQL and Redis, plus a browser test that drives three users through
-signup, invitations, projects, tasks, views, live updates, notifications,
-attachments, search and exports, and audits accessibility. Design decisions are recorded as ADRs in
-[`docs/adrs`](docs/adrs).
-
-**Owner:** Bader Altemane
-
-## Run it locally
-
-The repository root is this `atlas/` directory. Install Node.js 24 (tested with
-24.22.0), pnpm 10.34.9, and Docker Desktop with Linux containers and Compose v2.
-If pnpm is missing, install it with `npm install --global pnpm@10.34.9`.
-
-```powershell
-Copy-Item .env.example .env
-# Edit .env: set POSTGRES_PASSWORD and MINIO_ROOT_PASSWORD to your own values.
-# Set DATABASE_URL with the same PostgreSQL password, URL-encoded.
+```bash
+cp .env.example .env          # set the passwords and SESSION_SECRET
 pnpm install --frozen-lockfile
-docker compose up -d --build
-pnpm db:validate
-pnpm db:generate
-pnpm db:migrate
-pnpm dev
+docker compose up -d --build  # PostgreSQL, Redis, MinIO, Mailpit
+pnpm db:migrate && pnpm dev   # web on http://localhost:3000
+pnpm demo:seed                # prints a sign-in for the demo organization
 ```
 
-Web: [localhost:3000](http://localhost:3000). Open it at exactly the address in
-`WEB_ORIGIN`; sign up there and follow the verification link printed in the
-API's terminal. The web app proxies `/api/*` to the API (ADR-017). API liveness/readiness:
-`http://127.0.0.1:3001/v1/health/live` and `/v1/health/ready`.
-Worker exposes the same health routes on port 3002; it processes no jobs yet.
-Web liveness is `/health/live`. Readiness returns 503 if PostgreSQL or Redis is
-unavailable. Authentication routes live under `/v1/auth` (signup, verify-email,
-resend-verification, login, logout, session, password reset and session
-management) and are rate limited through Redis; see `contracts/openapi.yaml`
-and ADR-011 to ADR-013. Security-relevant actions are written to an
-append-only audit log (ADR-014). Organizations live under
-`/v1/organizations/{slug}`; membership and role are checked on every request
-(ADR-015); members join through email invitations and roles follow a
-no-escalation policy (ADR-016). In
-development, verification emails are printed to the API console. Set
-`SESSION_SECRET` and `WEB_ORIGIN` in `.env` before starting the API.
+`pnpm demo:seed` creates **Harbour Works**, a fictional team surveying a
+harbour: two projects with statuses, labels, milestones, dependencies,
+comments, custom fields, an automation rule and a recurring task. Sign in
+with the printed account and try:
 
-Mailpit's local inbox is at `http://127.0.0.1:8025` (SMTP 1025), and MinIO uses
-9000/9001. These services are development-only. MinIO is built from a pinned
-[upstream source release](https://github.com/minio/minio/releases/tag/RELEASE.2025-10-15T17-29-55Z)
-because the historical Hub image is no longer a dependable distribution path.
-Its Docker build and all Compose image pulls still require verification on a
-Docker host. No storage bucket, mail transport or upload workflow is implemented.
+1. the board: drag a card, or use its move menu with the keyboard;
+2. press `?` for keyboard shortcuts, `/` to search ("chart"), `t` for the table;
+3. open `HBR-3`: comments, dependencies, custom fields, history, and
+   attachments once storage is set up (see `.env.example`);
+4. open the same project in a second window and change a task: the first
+   window updates live;
+5. create an **urgent** task: the automation rule assigns it to Maha and
+   labels it Safety within a second;
+6. the organization page: invite people, add a webhook, create an API token.
 
-`pnpm dev` builds shared packages, then starts all three apps with source watchers.
-Restart it after shared-package edits. `.env` stays untracked. Local data persists
-in Compose volumes; `docker compose down` stops services without removing data.
+The whole stack also runs in containers:
+`docker compose -f docker-compose.yml -f compose.app.yml up --build`.
 
-```powershell
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm smoke:dev # Uses ports 3000/3101/3102; stops its own processes afterwards.
-pnpm test:integration # Requires running PostgreSQL/Redis and db:migrate first.
-# Browser smoke test with screenshots: runs in CI (.github/workflows/ui-smoke.yml).
-pnpm audit --prod --audit-level high
+## What it does
+
+- **Work:** projects (organization-wide or private) with per-project roles;
+  tasks with custom statuses, priority, assignee, due date, labels, subtasks,
+  dependencies with loop protection, milestones and custom fields; board,
+  list, table and calendar views with filters and saved views.
+- **Collaboration:** comments, field-level history, live updates over
+  Server-Sent Events with replay after a dropped connection, presence,
+  notifications in an inbox and by email.
+- **Files, search and numbers:** uploads straight to object storage, held in
+  quarantine until their content is checked; full-text search in any
+  language that never reveals private projects; project analytics; CSV
+  exports that expire.
+- **Automation and integration:** rules with triggers, conditions and
+  actions (with loop protection and a preview), recurring tasks, signed
+  webhooks with SSRF protection, scoped API tokens, and
+  [examples](examples) of a client and a webhook receiver.
+- **Accounts and security:** email verification, password reset and change,
+  session management, rate limits, audit log, content security policy; see
+  the [security review](docs/15-security-review.md).
+- **Accessibility:** keyboard shortcuts and a skip link, WCAG contrast checks
+  on the colour tokens, an axe-core audit of every page the browser test
+  visits at phone, tablet and desktop widths.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  browser[Browser] -->|HTTPS, same origin| web[Next.js web<br/>proxies /api]
+  script[Scripts<br/>API tokens] --> web
+  web --> api[NestJS API<br/>guards: session, tenant, project]
+  api --> pg[(PostgreSQL<br/>data + outbox)]
+  api --> redis[(Redis<br/>limits, pub/sub, presence)]
+  api -->|presigned URLs| s3[(Object storage)]
+  browser -->|uploads| s3
+  worker[Worker] -->|SKIP LOCKED loops| pg
+  worker -->|publish events| redis
+  redis -->|fan-out| api
+  api -->|Server-Sent Events| browser
+  worker -->|checks, exports| s3
+  worker -->|signed webhooks| ext[Other systems]
+  worker -->|email| mail[Mail]
 ```
 
-The checked-in CI workflow runs these checks and migrates a fresh ephemeral
-PostgreSQL database before integration tests. CI itself has not been executed on
-GitHub. E2E, seed, Terraform and deployment commands remain future milestones;
-they are not implemented scripts. Product design and the full backlog follow.
+Every change writes its row, a history entry and an outbox event in one
+transaction. The worker turns outbox events into live updates, notifications,
+webhooks and rule runs, each exactly once or deduplicated by event id. See
+[docs/02](docs/02-architecture.md) and the [ADRs](docs/adrs).
+
+## How it is verified
+
+Every pull request runs, on GitHub Actions:
+
+- 187 unit tests and 134 integration tests against real PostgreSQL and
+  Redis, including negative tests for every tenant-scoped route;
+- a browser test that drives three users through signup, invitations,
+  projects, views, live updates, uploads, notifications, search and exports
+  at three screen sizes, audits accessibility on every page and records a
+  [load baseline](docs/16-load-baseline.md);
+- production image builds, Terraform validation, and a release drill that
+  upgrades from the previous release, rolls back and restores a backup
+  ([ADR-044](docs/adrs/044-m7-release-drill.md)).
+
+Locally: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`,
+`pnpm build`, and `pnpm test:integration` with PostgreSQL and Redis running.
 
 ## Product purpose
 
 Implement a credible, robust, production-oriented collaborative workspace. The baseline requires role-secured organizations, project/task management, real-time collaboration, notifications, configurable workflow automation, search, files, analytics, integration APIs, and operational readiness. Do not confuse a working demo with independently verified production readiness.
 
-## System defaults
+## Stack as built
 
-- Monorepo: pnpm workspaces + Turborepo; TypeScript strict mode throughout.
-- Web: Next.js 16 stable App Router, React, Tailwind CSS, shadcn/ui, TanStack Query, Zod, React Hook Form, dnd-kit, accessible components.
-- API: NestJS REST API at `/v1`, OpenAPI 3.1 document, global input validation, explicit service/use-case boundaries.
-- Data: PostgreSQL, Prisma ORM and hand-reviewed SQL migrations; UUIDv7/UUID identifiers; UTC timestamptz; database-side constraints.
-- Auth: server-side opaque session IDs, hashed at rest, first-party HttpOnly Secure cookies, mandatory verified email for invitations, CSRF defenses and step-up MFA for sensitive operations. No localStorage bearer tokens.
-- Real time: NestJS WebSocket gateway with secure short-lived handshake and room-scoped authorization; Redis pub/sub adapter; authoritative change events emitted from outbox after commit.
-- Async: BullMQ + Redis; transactional outbox with separately processed dispatcher; idempotency tracking.
-- Files: private S3-compatible object storage with short-lived signed transfers and malware scanning pipeline.
-- Infra: local Docker Compose; staging/prod AWS via Terraform (ECS Fargate, ALB, RDS PostgreSQL, ElastiCache Redis, S3, CloudFront, Secrets Manager, CloudWatch).
-- Quality: ESLint, Prettier, typecheck, unit/integration/E2E, OWASP ASVS 5 mapping, dependency/security scanning, performance and accessibility budgets.
+- **Monorepo:** pnpm workspaces and Turborepo, TypeScript strict mode.
+- **Web:** Next.js 16 App Router and React 19 with plain CSS on design tokens;
+  the original plan named Tailwind and component libraries, but no new
+  packages could be added during the build, and the hand-written components
+  pass the accessibility audit.
+- **API:** NestJS 11 REST at `/v1`, Zod-validated input shared with the web
+  app through `@atlas/contracts`, RFC 9457 problem details.
+- **Data:** PostgreSQL 17 with hand-written SQL migrations (Prisma schema kept
+  in step for validation), composite tenant keys and triggers; Redis for rate
+  limits, pub/sub and presence; S3-compatible object storage.
+- **Real time:** Server-Sent Events fed by a transactional outbox instead of
+  the planned WebSockets ([ADR-029](docs/adrs/029-m4-event-stream.md)).
+- **Background work:** worker loops over PostgreSQL with `SKIP LOCKED`
+  instead of BullMQ ([ADR-028](docs/adrs/028-m4-outbox-dispatch.md)).
+- **Infrastructure:** Docker images, Terraform for AWS (ECS Fargate, ALB, RDS,
+  ElastiCache, S3, Secrets Manager, CloudWatch).
 
 ## Documents
 
@@ -177,6 +165,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [Load baseline](docs/16-load-baseline.md)
 - [M7 exit report](docs/17-m7-exit-report.md)
 - [Runbooks](docs/runbooks)
+- [Case study](docs/18-case-study.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
