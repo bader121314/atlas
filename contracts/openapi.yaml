@@ -911,6 +911,15 @@ paths:
       description: 'Body: { email: boolean }.'
       responses:
         '200': { description: The saved settings }
+  /organizations/{slug}/search:
+    get:
+      operationId: search
+      security: [{ sessionCookie: [] }]
+      description: '?q= (1-200 characters). Tasks whose title, description or comments contain every word as a prefix, or the task with that key (NW-12), in projects the caller can read; at most 30, best first. Each is { key, projectKey, projectName, number, title, state, matchedIn (task | comment) }. ADR-032.'
+      responses:
+        '200': { description: Matching tasks }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
 components:
   parameters:
     Slug:

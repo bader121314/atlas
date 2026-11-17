@@ -335,8 +335,14 @@ const pages = [];
     .getByRole('button', { name: 'Alice Rahman assigned COAST-5 to you' })
     .waitFor({ timeout: 15000 });
   await shot(bob, '11j-notifications');
+  // Search from the keyboard: "/" opens search; results link to tasks.
+  await alice.keyboard.press('Escape');
+  await alice.keyboard.press('/');
+  await alice.getByLabel('Search tasks and comments').fill('tide');
+  await alice.keyboard.press('Enter');
+  await alice.getByRole('link', { name: 'Mark the tide lines' }).waitFor();
+  await shot(alice, '11k-search');
   await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
-  await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 

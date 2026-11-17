@@ -181,6 +181,7 @@ model Task {
   version BigInt @default(1)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  searchVector Unsupported("tsvector")? @map("search_vector")
   @@unique([organizationId, id])
   @@unique([projectId, number])
   @@unique([organizationId, projectId, id], map: "tasks_scope_key")
@@ -198,6 +199,7 @@ model TaskComment {
   editedAt DateTime? @map("edited_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  searchVector Unsupported("tsvector")? @map("search_vector")
   @@index([organizationId, taskId, createdAt])
   @@map("task_comments")
 }
