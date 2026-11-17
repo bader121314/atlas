@@ -172,9 +172,12 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     optional env: SSO_SECRET_KEY (SSO_ALLOW_HTTP, SSO_ALLOWED_HOSTS for
     development only).
 17. Done (PR #69): label-scoped guest access (ADR-059).
-18. Next M9 candidates: offline editing and web push notifications.
-    Billing waits for a decision on Stripe test mode (deferred by the user
-    for now).
+18. Done (PR #70): browser push notifications (ADR-060). New optional env:
+    VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (PUSH_ALLOWED_HOSTS
+    for tests only).
+19. Next: resilient editing when the connection drops (queue and replay),
+    then the final M9 report. Billing waits for a decision on Stripe test
+    mode (deferred by the user for now).
 
 ## Environment and versions
 

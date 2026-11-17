@@ -5,7 +5,9 @@ import type {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
+import { pushAllowedHosts, vapidKeys } from '@atlas/shared';
 import { digestBatch, emailBatch } from './email';
+import { fetchPushSender, pushBatch } from './push';
 import type { MailMessage } from './email';
 import { notifyBatch } from './notifier';
 import { tracked } from '../metrics';
@@ -54,7 +56,7 @@ export class NotificationsService
   private readonly mailer = new ConsoleMailer();
   private pool: Pool | undefined;
   private timers: ReturnType<typeof setInterval>[] = [];
-  private busy = { notify: false, email: false, digest: false };
+  private busy = { notify: false, email: false, digest: false, push: false };
 
   onApplicationBootstrap(): void {
     const config = parseEnvironment(process.env);
@@ -77,6 +79,22 @@ export class NotificationsService
         Math.min(EMAIL_MS, Math.max(settings.delayMs, 1000)),
       ),
       setInterval(() => {
+        const keys = vapidKeys(process.env);
+        void this.once('push', () =>
+          keys
+            ? pushBatch(pool, fetchPushSender, {
+                keys,
+                webOrigin: settings.webOrigin,
+                extraHosts: pushAllowedHosts(process.env),
+              })
+            : // Push is off: nothing will ever send these.
+              pool.query(
+                `UPDATE notifications SET push_status = 'skipped'
+                 WHERE push_status = 'pending'`,
+              ),
+        );
+      }, NOTIFY_MS),
+      setInterval(() => {
         void this.once('digest', () =>
           digestBatch(pool, (m) => this.mailer.send(m), {
             webOrigin: settings.webOrigin,
@@ -87,7 +105,7 @@ export class NotificationsService
   }
 
   private async once(
-    name: 'notify' | 'email' | 'digest',
+    name: 'notify' | 'email' | 'digest' | 'push',
     run: () => Promise<unknown>,
   ): Promise<void> {
     if (this.busy[name]) return;

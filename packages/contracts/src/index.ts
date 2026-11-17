@@ -1342,6 +1342,24 @@ export const ssoCallbackQuerySchema = z.looseObject({
   error: z.string().max(200).optional(),
 });
 
+/** A browser push subscription (ADR-060), as PushSubscription.toJSON(). */
+export const pushSubscriptionRequestSchema = z
+  .object({
+    endpoint: z.url().max(1000),
+    expirationTime: z.number().nullable().optional(),
+    keys: z
+      .object({
+        p256dh: z.string().regex(/^[A-Za-z0-9_-]{86,88}={0,2}$/),
+        auth: z.string().regex(/^[A-Za-z0-9_-]{21,24}={0,2}$/),
+      })
+      .strict(),
+  })
+  .strict();
+
+export const pushUnsubscribeRequestSchema = z
+  .object({ endpoint: z.url().max(1000) })
+  .strict();
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;
