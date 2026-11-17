@@ -7,6 +7,7 @@ on:
         'apps/api/**',
         'packages/**',
         'scripts/ui-smoke.cjs',
+        'scripts/demo-*',
         '.github/workflows/ui-smoke.yml',
       ]
   push:
@@ -17,8 +18,15 @@ on:
         'apps/api/**',
         'packages/**',
         'scripts/ui-smoke.cjs',
+        'scripts/demo-*',
         '.github/workflows/ui-smoke.yml',
       ]
+  workflow_dispatch:
+    inputs:
+      print_screenshots:
+        description: Print the demo screenshots in the job log
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -86,6 +94,18 @@ jobs:
           API_LOG: api.log
           SCREENSHOT_DIR: screenshots
         run: node scripts/ui-smoke.cjs
+      - name: Seed the demo organization and capture its screenshots
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+          ATLAS_API: http://127.0.0.1:3001/v1
+          PRINT_SCREENSHOTS: ${{ inputs.print_screenshots == true }}
+        run: |
+          output=$(node scripts/demo-seed.mjs)
+          echo "$output" | grep -v 'Demo sign-in'
+          export DEMO_PASSWORD=$(echo "$output" | sed -n 's/^Demo sign-in: [^ ]* \/ //p')
+          node scripts/demo-screenshots.cjs
+          # Seeding twice leaves the data alone.
+          node scripts/demo-seed.mjs | grep -q 'already exists'
       - name: Server logs on failure
         if: failure()
         run: tail -n 100 api.log web.log worker.log
