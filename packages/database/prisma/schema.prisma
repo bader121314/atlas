@@ -330,3 +330,19 @@ model NotificationSetting {
   @@id([organizationId, userId])
   @@map("notification_settings")
 }
+model Attachment {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  uploadedByUserId String @map("uploaded_by_user_id") @db.Uuid
+  filename String @db.VarChar(200)
+  contentType String @map("content_type") @db.VarChar(100)
+  sizeBytes Int @map("size_bytes")
+  storageKey String @unique(map: "attachments_storage_key_key") @map("storage_key") @db.VarChar(300)
+  status String @default("pending") @db.VarChar(16)
+  rejectionReason String? @map("rejection_reason") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  checkedAt DateTime? @map("checked_at") @db.Timestamptz(6)
+  @@map("attachments")
+}

@@ -224,6 +224,24 @@ const pages = [];
     .fill('Tide tables are in the shared folder.');
   await alice.getByRole('button', { name: 'Post comment' }).click();
   await alice.getByText('Tide tables are in the shared folder.').waitFor();
+  // Attachments: upload straight to storage, checked before download.
+  await alice.getByLabel(/Add a file/).setInputFiles({
+    name: 'tide-chart.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    ),
+  });
+  await alice.getByText(/tide-chart.png uploaded/).waitFor();
+  const download = alice.getByRole('link', { name: 'tide-chart.png' });
+  await download.waitFor({ timeout: 20000 });
+  const fetched = await alice.request.get(
+    new URL(await download.getAttribute('href'), BASE).toString(),
+  );
+  if (!fetched.ok() || (await fetched.body()).length !== 70) {
+    throw new Error(`attachment download failed: ${fetched.status()}`);
+  }
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice

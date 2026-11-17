@@ -649,6 +649,49 @@ export const projectAnalyticsSchema = z
   .strict();
 export type ProjectAnalytics = z.infer<typeof projectAnalyticsSchema>;
 
+/** Attachment types; must match ALLOWED_TYPES in @atlas/shared (tested). */
+export const attachmentTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+] as const;
+
+export const createAttachmentRequestSchema = z
+  .object({
+    filename: z.string().trim().min(1).max(255),
+    contentType: z.enum(attachmentTypes),
+    size: z
+      .number()
+      .int()
+      .min(1)
+      .max(10 * 1024 * 1024),
+  })
+  .strict();
+export type CreateAttachmentRequest = z.infer<
+  typeof createAttachmentRequestSchema
+>;
+
+/** A task attachment (ADR-034). */
+export const attachmentSchema = z
+  .object({
+    id: z.uuid(),
+    filename: z.string(),
+    contentType: z.enum(attachmentTypes),
+    size: z.number().int(),
+    status: z.enum(['pending', 'quarantined', 'clean', 'rejected']),
+    rejectionReason: z.string().nullable(),
+    uploadedBy: z
+      .object({ userId: z.uuid(), displayName: z.string() })
+      .strict(),
+    createdAt: z.iso.datetime(),
+  })
+  .strict();
+export type Attachment = z.infer<typeof attachmentSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

@@ -127,9 +127,10 @@ whatever is installed; check before designing.
 2. Done (PR #32): project numbers from SQL (status counts, overdue,
    weekly trend, median lead time, open per assignee) and a dashboard
    section on the project page (ADR-033).
-3. Attachments: presigned uploads to object storage, size and type limits,
-   content sniffing, quarantine until scanned (scanner stub), signed
-   downloads.
+3. Done (PR #33): attachments with presigned uploads (SigV4 on
+   node:crypto), quarantine until magic-byte and malware checks pass, signed
+   downloads; S3 test double in `packages/shared/src/testing` used by
+   integration and smoke tests (ADR-034).
 4. Background CSV export of a project's tasks via the worker.
 5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client

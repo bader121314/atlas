@@ -44,6 +44,11 @@ jobs:
       WEB_ORIGIN: http://127.0.0.1:3000
       API_PORT: '3001'
       NOTIFICATION_EMAIL_DELAY_MS: '0'
+      # Attachments go to an S3 test double started below (ADR-034).
+      STORAGE_ENDPOINT: http://127.0.0.1:9100
+      STORAGE_BUCKET: atlas-smoke
+      STORAGE_ACCESS_KEY: smoke-key
+      STORAGE_SECRET_KEY: smoke-secret
       NEXT_TELEMETRY_DISABLED: '1'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
@@ -63,6 +68,7 @@ jobs:
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
       - name: Start API and web
         run: |
+          node -e "require('./packages/shared/dist/testing/fake-s3.js').startFakeS3({ accessKey: 'smoke-key', secretKey: 'smoke-secret' }, { port: 9100, bucket: 'atlas-smoke' })" > s3.log 2>&1 &
           node apps/api/dist/main.js > api.log 2>&1 &
           node apps/worker/dist/main.js > worker.log 2>&1 &
           (cd apps/web && npx next start --hostname 127.0.0.1 --port 3000) > web.log 2>&1 &

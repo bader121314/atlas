@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { checkDependencies } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
+import { AttachmentChecksService } from './attachments/attachments.service';
 import { NotificationsService } from './notifications/notifications.service';
 import { OutboxService } from './outbox/outbox.service';
 @Controller('health')
@@ -24,6 +25,6 @@ export class HealthController {
 }
 @Module({
   controllers: [HealthController],
-  providers: [OutboxService, NotificationsService],
+  providers: [OutboxService, NotificationsService, AttachmentChecksService],
 })
 export class AppModule {}

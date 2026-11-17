@@ -7,6 +7,7 @@ import type { FormEvent } from 'react';
 import { useShell } from '../../../../../../../../components/app-shell';
 import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
+import { AttachmentsSection } from '../../../../../../../../components/attachments-section';
 import { LiveStatusBadge } from '../../../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../../../lib/live';
@@ -500,6 +501,14 @@ export default function TaskPage() {
               </form>
             ) : null}
           </section>
+
+          <AttachmentsSection
+            base={base}
+            number={number}
+            userId={user.id}
+            canWrite={canWrite}
+            canManage={project.role === 'manager'}
+          />
 
           <section className="section" aria-labelledby="comments-heading">
             <h2 id="comments-heading">Comments</h2>

@@ -928,6 +928,45 @@ paths:
       responses:
         '200': { description: Project numbers }
         '404': { description: Unknown project, or no access }
+  /organizations/{slug}/projects/{key}/tasks/{number}/attachments:
+    get:
+      operationId: listAttachments
+      security: [{ sessionCookie: [] }]
+      description: 'Uploaded attachments with status (quarantined, clean, rejected). ADR-034.'
+      responses:
+        '200': { description: Attachments }
+    post:
+      operationId: createAttachment
+      security: [{ sessionCookie: [] }]
+      description: 'Body: filename, contentType (image/png | image/jpeg | image/gif | image/webp | application/pdf | text/plain | text/csv), size (bytes, at most 10 MB). Returns { attachment, upload { url, headers } }: PUT the file to url with those headers within five minutes, then call complete. Editor.'
+      responses:
+        '201': { description: Pending attachment and upload URL }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { description: 20-attachment limit }
+        '503': { description: Storage is not configured }
+  /organizations/{slug}/projects/{key}/attachments/{id}/complete:
+    post:
+      operationId: completeAttachment
+      security: [{ sessionCookie: [] }]
+      description: The uploader confirms the upload; the stored size must match. The file is quarantined until checked.
+      responses:
+        '200': { description: The quarantined attachment }
+        '422': { description: Missing upload, or the size differs (rejected) }
+  /organizations/{slug}/projects/{key}/attachments/{id}/download:
+    get:
+      operationId: downloadAttachment
+      security: [{ sessionCookie: [] }]
+      responses:
+        '302': { description: Redirect to a one-minute signed download URL }
+        '409': { description: Not checked yet, or rejected }
+  /organizations/{slug}/projects/{key}/attachments/{id}:
+    delete:
+      operationId: deleteAttachment
+      security: [{ sessionCookie: [] }]
+      description: The uploader or a project manager.
+      responses:
+        '204': { description: Deleted }
+        '403': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:
