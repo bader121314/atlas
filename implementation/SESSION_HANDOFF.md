@@ -183,7 +183,12 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 22. Done (PR #74): requiring SSO ends existing sessions on the domain.
 23. Done (PR #75): daily re-check of verified domains (ADR-057).
 24. Done (PR #76): case study updated with M9.
-25. Remaining M9 items need approval or hosted services: billing (Stripe
+25. Done (PR #77): free demo kit (ADR-062): `infrastructure/demo`
+    (Compose, Caddy, setup.sh), demo mode switches, Codespaces config,
+    runbook `docs/runbooks/free-demo.md`. The owner chose a free host and
+    does not want to pay; the deployment itself is done by the owner
+    following the runbook. Not deployed by us.
+26. Remaining M9 items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo. Everything buildable without approval
     is done; wait for the user's decision before starting these.

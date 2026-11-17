@@ -18,6 +18,11 @@ export class DevelopmentConsoleMailer extends Mailer {
   private readonly logger = new Logger('Mailer');
 
   async send(message: MailMessage): Promise<void> {
+    // Deployments without email, such as the free demo (ADR-062).
+    if (process.env.MAIL_DISABLED === 'true') {
+      this.logger.log(`Email disabled; not sent: ${message.subject}`);
+      return;
+    }
     if (process.env.NODE_ENV === 'production') {
       throw new Error('No production mail transport is configured');
     }

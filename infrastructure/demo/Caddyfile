@@ -1,0 +1,14 @@
+# The app and the file store on their own names, both with automatic HTTPS.
+# File URLs are presigned for the files host, so it must not share a path.
+{$APP_HOST} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+{$FILES_HOST} {
+	# Uploads go straight from browsers to storage (ADR-034).
+	request_body {
+		max_size 30MB
+	}
+	reverse_proxy minio:9000
+}

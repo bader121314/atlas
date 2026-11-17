@@ -56,6 +56,15 @@ with the printed account and try:
 The whole stack also runs in containers:
 `docker compose -f docker-compose.yml -f compose.app.yml up --build`.
 
+**Without installing anything:** open the repository in GitHub Codespaces
+([![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bader121314/atlas)).
+The container installs and migrates everything; then run `pnpm dev` and
+`pnpm demo:seed`.
+
+**A public demo for free:** `infrastructure/demo` runs the whole stack with
+HTTPS on one free cloud server; see the
+[free demo runbook](docs/runbooks/free-demo.md) and ADR-062.
+
 ## What it does
 
 - **Work:** projects (organization-wide or private) with per-project roles;

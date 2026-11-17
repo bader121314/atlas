@@ -70,4 +70,21 @@ describe('S3 presigned URLs', () => {
       }),
     ).toBeUndefined();
   });
+
+  it('addresses the bucket itself for an empty key', () => {
+    const url = new URL(
+      presign(
+        {
+          endpoint: 'https://files.example.test',
+          bucket: 'atlas',
+          region: 'us-east-1',
+          accessKey: 'a',
+          secretKey: 's',
+        },
+        { method: 'PUT', key: '', expiresSeconds: 60 },
+      ),
+    );
+    expect(url.pathname).toBe('/atlas');
+    expect(url.searchParams.get('X-Amz-SignedHeaders')).toBe('host');
+  });
 });

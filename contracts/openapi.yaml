@@ -1395,6 +1395,14 @@ paths:
       description: 'Body: { endpoint }.'
       responses:
         '204': { description: Removed }
+  /auth/demo:
+    get:
+      operationId: demoAccount
+      security: []
+      description: "A public demo deployment's shared sign-in ({ email, password }) when DEMO_EMAIL and DEMO_PASSWORD are set; 404 otherwise. ADR-062."
+      responses:
+        '200': { description: '{ email, password }' }
+        '404': { $ref: '#/components/responses/Problem' }
 components:
   parameters:
     Slug:

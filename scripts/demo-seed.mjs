@@ -52,7 +52,11 @@ await db.connect();
 const passwords = {};
 const ids = {};
 for (const person of people) {
-  passwords[person.key] = randomBytes(12).toString('base64url');
+  // A deployment can choose the shared demo password (ADR-062).
+  passwords[person.key] =
+    person.key === 'demo' && process.env.DEMO_PASSWORD
+      ? process.env.DEMO_PASSWORD
+      : randomBytes(12).toString('base64url');
   const row = await db.query(
     `INSERT INTO users (email_normalized, display_name, password_hash, email_verified_at)
      VALUES ($1, $2, $3, now())
