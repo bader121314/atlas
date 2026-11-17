@@ -10,6 +10,8 @@ import {
   EventsController,
 } from '../events/events.controller';
 import { EventsService } from '../events/events.service';
+import { NotificationsController } from '../notifications/notifications.controller';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ActivityService } from './activity.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
@@ -51,6 +53,7 @@ import { ViewsService } from './views.service';
     FieldsController,
     EventsController,
     PresenceController,
+    NotificationsController,
   ],
   providers: [
     ProjectsService,
@@ -67,6 +70,7 @@ import { ViewsService } from './views.service';
     EventsService,
     EventStreamSettings,
     PresenceService,
+    NotificationsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

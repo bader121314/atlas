@@ -555,6 +555,40 @@ export const presenceSchema = z
   .strict();
 export type Presence = z.infer<typeof presenceSchema>;
 
+/** An in-app notification (ADR-031). */
+export const notificationSchema = z
+  .object({
+    id: z.uuid(),
+    kind: z.enum(['task.assigned', 'comment.created']),
+    actor: z.string().nullable(),
+    task: z
+      .object({
+        key: z.string(),
+        projectKey: z.string(),
+        number: z.number().int(),
+        title: z.string(),
+      })
+      .strict(),
+    createdAt: z.iso.datetime(),
+    readAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type Notification = z.infer<typeof notificationSchema>;
+
+export const notificationQuerySchema = z
+  .object({ unread: z.enum(['true', 'false']).optional() })
+  .strict();
+
+export const markNotificationsReadRequestSchema = z.union([
+  z.object({ ids: z.array(z.uuid()).min(1).max(100) }).strict(),
+  z.object({ all: z.literal(true) }).strict(),
+]);
+
+export const notificationSettingsSchema = z
+  .object({ email: z.boolean() })
+  .strict();
+export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

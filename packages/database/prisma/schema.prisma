@@ -227,6 +227,7 @@ model OutboxEvent {
   attemptCount Int @default(0) @map("attempt_count")
   projectId String? @map("project_id") @db.Uuid
   nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(6)
+  notifiedAt DateTime? @map("notified_at") @db.Timestamptz(6)
   @@index([projectId, publishedAt], map: "outbox_events_stream_idx")
   @@map("outbox_events")
 }
@@ -303,4 +304,27 @@ model TaskFieldValue {
   @@id([taskId, fieldId])
   @@index([fieldId], map: "task_field_values_field_idx")
   @@map("task_field_values")
+}
+model Notification {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  recipientUserId String @map("recipient_user_id") @db.Uuid
+  kind String @db.VarChar(32)
+  projectId String @map("project_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  actorUserId String? @map("actor_user_id") @db.Uuid
+  sourceEventId String @map("source_event_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt DateTime? @map("read_at") @db.Timestamptz(6)
+  emailStatus String @default("pending") @map("email_status") @db.VarChar(16)
+  @@unique([recipientUserId, sourceEventId], map: "notifications_dedupe_key")
+  @@map("notifications")
+}
+model NotificationSetting {
+  organizationId String @map("organization_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  emailEnabled Boolean @default(true) @map("email_enabled")
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  @@id([organizationId, userId])
+  @@map("notification_settings")
 }
