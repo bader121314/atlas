@@ -28,30 +28,63 @@ async function allTasks(base: string): Promise<Task[]> {
   return tasks;
 }
 
-function TaskCard({ task, href }: { task: Task; href: string }) {
+function TaskCard({
+  task,
+  href,
+  states,
+  onMove,
+}: {
+  task: Task;
+  href: string;
+  states: WorkflowState[];
+  onMove: ((task: Task, stateId: string) => void) | undefined;
+}) {
   return (
-    <Link className="card" href={href}>
-      <span className="key">{task.key}</span>
-      <br />
-      {task.title}
-      <span className="meta">
-        {task.priority !== 'none' ? (
-          <span className={`priority-${task.priority}`}>
-            {priorityLabel(task.priority)}
-          </span>
-        ) : null}
-        {task.assignee ? <span>{task.assignee.displayName}</span> : null}
-        {task.dueAt ? (
-          <span>Due {day.format(new Date(task.dueAt))}</span>
-        ) : null}
-        {task.parent ? <span>Part of {task.parent.key}</span> : null}
-        {task.labels.map((label) => (
-          <span key={label.id} className={`label label-${label.color}`}>
-            {label.name}
-          </span>
-        ))}
-      </span>
-    </Link>
+    <div
+      className="card"
+      draggable={onMove !== undefined}
+      onDragStart={(event) => {
+        event.dataTransfer.setData('text/x-atlas-task', String(task.number));
+        event.dataTransfer.effectAllowed = 'move';
+      }}
+    >
+      <Link className="card-link" href={href}>
+        <span className="key">{task.key}</span>
+        <br />
+        {task.title}
+        <span className="meta">
+          {task.priority !== 'none' ? (
+            <span className={`priority-${task.priority}`}>
+              {priorityLabel(task.priority)}
+            </span>
+          ) : null}
+          {task.assignee ? <span>{task.assignee.displayName}</span> : null}
+          {task.dueAt ? (
+            <span>Due {day.format(new Date(task.dueAt))}</span>
+          ) : null}
+          {task.parent ? <span>Part of {task.parent.key}</span> : null}
+          {task.labels.map((label) => (
+            <span key={label.id} className={`label label-${label.color}`}>
+              {label.name}
+            </span>
+          ))}
+        </span>
+      </Link>
+      {onMove ? (
+        <select
+          className="card-move"
+          aria-label={`Move ${task.key} to`}
+          value={task.state.id}
+          onChange={(event) => onMove(task, event.target.value)}
+        >
+          {states.map((state) => (
+            <option key={state.id} value={state.id}>
+              {state.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
+    </div>
   );
 }
 
@@ -64,6 +97,8 @@ export default function ProjectPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [view, setView] = useState<'board' | 'list'>('board');
   const [error, setError] = useState('');
+  const [moveError, setMoveError] = useState('');
+  const [dropTarget, setDropTarget] = useState<string>();
 
   const load = useCallback(async () => {
     const result = await api<Project>(base);
@@ -120,6 +155,37 @@ export default function ProjectPage() {
     setError(describeFailure(result.status, 'The task could not be created.'));
   }
 
+  /**
+   * Moves optimistically, then saves with the task's version. On any failure
+   * the card goes back and the latest tasks are reloaded.
+   */
+  async function moveTask(task: Task, stateId: string) {
+    const state = states.find((s) => s.id === stateId);
+    if (!state || task.state.id === stateId) return;
+    setTasks((current) =>
+      current.map((t) => (t.id === task.id ? { ...t, state } : t)),
+    );
+    const result = await api<Task>(`${base}/tasks/${task.number}`, {
+      method: 'PATCH',
+      body: { version: task.version, stateId },
+    });
+    if (result.data) {
+      const saved = result.data;
+      setTasks((current) =>
+        current.map((t) => (t.id === saved.id ? saved : t)),
+      );
+      setMoveError('');
+      return;
+    }
+    setTasks((current) => current.map((t) => (t.id === task.id ? task : t)));
+    setMoveError(
+      result.status === 409
+        ? `${task.key} was changed by someone else, so it was not moved. The board now shows the latest version.`
+        : describeFailure(result.status, `${task.key} could not be moved.`),
+    );
+    setTasks(await allTasks(base));
+  }
+
   const href = (task: Task) => `${base}/tasks/${task.number}`;
 
   return (
@@ -169,19 +235,45 @@ export default function ProjectPage() {
         <p className="muted">No tasks yet.</p>
       ) : view === 'board' ? (
         <div className="board">
+          {moveError ? (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <Notice tone="error">{moveError}</Notice>
+            </div>
+          ) : null}
           {states.map((state) => {
             const column = tasks.filter((task) => task.state.id === state.id);
             return (
               <section
-                className="column"
+                className={dropTarget === state.id ? 'column drop' : 'column'}
                 key={state.id}
                 aria-label={state.label}
+                onDragOver={(event) => {
+                  if (!canWrite) return;
+                  event.preventDefault();
+                  setDropTarget(state.id);
+                }}
+                onDragLeave={() => setDropTarget(undefined)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDropTarget(undefined);
+                  const number = Number(
+                    event.dataTransfer.getData('text/x-atlas-task'),
+                  );
+                  const task = tasks.find((t) => t.number === number);
+                  if (task && canWrite) void moveTask(task, state.id);
+                }}
               >
                 <h2>
                   {state.label} <span className="count">{column.length}</span>
                 </h2>
                 {column.map((task) => (
-                  <TaskCard key={task.id} task={task} href={href(task)} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    href={href(task)}
+                    states={states}
+                    onMove={canWrite ? moveTask : undefined}
+                  />
                 ))}
               </section>
             );
