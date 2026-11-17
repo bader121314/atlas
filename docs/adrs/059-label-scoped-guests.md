@@ -32,9 +32,9 @@ commenter (ADR-018); this adds an attribute rule on top.
   such a task (400), so titles never reach them by email.
 - **Not covered:** live-update envelopes still carry the ids of changed
   tasks (never titles or content, ADR-029), which tells a scoped guest that
-  something changed; the browser refetches through the scoped list. A
-  management screen for project members, scopes included, is still API
-  only, as project roles are.
+  something changed; the browser refetches through the scoped list.
+- **Screen.** Project managers add people, set roles and choose a guest's
+  labels in the project's members section.
 
 ## Gates
 

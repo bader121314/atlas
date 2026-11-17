@@ -14,6 +14,7 @@ import { useShortcuts } from '../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../lib/live';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
 import { TimelineView } from '../../../../../../components/timeline-view';
+import { ProjectMembersSection } from '../../../../../../components/project-members-section';
 import { ShareLinksSection } from '../../../../../../components/share-links-section';
 import { RecurrencesSection } from '../../../../../../components/recurrences-section';
 import {
@@ -447,7 +448,10 @@ export default function ProjectPage() {
         canManage={project.role === 'manager' && project.status === 'active'}
       />
       {project.role === 'manager' && project.status === 'active' ? (
-        <ShareLinksSection base={base} />
+        <>
+          <ProjectMembersSection base={base} slug={slug} />
+          <ShareLinksSection base={base} />
+        </>
       ) : null}
       {project.role === 'manager' && project.status === 'active' ? (
         <AutomationsSection
