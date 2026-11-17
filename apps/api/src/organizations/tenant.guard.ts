@@ -9,12 +9,13 @@ import {
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { organizationSlugSchema, parseRequest } from '@atlas/contracts';
+import { ORGANIZATION_PERMISSION } from '../auth/http';
 import type { HttpRequest } from '../auth/http';
 import { OrganizationsService } from './organizations.service';
 import { can } from './policy';
 import type { OrganizationAction } from './policy';
 
-const PERMISSION = 'atlas:organization-permission';
+const PERMISSION = ORGANIZATION_PERMISSION;
 
 /** Declares the policy action a tenant route performs. Required. */
 export const RequirePermission = (action: OrganizationAction) =>
@@ -47,6 +48,12 @@ export class TenantGuard implements CanActivate {
       ? await this.organizations.resolveMembership(slug, request.auth.user.id)
       : undefined;
     if (!tenant) throw new NotFoundException();
+    // An API token works in its own organization only, for reads of the
+    // organization itself; anything else is a session-only action.
+    const token = request.auth.token;
+    if (token && token.organizationId !== tenant.organizationId)
+      throw new NotFoundException();
+    if (token && action !== 'organization.read') throw new ForbiddenException();
     if (!can(tenant.role, action)) throw new ForbiddenException();
     request.tenant = tenant;
     return true;

@@ -15,6 +15,17 @@ import { ProjectsService } from './projects.service';
 
 const PROJECT_PERMISSION = 'atlas:project-permission';
 
+/**
+ * The token scope each project action needs (ADR-037). Actions not listed
+ * (project settings, members, exports) are never available to tokens.
+ */
+export const TOKEN_SCOPES: Partial<Record<ProjectAction, string>> = {
+  'project.read': 'tasks:read',
+  'task.read': 'tasks:read',
+  'task.write': 'tasks:write',
+  'task.comment': 'tasks:write',
+};
+
 export const RequireProjectPermission = (action: ProjectAction) =>
   SetMetadata(PROJECT_PERMISSION, action);
 
@@ -44,6 +55,12 @@ export class ProjectGuard implements CanActivate {
       : undefined;
     if (!project) throw new NotFoundException();
     if (!canProject(project.role, action)) throw new ForbiddenException();
+    const token = request.auth.token;
+    if (token) {
+      const scope = TOKEN_SCOPES[action];
+      if (!scope || !token.scopes.includes(scope))
+        throw new ForbiddenException();
+    }
     request.project = project;
     return true;
   }

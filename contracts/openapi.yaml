@@ -1042,6 +1042,27 @@ paths:
       description: Queues a webhook.ping event to the endpoint.
       responses:
         '202': { description: Queued }
+  /organizations/{slug}/api-tokens:
+    get:
+      operationId: listApiTokens
+      security: [{ sessionCookie: [] }]
+      description: "The caller's active tokens: { id, name, prefix, scopes, createdAt, expiresAt, lastUsedAt }. Signed-in browsers only; not guests. ADR-037."
+      responses:
+        '200': { description: Tokens }
+    post:
+      operationId: createApiToken
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name, scopes (tasks:read, tasks:write), expiresInDays (1-365, default 90). Returns { token, secret }; the secret is shown only here. Use it as Authorization: Bearer <secret> on task routes.'
+      responses:
+        '201': { description: Created }
+        '403': { description: Guests, or called with a token }
+        '409': { description: 20-token limit }
+  /organizations/{slug}/api-tokens/{id}:
+    delete:
+      operationId: revokeApiToken
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Revoked at once }
 components:
   parameters:
     Slug:
@@ -1050,6 +1071,10 @@ components:
       required: true
       schema: { $ref: '#/components/schemas/Slug' }
   securitySchemes:
+    apiToken:
+      type: http
+      scheme: bearer
+      description: Scoped personal API token (atl_...), accepted on task routes only. ADR-037.
     sessionCookie:
       type: apiKey
       in: cookie
