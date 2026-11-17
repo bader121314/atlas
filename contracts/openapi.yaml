@@ -1150,6 +1150,31 @@ paths:
       responses:
         '200': { description: The updated task }
         '400': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}/tasks/{number}/time:
+    get:
+      summary: Time logged on a task (ADR-049)
+      responses:
+        '200': { description: '{ totalMinutes, entries[] }' }
+    post:
+      summary: Log time (editors and managers)
+      description: 'Body: { minutes (1-1440), spentOn (date, not in the future), note? (max 500) }.'
+      responses:
+        '201': { description: Time entry }
+        '400': { description: Invalid minutes or future day }
+        '403': { description: Cannot write tasks in this project }
+  /organizations/{slug}/projects/{key}/tasks/{number}/time/{id}:
+    delete:
+      summary: Remove a time entry (its author or a project manager)
+      responses:
+        '204': { description: Removed }
+        '403': { description: Not your entry }
+  /organizations/{slug}/time:
+    get:
+      summary: Time per person and project over a range (ADR-049)
+      description: 'Query: from, to (dates, at most 93 days). Owners and admins see everyone; others see their own. Only readable projects count.'
+      responses:
+        '200': { description: '{ from, to, everyone, totalMinutes, rows[] }' }
+        '400': { description: Invalid range }
   /organizations/{slug}/workload:
     get:
       operationId: getWorkload

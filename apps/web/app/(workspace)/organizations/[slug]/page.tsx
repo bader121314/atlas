@@ -247,6 +247,12 @@ export default function OrganizationPage() {
           >
             See the team&apos;s workload
           </Link>
+          <Link
+            className="button secondary small"
+            href={`/organizations/${slug}/time`}
+          >
+            Time report
+          </Link>
         </p>
       ) : null}
 

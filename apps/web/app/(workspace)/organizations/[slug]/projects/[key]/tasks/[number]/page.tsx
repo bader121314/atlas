@@ -8,6 +8,7 @@ import { useShell } from '../../../../../../../../components/app-shell';
 import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
 import { AttachmentsSection } from '../../../../../../../../components/attachments-section';
+import { TimeSection } from '../../../../../../../../components/time-section';
 import { LiveStatusBadge } from '../../../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../../../lib/live';
@@ -541,6 +542,14 @@ export default function TaskPage() {
           </section>
 
           <AttachmentsSection
+            base={base}
+            number={number}
+            userId={user.id}
+            canWrite={canWrite}
+            canManage={project.role === 'manager'}
+          />
+
+          <TimeSection
             base={base}
             number={number}
             userId={user.id}

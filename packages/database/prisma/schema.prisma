@@ -466,3 +466,19 @@ model TaskAssignee {
   @@index([organizationId, userId], map: "task_assignees_user_idx")
   @@map("task_assignees")
 }
+
+model TimeEntry {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  minutes Int
+  spentOn DateTime @map("spent_on") @db.Date
+  note String?
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+
+  @@index([taskId, spentOn], map: "time_entries_task_idx")
+  @@index([organizationId, spentOn], map: "time_entries_report_idx")
+  @@map("time_entries")
+}
