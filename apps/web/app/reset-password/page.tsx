@@ -7,8 +7,10 @@ import type { FormEvent } from 'react';
 import { AuthShell } from '../../components/auth-shell';
 import { Field, Notice, value } from '../../components/form';
 import { api, describeFailure } from '../../lib/api';
+import { useT } from '../../lib/i18n';
 
 function ResetForm() {
+  const t = useT();
   const token = useSearchParams().get('token') ?? '';
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
   const [error, setError] = useState('');
@@ -29,7 +31,9 @@ function ResetForm() {
     setError(
       describeFailure(
         result.status,
-        'The password must be at least 12 characters, and the link must be the most recent one, used within 1 hour.',
+        t(
+          'The password must be at least 12 characters, and the link must be the most recent one, used within 1 hour.',
+        ),
       ),
     );
   }
@@ -38,11 +42,15 @@ function ResetForm() {
     return (
       <>
         <Notice>
-          <p>Your password is changed and every device has been signed out.</p>
+          <p>
+            {t(
+              'Your password is changed and every device has been signed out.',
+            )}
+          </p>
         </Notice>
         <p className="switch">
           <Link className="button" href="/login">
-            Sign in
+            {t('Sign in')}
           </Link>
         </p>
       </>
@@ -52,7 +60,7 @@ function ResetForm() {
     <form className="form" onSubmit={submit}>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <Field
-        label="New password"
+        label={t('New password')}
         name="password"
         type="password"
         autoComplete="new-password"
@@ -71,8 +79,9 @@ function ResetForm() {
 }
 
 export default function ResetPasswordPage() {
+  const t = useT();
   return (
-    <AuthShell title="Choose a new password">
+    <AuthShell title={t('Choose a new password')}>
       <Suspense>
         <ResetForm />
       </Suspense>

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { priorityLabel } from '../lib/api';
 import type { CustomField, Task } from '../lib/api';
 import { formatFieldValue } from './custom-fields';
+import { useT } from '../lib/i18n';
 
 export type SortField =
   'number' | 'title' | 'priority' | 'due' | 'state' | 'assignee';
@@ -82,6 +83,7 @@ export function TableView({
   onSort: (sort: Sort) => void;
   href: (task: Task) => string;
 }) {
+  const t = useT();
   return (
     <div className="table-wrap">
       <table className="tasks-table">
@@ -133,14 +135,14 @@ export function TableView({
                 {task.assignees.length > 0 ? (
                   task.assignees.map((a) => a.displayName).join(', ')
                 ) : (
-                  <span className="muted">Unassigned</span>
+                  <span className="muted">{t('Unassigned')}</span>
                 )}
               </td>
               <td>
                 {task.dueAt ? (
                   day.format(new Date(task.dueAt))
                 ) : (
-                  <span className="muted">None</span>
+                  <span className="muted">{t('None')}</span>
                 )}
               </td>
               {fields.map((field) => (
@@ -177,6 +179,7 @@ export function CalendarView({
   tasks: Task[];
   href: (task: Task) => string;
 }) {
+  const t = useT();
   const today = new Date();
   const [month, setMonth] = useState(() =>
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1),
@@ -198,21 +201,22 @@ export function CalendarView({
   const undated = tasks.filter((task) => !task.dueAt).length;
   const cells = Array.from(
     { length: Math.ceil((offset + days) / 7) * 7 },
-    (_, i) => (i < offset || i >= offset + days ? null : i - offset + 1),
+    (_, i) =>
+      i < offset || i >= offset + days ? null : i - offset + 1),
   );
   const weeks = Array.from({ length: cells.length / 7 }, (_, w) =>
     cells.slice(w * 7, w * 7 + 7),
   );
 
   return (
-    <section aria-label="Calendar">
+    <section aria-label={t('Calendar')}>
       <div className="calendar-head">
         <button
           className="button secondary small"
           type="button"
           onClick={() => setMonth(Date.UTC(year, index - 1, 1))}
         >
-          Previous month
+          {t('Previous month')}
         </button>
         <h2>{monthName.format(first)}</h2>
         <button
@@ -220,7 +224,7 @@ export function CalendarView({
           type="button"
           onClick={() => setMonth(Date.UTC(year, index + 1, 1))}
         >
-          Next month
+          {t('Next month')}
         </button>
       </div>
       <div

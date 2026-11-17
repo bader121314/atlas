@@ -6,6 +6,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { Organization, Project } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 /** Projects on the organization page: list plus a create form. */
 export function ProjectsSection({
@@ -13,6 +14,7 @@ export function ProjectsSection({
 }: {
   organization: Organization;
 }) {
+  const t = useT();
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState('');
   const base = `/organizations/${organization.slug}/projects`;
@@ -49,14 +51,16 @@ export function ProjectsSection({
         ? 'That project key is already used in this organization.'
         : describeFailure(
             result.status,
-            'Use a key of 2–10 capital letters or digits, starting with a letter.',
+            t(
+              'Use a key of 2–10 capital letters or digits, starting with a letter.',
+            ),
           ),
     );
   }
 
   return (
     <section className="section" aria-labelledby="projects-heading">
-      <h2 id="projects-heading">Projects</h2>
+      <h2 id="projects-heading">{t('Projects')}</h2>
       {projects.length === 0 ? (
         <p className="muted">
           {canCreate
@@ -90,7 +94,7 @@ export function ProjectsSection({
         <form className="inline-form section" onSubmit={create}>
           {error ? <Notice tone="error">{error}</Notice> : null}
           <div className="field">
-            <label htmlFor="projectName">Project name</label>
+            <label htmlFor="projectName">{t('Project name')}</label>
             <input
               id="projectName"
               name="projectName"
@@ -99,7 +103,7 @@ export function ProjectsSection({
             />
           </div>
           <div className="field">
-            <label htmlFor="projectKey">Key</label>
+            <label htmlFor="projectKey">{t('Key')}</label>
             <input
               id="projectKey"
               name="projectKey"
@@ -111,22 +115,24 @@ export function ProjectsSection({
               className="key-input"
             />
             <span className="hint" id="projectKey-hint">
-              Prefix for task keys, e.g. NW-12
+              {t('Prefix for task keys, e.g. NW-12')}
             </span>
           </div>
           <div className="field">
-            <label htmlFor="projectVisibility">Who can see it</label>
+            <label htmlFor="projectVisibility">{t('Who can see it')}</label>
             <select
               id="projectVisibility"
               name="projectVisibility"
               defaultValue="organization"
             >
-              <option value="organization">Everyone in the organization</option>
-              <option value="private">Only people I add</option>
+              <option value="organization">
+                {t('Everyone in the organization')}
+              </option>
+              <option value="private">{t('Only people I add')}</option>
             </select>
           </div>
           <button className="button" type="submit">
-            Create project
+            {t('Create project')}
           </button>
         </form>
       ) : null}

@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { WorkflowState } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 const CATEGORIES: { value: WorkflowState['category']; label: string }[] = [
   { value: 'todo', label: 'Not started' },
@@ -22,6 +23,7 @@ export function WorkflowSettings({
   states: WorkflowState[];
   onChange: () => Promise<void>;
 }) {
+  const t = useT();
   const [error, setError] = useState('');
 
   async function run(
@@ -70,10 +72,11 @@ export function WorkflowSettings({
 
   return (
     <section className="section" aria-labelledby="workflow-heading">
-      <h2 id="workflow-heading">Workflow</h2>
+      <h2 id="workflow-heading">{t('Workflow')}</h2>
       <p className="muted">
-        Each status is a column on the board. Tasks in a finished status count
-        as completed.
+        {t(
+          'Each status is a column on the board. Tasks in a finished status count as completed.',
+        )}
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <ul className="rows">
@@ -109,11 +112,11 @@ export function WorkflowSettings({
       </ul>
       <form className="inline-form section" onSubmit={add}>
         <div className="field">
-          <label htmlFor="stateLabel">New status</label>
+          <label htmlFor="stateLabel">{t('New status')}</label>
           <input id="stateLabel" name="stateLabel" required maxLength={50} />
         </div>
         <div className="field">
-          <label htmlFor="stateCategory">Type</label>
+          <label htmlFor="stateCategory">{t('Type')}</label>
           <select
             id="stateCategory"
             name="stateCategory"
@@ -127,7 +130,7 @@ export function WorkflowSettings({
           </select>
         </div>
         <button className="button secondary" type="submit">
-          Add status
+          {t('Add status')}
         </button>
       </form>
     </section>
@@ -153,6 +156,7 @@ function WorkflowRow({
   onMove: (offset: number) => void;
   onRemove: (moveTo: string) => void;
 }) {
+  const t = useT();
   const [moveTo, setMoveTo] = useState('');
   return (
     <li>
@@ -183,7 +187,7 @@ function WorkflowRow({
         onClick={() => onMove(-1)}
         aria-label={`Move ${state.label} earlier`}
       >
-        Earlier
+        {t('Earlier')}
       </button>
       <button
         className="button secondary small"
@@ -192,14 +196,14 @@ function WorkflowRow({
         onClick={() => onMove(1)}
         aria-label={`Move ${state.label} later`}
       >
-        Later
+        {t('Later')}
       </button>
       <select
         aria-label={`Move tasks from ${state.label} to`}
         value={moveTo}
         onChange={(event) => setMoveTo(event.target.value)}
       >
-        <option value="">Delete: move its tasks to…</option>
+        <option value="">{t('Delete: move its tasks to…')}</option>
         {others.map((o) => (
           <option key={o.id} value={o.id}>
             {o.label}
@@ -211,7 +215,7 @@ function WorkflowRow({
         type="button"
         onClick={() => onRemove(moveTo)}
       >
-        Delete
+        {t('Delete')}
       </button>
     </li>
   );

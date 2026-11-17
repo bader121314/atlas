@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../../../../../lib/api';
 import { formatDuration } from '../../../../../lib/duration';
+import { useT } from '../../../../../lib/i18n';
 
 interface Report {
   from: string;
@@ -29,6 +30,7 @@ function isoDay(date: Date): string {
 
 /** Time logged per person and project over a range (ADR-049). */
 export default function TimeReportPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const today = new Date();
   const [range, setRange] = useState({
@@ -59,12 +61,13 @@ export default function TimeReportPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> / Time
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Time')}
       </p>
-      <h1>Time report</h1>
+      <h1>{t('Time report')}</h1>
       <form className="inline-form" onSubmit={apply}>
         <div className="field">
-          <label htmlFor="from">From</label>
+          <label htmlFor="from">{t('From')}</label>
           <input
             id="from"
             name="from"
@@ -74,7 +77,7 @@ export default function TimeReportPage() {
           />
         </div>
         <div className="field">
-          <label htmlFor="to">To</label>
+          <label htmlFor="to">{t('To')}</label>
           <input
             id="to"
             name="to"
@@ -84,16 +87,16 @@ export default function TimeReportPage() {
           />
         </div>
         <button className="button secondary" type="submit">
-          Show
+          {t('Show')}
         </button>
       </form>
       {failed ? (
         <p role="alert">
-          Choose a range of up to 93 days, with From before To.
+          {t('Choose a range of up to 93 days, with From before To.')}
         </p>
       ) : !report ? (
         <p className="muted" role="status">
-          Loading…
+          {t('Loading…')}
         </p>
       ) : (
         <>
@@ -103,18 +106,18 @@ export default function TimeReportPage() {
               : 'Your own time. Owners and admins see the whole team.'}
           </p>
           {report.rows.length === 0 ? (
-            <p>No time logged in this range.</p>
+            <p>{t('No time logged in this range.')}</p>
           ) : (
             <div className="table-wrap">
               <table className="tasks-table">
                 <caption className="visually-hidden">
-                  Time logged per person and project
+                  {t('Time logged per person and project')}
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col">Person</th>
-                    <th scope="col">Project</th>
-                    <th scope="col">Time</th>
+                    <th scope="col">{t('Person')}</th>
+                    <th scope="col">{t('Project')}</th>
+                    <th scope="col">{t('Time')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -135,7 +138,7 @@ export default function TimeReportPage() {
                 <tfoot>
                   <tr>
                     <th scope="row" colSpan={2}>
-                      Total
+                      {t('Total')}
                     </th>
                     <td>
                       <strong>{formatDuration(report.totalMinutes)}</strong>

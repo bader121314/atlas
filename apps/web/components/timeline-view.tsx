@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import type { Task } from '../lib/api';
 import { layoutTimeline, utcDay, weekStart } from '../lib/timeline';
+import { useT } from '../lib/i18n';
 
 const DAY = 86_400_000;
 const WEEKS = 8;
@@ -34,6 +35,7 @@ export function TimelineView({
   tasks: Task[];
   href: (task: Task) => string;
 }) {
+  const t = useT();
   const now = Date.now();
   const [from, setFrom] = useState(() => weekStart(now) - 7 * DAY);
   const days = WEEKS * 7;
@@ -47,14 +49,14 @@ export function TimelineView({
   const range = `${short.format(new Date(from))} to ${short.format(new Date(from + (days - 1) * DAY))}`;
 
   return (
-    <section aria-label="Timeline">
+    <section aria-label={t('Timeline')}>
       <div className="calendar-head">
         <button
           className="button secondary small"
           type="button"
           onClick={() => setFrom(from - 4 * 7 * DAY)}
         >
-          Earlier
+          {t('Earlier')}
         </button>
         <h2>{range}</h2>
         <span className="timeline-nav">
@@ -63,21 +65,22 @@ export function TimelineView({
             type="button"
             onClick={() => setFrom(weekStart(now) - 7 * DAY)}
           >
-            This week
+            {t('This week')}
           </button>
           <button
             className="button secondary small"
             type="button"
             onClick={() => setFrom(from + 4 * 7 * DAY)}
           >
-            Later
+            {t('Later')}
           </button>
         </span>
       </div>
       {bars.length === 0 ? (
         <p>
-          No tasks are scheduled in these weeks. Give tasks a start or due date
-          to place them here.
+          {t(
+            'No tasks are scheduled in these weeks. Give tasks a start or due date to place them here.',
+          )}
         </p>
       ) : (
         <div className="table-wrap">
@@ -87,15 +90,15 @@ export function TimelineView({
             </caption>
             <thead>
               <tr>
-                <th scope="col">Task</th>
+                <th scope="col">{t('Task')}</th>
                 <th scope="col">
-                  <span className="visually-hidden">Schedule</span>
+                  <span className="visually-hidden">{t('Schedule')}</span>
                   <div className="timeline-track" aria-hidden="true">
                     {weeks.map((w, i) => (
                       <span
                         key={w}
                         className="timeline-week"
-                        style={{ left: `${(i / WEEKS) * 100}%` }}
+                        style={{ insetInlineStart: `${(i / WEEKS) * 100}%` }}
                       >
                         {short.format(new Date(w))}
                       </span>
@@ -124,13 +127,15 @@ export function TimelineView({
                         <span
                           key={w}
                           className="timeline-gridline"
-                          style={{ left: `${((i + 1) / WEEKS) * 100}%` }}
+                          style={{
+                            insetInlineStart: `${((i + 1) / WEEKS) * 100}%`,
+                          }}
                         />
                       ))}
                       {todayLeft === null ? null : (
                         <span
                           className="timeline-today"
-                          style={{ left: `${todayLeft}%` }}
+                          style={{ insetInlineStart: `${todayLeft}%` }}
                         />
                       )}
                       <span
@@ -144,7 +149,10 @@ export function TimelineView({
                         ]
                           .filter(Boolean)
                           .join(' ')}
-                        style={{ left: `${bar.left}%`, width: `${bar.width}%` }}
+                        style={{
+                          insetInlineStart: `${bar.left}%`,
+                          width: `${bar.width}%`,
+                        }}
                       />
                     </div>
                   </td>

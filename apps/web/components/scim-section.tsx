@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice } from './form';
+import { useT } from '../lib/i18n';
 
 interface Token {
   id: string;
@@ -16,6 +17,7 @@ const day = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
 /** SCIM provisioning setup for owners (ADR-055). */
 export function ScimSection({ slug }: { slug: string }) {
+  const t = useT();
   const base = `/organizations/${slug}/scim-tokens`;
   const [tokens, setTokens] = useState<Token[]>([]);
   const [secret, setSecret] = useState<string>();
@@ -53,7 +55,9 @@ export function ScimSection({ slug }: { slug: string }) {
   async function revoke(token: Token) {
     if (
       !window.confirm(
-        'Revoke this token? Your identity provider stops syncing until it has a new one.',
+        t(
+          'Revoke this token? Your identity provider stops syncing until it has a new one.',
+        ),
       )
     )
       return;
@@ -63,7 +67,7 @@ export function ScimSection({ slug }: { slug: string }) {
 
   return (
     <section className="section" aria-labelledby="scim-heading">
-      <h2 id="scim-heading">Provisioning (SCIM)</h2>
+      <h2 id="scim-heading">{t('Provisioning (SCIM)')}</h2>
       <p className="muted">
         Let your identity provider (Okta, Microsoft Entra ID and others) add,
         suspend and remove members. People it adds join as members; owners and
@@ -71,7 +75,7 @@ export function ScimSection({ slug }: { slug: string }) {
         email or password.
       </p>
       <p>
-        SCIM base URL: <code>{origin}/api/scim/v2</code>
+        {t('SCIM base URL:')} <code>{origin}/api/scim/v2</code>
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {secret ? (
@@ -85,7 +89,7 @@ export function ScimSection({ slug }: { slug: string }) {
             type="button"
             onClick={() => setSecret(undefined)}
           >
-            I have saved it
+            {t('I have saved it')}
           </button>
         </Notice>
       ) : null}
@@ -108,7 +112,7 @@ export function ScimSection({ slug }: { slug: string }) {
               type="button"
               onClick={() => void revoke(token)}
             >
-              Revoke
+              {t('Revoke')}
             </button>
           </li>
         ))}
@@ -118,7 +122,7 @@ export function ScimSection({ slug }: { slug: string }) {
         type="button"
         onClick={() => void create()}
       >
-        Create SCIM token
+        {t('Create SCIM token')}
       </button>
     </section>
   );

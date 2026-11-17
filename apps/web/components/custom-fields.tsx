@@ -5,9 +5,10 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { CustomField } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 const TYPE_LABELS: Record<CustomField['type'], string> = {
-  text: 'Text',
+  text: t('Text'),
   number: 'Number',
   date: 'Date',
   select: 'Choice list',
@@ -46,6 +47,7 @@ export function FieldsSection({
   fields: CustomField[];
   onChange: () => Promise<void>;
 }) {
+  const t = useT();
   const [type, setType] = useState<CustomField['type']>('text');
   const [error, setError] = useState('');
 
@@ -89,7 +91,7 @@ export function FieldsSection({
     setError(
       result.ok
         ? ''
-        : describeFailure(result.status, 'The choices could not be saved.'),
+        : describeFailure(result.status, t('The choices could not be saved.')),
     );
     await onChange();
   }
@@ -107,12 +109,13 @@ export function FieldsSection({
 
   return (
     <section className="section" aria-labelledby="fields-heading">
-      <h2 id="fields-heading">Custom fields</h2>
+      <h2 id="fields-heading">{t('Custom fields')}</h2>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {fields.length === 0 ? (
         <p className="muted">
-          Add fields to track details your workflow needs, such as a region or
-          an estimate.
+          {t(
+            'Add fields to track details your workflow needs, such as a region or an estimate.',
+          )}
         </p>
       ) : null}
       <ul className="rows">
@@ -132,7 +135,7 @@ export function FieldsSection({
                 type="button"
                 onClick={() => void editOptions(field)}
               >
-                Edit choices
+                {t('Edit choices')}
               </button>
             ) : null}
             <button
@@ -140,18 +143,18 @@ export function FieldsSection({
               type="button"
               onClick={() => void remove(field)}
             >
-              Delete
+              {t('Delete')}
             </button>
           </li>
         ))}
       </ul>
       <form className="inline-form section" onSubmit={create}>
         <div className="field">
-          <label htmlFor="fieldName">New field</label>
+          <label htmlFor="fieldName">{t('New field')}</label>
           <input id="fieldName" name="fieldName" required maxLength={40} />
         </div>
         <div className="field">
-          <label htmlFor="fieldType">Type</label>
+          <label htmlFor="fieldType">{t('Type')}</label>
           <select
             id="fieldType"
             value={type}
@@ -168,12 +171,14 @@ export function FieldsSection({
         </div>
         {type === 'select' ? (
           <div className="field">
-            <label htmlFor="fieldOptions">Choices, separated by commas</label>
+            <label htmlFor="fieldOptions">
+              {t('Choices, separated by commas')}
+            </label>
             <input id="fieldOptions" name="fieldOptions" required />
           </div>
         ) : null}
         <button className="button secondary" type="submit">
-          Add field
+          {t('Add field')}
         </button>
       </form>
     </section>
@@ -194,6 +199,7 @@ export function FieldInput({
   version: number;
   onSave: (value: string | number | null) => Promise<void>;
 }) {
+  const t = useT();
   const id = `field-${field.id}`;
   const current = stored === undefined ? '' : String(stored);
   if (field.type === 'select') {
@@ -206,7 +212,7 @@ export function FieldInput({
           disabled={disabled}
           onChange={(event) => void onSave(event.target.value || null)}
         >
-          <option value="">Not set</option>
+          <option value="">{t('Not set')}</option>
           {field.options.map((option) => (
             <option key={option} value={option}>
               {option}

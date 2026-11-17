@@ -41,6 +41,7 @@ import {
   storePendingEdit,
 } from '../../../../../../../../lib/offline-edits';
 import type { PendingEdit } from '../../../../../../../../lib/offline-edits';
+import { useT } from '../../../../../../../../lib/i18n';
 
 interface Comment {
   id: string;
@@ -114,6 +115,7 @@ function describe(entry: Activity, names: Map<string, string>): string {
 }
 
 export default function TaskPage() {
+  const t = useT();
   const { slug, key, number } = useParams<{
     slug: string;
     key: string;
@@ -220,7 +222,7 @@ export default function TaskPage() {
       storePendingEdit(pendingKey, undefined);
       if (result.data) {
         setTask(result.data);
-        setMessage({ tone: 'info', text: 'Saved your offline changes.' });
+        setMessage({ tone: 'info', text: t('Saved your offline changes.') });
         await loadThread();
         return;
       }
@@ -270,10 +272,12 @@ export default function TaskPage() {
   if (missing) {
     return (
       <>
-        <h1>Task not found</h1>
-        <p>It does not exist, or you do not have access to its project.</p>
+        <h1>{t('Task not found')}</h1>
         <p>
-          <Link href={base}>Back to the project</Link>
+          {t('It does not exist, or you do not have access to its project.')}
+        </p>
+        <p>
+          <Link href={base}>{t('Back to the project')}</Link>
         </p>
       </>
     );
@@ -281,7 +285,7 @@ export default function TaskPage() {
   if (!task || !project) {
     return (
       <p className="muted" role="status">
-        Loading…
+        {t('Loading…')}
       </p>
     );
   }
@@ -299,7 +303,9 @@ export default function TaskPage() {
     storePendingEdit(pendingKey, next);
     setMessage({
       tone: 'info',
-      text: 'You are offline. Your changes are kept on this device and will be saved when the connection returns.',
+      text: t(
+        'You are offline. Your changes are kept on this device and will be saved when the connection returns.',
+      ),
     });
   }
 
@@ -330,13 +336,15 @@ export default function TaskPage() {
       if (fresh.data) setTask(fresh.data);
       setMessage({
         tone: 'error',
-        text: 'Someone else changed this task while you were editing. Their changes are now shown; apply yours again if still needed.',
+        text: t(
+          'Someone else changed this task while you were editing. Their changes are now shown; apply yours again if still needed.',
+        ),
       });
       return;
     }
     setMessage({
       tone: 'error',
-      text: describeFailure(result.status, 'The change could not be saved.'),
+      text: describeFailure(result.status, t('The change could not be saved.')),
     });
   }
 
@@ -352,12 +360,15 @@ export default function TaskPage() {
     });
     if (result.data) {
       setTask(result.data);
-      setMessage({ tone: 'info', text: 'Assignees changed.' });
+      setMessage({ tone: 'info', text: t('Assignees changed.') });
       await loadThread();
     } else {
       setMessage({
         tone: 'error',
-        text: describeFailure(result.status, 'Assignees could not be changed.'),
+        text: describeFailure(
+          result.status,
+          t('Assignees could not be changed.'),
+        ),
       });
     }
   }
@@ -377,7 +388,7 @@ export default function TaskPage() {
     } else {
       setMessage({
         tone: 'error',
-        text: describeFailure(result.status, 'Labels could not be changed.'),
+        text: describeFailure(result.status, t('Labels could not be changed.')),
       });
     }
   }
@@ -425,7 +436,7 @@ export default function TaskPage() {
           ? `${key}-${blockerNumber} cannot block this task: it does not exist, or it already depends on this task.`
           : describeFailure(
               result.status,
-              'The dependency could not be added.',
+              t('The dependency could not be added.'),
             ),
     });
   }
@@ -488,7 +499,7 @@ export default function TaskPage() {
   }
 
   async function removeComment(id: string) {
-    if (!window.confirm('Delete this comment?')) return;
+    if (!window.confirm(t('Delete this comment?'))) return;
     await api(`${base}/tasks/${number}/comments/${id}`, { method: 'DELETE' });
     await loadThread();
   }
@@ -496,7 +507,7 @@ export default function TaskPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> /{' '}
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link> /{' '}
         <Link href={base}>{project.name}</Link> / {task.key}
       </p>
       <LiveStatusBadge status={live} />
@@ -508,15 +519,16 @@ export default function TaskPage() {
       {stale ? (
         <Notice>
           <p>
-            Someone else changed this task while you were typing. Your text is
-            kept until you choose.
+            {t(
+              'Someone else changed this task while you were typing. Your text is kept until you choose.',
+            )}
           </p>
           <button
             className="button secondary small"
             type="button"
             onClick={() => void showLatest()}
           >
-            Show the latest version
+            {t('Show the latest version')}
           </button>
         </Notice>
       ) : null}
@@ -526,7 +538,7 @@ export default function TaskPage() {
           {canWrite ? (
             <form className="form wide" onSubmit={saveText} key={task.version}>
               <div className="field">
-                <label htmlFor="title">Title</label>
+                <label htmlFor="title">{t('Title')}</label>
                 <input
                   id="title"
                   name="title"
@@ -536,7 +548,7 @@ export default function TaskPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="description">Description</label>
+                <label htmlFor="description">{t('Description')}</label>
                 <textarea
                   id="description"
                   name="description"
@@ -546,7 +558,7 @@ export default function TaskPage() {
               </div>
               <p>
                 <button className="button secondary" type="submit">
-                  Save task
+                  {t('Save task')}
                 </button>
               </p>
             </form>
@@ -558,13 +570,15 @@ export default function TaskPage() {
           )}
 
           <section className="section" aria-labelledby="deps-heading">
-            <h2 id="deps-heading">Dependencies</h2>
+            <h2 id="deps-heading">{t('Dependencies')}</h2>
             {deps.blockedBy.length === 0 && deps.blocking.length === 0 ? (
-              <p className="muted">This task does not depend on other tasks.</p>
+              <p className="muted">
+                {t('This task does not depend on other tasks.')}
+              </p>
             ) : null}
             {deps.blockedBy.length > 0 ? (
               <>
-                <h3>Blocked by</h3>
+                <h3>{t('Blocked by')}</h3>
                 <ul className="rows">
                   {deps.blockedBy.map((d) => (
                     <li key={d.number}>
@@ -578,7 +592,7 @@ export default function TaskPage() {
                           type="button"
                           onClick={() => void removeBlocker(d.number)}
                         >
-                          Remove
+                          {t('Remove')}
                         </button>
                       ) : null}
                     </li>
@@ -588,7 +602,7 @@ export default function TaskPage() {
             ) : null}
             {deps.blocking.length > 0 ? (
               <>
-                <h3 className="section">Blocking</h3>
+                <h3 className="section">{t('Blocking')}</h3>
                 <ul className="rows">
                   {deps.blocking.map((d) => (
                     <li key={d.number}>
@@ -603,7 +617,7 @@ export default function TaskPage() {
             {canWrite ? (
               <form className="inline-form section" onSubmit={addBlocker}>
                 <div className="field">
-                  <label htmlFor="blocker">Blocked by task number</label>
+                  <label htmlFor="blocker">{t('Blocked by task number')}</label>
                   <input
                     id="blocker"
                     name="blocker"
@@ -613,7 +627,7 @@ export default function TaskPage() {
                   />
                 </div>
                 <button className="button secondary" type="submit">
-                  Add blocker
+                  {t('Add blocker')}
                 </button>
               </form>
             ) : null}
@@ -637,9 +651,9 @@ export default function TaskPage() {
           />
 
           <section className="section" aria-labelledby="comments-heading">
-            <h2 id="comments-heading">Comments</h2>
+            <h2 id="comments-heading">{t('Comments')}</h2>
             {comments.length === 0 ? (
-              <p className="muted">No comments yet.</p>
+              <p className="muted">{t('No comments yet.')}</p>
             ) : null}
             <ul className="thread">
               {comments.map((entry) => (
@@ -650,7 +664,7 @@ export default function TaskPage() {
                     {entry.editedAt ? ', edited' : ''}
                   </span>
                   {entry.deleted ? (
-                    <p className="muted">This comment was deleted.</p>
+                    <p className="muted">{t('This comment was deleted.')}</p>
                   ) : (
                     <p className="prewrap">{entry.body}</p>
                   )}
@@ -662,7 +676,7 @@ export default function TaskPage() {
                       type="button"
                       onClick={() => void removeComment(entry.id)}
                     >
-                      Delete
+                      {t('Delete')}
                     </button>
                   ) : null}
                 </li>
@@ -671,7 +685,7 @@ export default function TaskPage() {
             {canComment ? (
               <form className="form wide" onSubmit={comment}>
                 <div className="field">
-                  <label htmlFor="comment">Add a comment</label>
+                  <label htmlFor="comment">{t('Add a comment')}</label>
                   <textarea
                     id="comment"
                     name="comment"
@@ -681,13 +695,13 @@ export default function TaskPage() {
                 </div>
                 <div className="inline-form">
                   <div className="field">
-                    <label htmlFor="mention">Mention someone</label>
+                    <label htmlFor="mention">{t('Mention someone')}</label>
                     <select
                       id="mention"
                       value=""
                       onChange={(event) => mention(event.target.value)}
                     >
-                      <option value="">Choose a person</option>
+                      <option value="">{t('Choose a person')}</option>
                       {members
                         .filter((m) => m.userId !== user.id)
                         .map((m) => (
@@ -698,7 +712,7 @@ export default function TaskPage() {
                     </select>
                   </div>
                   <button className="button" type="submit">
-                    Post comment
+                    {t('Post comment')}
                   </button>
                 </div>
               </form>
@@ -706,7 +720,7 @@ export default function TaskPage() {
           </section>
 
           <section className="section" aria-labelledby="history-heading">
-            <h2 id="history-heading">History</h2>
+            <h2 id="history-heading">{t('History')}</h2>
             <ul className="history">
               {history.map((entry) => (
                 <li key={entry.id}>
@@ -718,9 +732,9 @@ export default function TaskPage() {
           </section>
         </div>
 
-        <aside className="task-side" aria-label="Task details">
+        <aside className="task-side" aria-label={t('Task details')}>
           <div className="field">
-            <label htmlFor="state">Status</label>
+            <label htmlFor="state">{t('Status')}</label>
             <select
               id="state"
               value={task.state.id}
@@ -737,7 +751,7 @@ export default function TaskPage() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="priority">Priority</label>
+            <label htmlFor="priority">{t('Priority')}</label>
             <select
               id="priority"
               value={task.priority}
@@ -754,7 +768,7 @@ export default function TaskPage() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="assignee">Assignee</label>
+            <label htmlFor="assignee">{t('Assignee')}</label>
             <select
               id="assignee"
               value={task.assignee?.userId ?? ''}
@@ -766,7 +780,7 @@ export default function TaskPage() {
                 )
               }
             >
-              <option value="">Unassigned</option>
+              <option value="">{t('Unassigned')}</option>
               {task.assignee && !names.has(task.assignee.userId) ? (
                 <option value={task.assignee.userId}>
                   {task.assignee.displayName}
@@ -781,7 +795,7 @@ export default function TaskPage() {
           </div>
           {task.assignee && members.length > 1 ? (
             <fieldset className="checks plain">
-              <legend>Also assigned</legend>
+              <legend>{t('Also assigned')}</legend>
               {members
                 .filter((m) => m.userId !== task.assignee?.userId)
                 .map((member) => (
@@ -802,11 +816,11 @@ export default function TaskPage() {
             </fieldset>
           ) : null}
           <div className="field">
-            <label htmlFor="estimate">Estimate</label>
+            <label htmlFor="estimate">{t('Estimate')}</label>
             <input
               id="estimate"
               disabled={!canWrite}
-              placeholder="e.g. 4h"
+              placeholder={t('e.g. 4h')}
               autoComplete="off"
               defaultValue={
                 task.estimateMinutes === null
@@ -820,7 +834,9 @@ export default function TaskPage() {
                 if (minutes === undefined) {
                   setMessage({
                     tone: 'error',
-                    text: 'Enter an estimate like 45m, 4h or 2h 30m, up to 1000 hours.',
+                    text: t(
+                      'Enter an estimate like 45m, 4h or 2h 30m, up to 1000 hours.',
+                    ),
                   });
                   return;
                 }
@@ -830,7 +846,7 @@ export default function TaskPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="start">Start date</label>
+            <label htmlFor="start">{t('Start date')}</label>
             <input
               id="start"
               type="date"
@@ -851,7 +867,7 @@ export default function TaskPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="due">Due date</label>
+            <label htmlFor="due">{t('Due date')}</label>
             <input
               id="due"
               type="date"
@@ -873,7 +889,7 @@ export default function TaskPage() {
           </div>
           {labels.length > 0 ? (
             <fieldset className="checks plain">
-              <legend>Labels</legend>
+              <legend>{t('Labels')}</legend>
               {labels.map((label) => (
                 <label key={label.id}>
                   <input
@@ -893,7 +909,7 @@ export default function TaskPage() {
           ) : null}
           {milestones.length > 0 ? (
             <div className="field">
-              <label htmlFor="milestone">Milestone</label>
+              <label htmlFor="milestone">{t('Milestone')}</label>
               <select
                 id="milestone"
                 value={task.milestone?.id ?? ''}
@@ -905,7 +921,7 @@ export default function TaskPage() {
                   )
                 }
               >
-                <option value="">No milestone</option>
+                <option value="">{t('No milestone')}</option>
                 {milestones.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.title}
@@ -925,7 +941,7 @@ export default function TaskPage() {
             />
           ))}
           <div className="field">
-            <label htmlFor="parent">Part of task number</label>
+            <label htmlFor="parent">{t('Part of task number')}</label>
             <input
               id="parent"
               type="number"

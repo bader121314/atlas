@@ -6,6 +6,7 @@ import { Suspense, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AuthShell } from '../../../components/auth-shell';
 import { Field, Notice, value } from '../../../components/form';
+import { useT } from '../../../lib/i18n';
 
 const ERRORS: Record<string, string> = {
   unavailable:
@@ -17,6 +18,7 @@ const ERRORS: Record<string, string> = {
 };
 
 function SsoForm() {
+  const t = useT();
   const params = useSearchParams();
   const [busy, setBusy] = useState(false);
   const error = ERRORS[params.get('error') ?? ''];
@@ -36,7 +38,7 @@ function SsoForm() {
       <form className="form" onSubmit={submit}>
         {error ? <Notice tone="error">{error}</Notice> : null}
         <Field
-          label="Work email"
+          label={t('Work email')}
           name="email"
           type="email"
           autoComplete="email"
@@ -46,7 +48,7 @@ function SsoForm() {
         </button>
       </form>
       <p className="switch">
-        <Link href="/login">Sign in with a password</Link>
+        <Link href="/login">{t('Sign in with a password')}</Link>
       </p>
     </>
   );
@@ -54,10 +56,13 @@ function SsoForm() {
 
 /** Starts sign-in with the organization's identity provider (ADR-058). */
 export default function SsoLoginPage() {
+  const t = useT();
   return (
     <AuthShell
-      title="Single sign-on"
-      intro="Enter your work email and we will send you to your organization's sign-in page."
+      title={t('Single sign-on')}
+      intro={t(
+        "Enter your work email and we will send you to your organization's sign-in page.",
+      )}
     >
       <Suspense>
         <SsoForm />

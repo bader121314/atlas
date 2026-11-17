@@ -174,14 +174,14 @@ select:focus-visible {
 }
 
 .notice {
-  border-left: 4px solid var(--sea);
+  border-inline-start: 4px solid var(--sea);
   background: var(--ok-soft);
   padding: 0.75rem 1rem;
   border-radius: 0 var(--radius-control) var(--radius-control) 0;
   max-width: 40rem;
 }
 .notice.error {
-  border-left-color: var(--danger);
+  border-inline-start-color: var(--danger);
   background: var(--danger-soft);
 }
 .notice p:last-child {
@@ -482,7 +482,7 @@ textarea {
 }
 .history li {
   padding: 0.35rem 0 0.35rem 0.9rem;
-  border-left: 2px solid var(--contour);
+  border-inline-start: 2px solid var(--contour);
 }
 @media (max-width: 860px) {
   .task-layout {
@@ -548,7 +548,7 @@ progress {
 }
 .tasks-table th,
 .tasks-table td {
-  text-align: left;
+  text-align: start;
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
@@ -582,7 +582,7 @@ progress {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
+  border-inline-start: 1px solid var(--line);
   background: var(--surface);
 }
 .calendar-row {
@@ -590,7 +590,7 @@ progress {
 }
 .calendar-weekday,
 .calendar-day {
-  border-right: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   padding: 0.35rem;
 }
@@ -705,7 +705,7 @@ fieldset.plain legend {
 /* Keyboard navigation */
 .skip-link {
   position: absolute;
-  left: var(--space-4);
+  inset-inline-start: var(--space-4);
   top: -3rem;
   z-index: 10;
   background: var(--surface);
@@ -726,7 +726,7 @@ kbd {
   border-bottom-width: 2px;
   border-radius: 4px;
   padding: 0 0.4rem;
-  margin-right: var(--space-1);
+  margin-inline-end: var(--space-1);
   background: var(--surface);
 }
 .shortcut-dialog {
@@ -802,11 +802,11 @@ kbd {
   color: var(--sea-deep);
   text-decoration: underline;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 .rows li.unread {
-  border-left: 3px solid var(--sea);
-  padding-left: var(--space-3);
+  border-inline-start: 3px solid var(--sea);
+  padding-inline-start: var(--space-3);
 }
 
 /* Project numbers */
@@ -837,7 +837,7 @@ kbd {
   align-items: start;
 }
 .numbers-grid caption {
-  text-align: left;
+  text-align: start;
   font-weight: 600;
   padding-bottom: var(--space-2);
 }
@@ -919,7 +919,7 @@ code.secret {
 .timeline td {
   border-bottom: 1px solid var(--line);
   padding: var(--space-2) var(--space-3);
-  text-align: left;
+  text-align: start;
   vertical-align: middle;
 }
 .timeline th[scope='row'] {
@@ -928,8 +928,8 @@ code.secret {
 }
 .timeline td,
 .timeline thead th:last-child {
-  padding-left: 0;
-  padding-right: 0;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
 }
 .timeline-track {
   position: relative;
@@ -938,8 +938,8 @@ code.secret {
 .timeline-week {
   position: absolute;
   top: 0.2rem;
-  padding-left: var(--space-1);
-  border-left: 1px solid var(--line-strong);
+  padding-inline-start: var(--space-1);
+  border-inline-start: 1px solid var(--line-strong);
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--ink-soft);
@@ -949,13 +949,13 @@ code.secret {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-left: 1px solid var(--line);
+  border-inline-start: 1px solid var(--line);
 }
 .timeline-today {
   position: absolute;
   top: -0.5rem;
   bottom: -0.5rem;
-  border-left: 2px solid var(--sea-deep);
+  border-inline-start: 2px solid var(--sea-deep);
 }
 .timeline-bar {
   position: absolute;
@@ -980,14 +980,14 @@ code.secret {
   max-width: 0.9rem;
 }
 .timeline-bar.clipped-start {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-left-style: dashed;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-inline-start-style: dashed;
 }
 .timeline-bar.clipped-end {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right-style: dashed;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  border-inline-end-style: dashed;
 }
 @media (forced-colors: active) {
   .timeline-bar {
@@ -1021,4 +1021,36 @@ code.secret {
 /* Long URLs and tokens in settings wrap instead of widening the page. */
 .section code {
   overflow-wrap: anywhere;
+}
+
+/* Arabic (ADR-063): Arabic system faces, no Latin tracking, more leading. */
+:root:lang(ar) {
+  --serif:
+    'Noto Naskh Arabic', 'Geeza Pro', 'Traditional Arabic', 'Times New Roman',
+    serif;
+  --sans:
+    'Segoe UI', 'Noto Sans Arabic', 'Geeza Pro', Tahoma, system-ui, sans-serif;
+}
+:lang(ar) body {
+  line-height: 1.7;
+}
+:lang(ar) * {
+  letter-spacing: normal;
+}
+/* Codes, keys and URLs stay left-to-right inside Arabic text. */
+:lang(ar) code,
+:lang(ar) kbd,
+:lang(ar) input[type='email'],
+:lang(ar) input[type='url'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.language-switch {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--sea-deep);
+  text-decoration: underline;
+  cursor: pointer;
 }

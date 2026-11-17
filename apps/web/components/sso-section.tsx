@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Connection {
   issuer: string;
@@ -15,6 +16,7 @@ interface Connection {
 
 /** OpenID Connect settings for owners (ADR-058). */
 export function SsoSection({ slug }: { slug: string }) {
+  const t = useT();
   const path = `/organizations/${slug}/sso`;
   const [connection, setConnection] = useState<Connection | null>();
   const [message, setMessage] = useState<{
@@ -49,14 +51,16 @@ export function SsoSection({ slug }: { slug: string }) {
     });
     if (result.data) {
       setConnection(result.data);
-      setMessage({ tone: 'info', text: 'Single sign-on settings saved.' });
+      setMessage({ tone: 'info', text: t('Single sign-on settings saved.') });
       (form.elements.namedItem('ssoSecret') as HTMLInputElement).value = '';
     } else {
       setMessage({
         tone: 'error',
         text: describeFailure(
           result.status,
-          'Settings were not saved. Check the issuer URL, enter the client secret, and verify a domain before enabling.',
+          t(
+            'Settings were not saved. Check the issuer URL, enter the client secret, and verify a domain before enabling.',
+          ),
         ),
       });
     }
@@ -65,19 +69,19 @@ export function SsoSection({ slug }: { slug: string }) {
   async function remove() {
     if (
       !window.confirm(
-        'Remove single sign-on? People sign in with passwords again.',
+        t('Remove single sign-on? People sign in with passwords again.'),
       )
     )
       return;
     await api(path, { method: 'DELETE' });
-    setMessage({ tone: 'info', text: 'Single sign-on removed.' });
+    setMessage({ tone: 'info', text: t('Single sign-on removed.') });
     await load();
   }
 
   if (connection === undefined) return null;
   return (
     <section className="section" aria-labelledby="sso-heading">
-      <h2 id="sso-heading">Single sign-on</h2>
+      <h2 id="sso-heading">{t('Single sign-on')}</h2>
       <p className="muted">
         People with addresses on your verified domains sign in through your
         OpenID Connect provider and join as members. Register this redirect URL
@@ -92,18 +96,18 @@ export function SsoSection({ slug }: { slug: string }) {
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <form className="form" onSubmit={(e) => void save(e)}>
         <div className="field">
-          <label htmlFor="ssoIssuer">Issuer URL</label>
+          <label htmlFor="ssoIssuer">{t('Issuer URL')}</label>
           <input
             id="ssoIssuer"
             name="ssoIssuer"
             type="url"
             required
             defaultValue={connection?.issuer ?? ''}
-            placeholder="https://login.example.com"
+            placeholder={t('https://login.example.com')}
           />
         </div>
         <div className="field">
-          <label htmlFor="ssoClientId">Client ID</label>
+          <label htmlFor="ssoClientId">{t('Client ID')}</label>
           <input
             id="ssoClientId"
             name="ssoClientId"
@@ -130,7 +134,7 @@ export function SsoSection({ slug }: { slug: string }) {
             name="ssoEnabled"
             defaultChecked={connection?.enabled ?? false}
           />
-          Allow single sign-on
+          {t('Allow single sign-on')}
         </label>
         <label className="checks inline">
           <input
@@ -138,11 +142,11 @@ export function SsoSection({ slug }: { slug: string }) {
             name="ssoRequire"
             defaultChecked={connection?.requireSso ?? false}
           />
-          Require it for everyone on our domains except owners
+          {t('Require it for everyone on our domains except owners')}
         </label>
         <div className="actions">
           <button className="button secondary" type="submit">
-            Save
+            {t('Save')}
           </button>
           {connection ? (
             <button
@@ -150,7 +154,7 @@ export function SsoSection({ slug }: { slug: string }) {
               type="button"
               onClick={() => void remove()}
             >
-              Remove single sign-on
+              {t('Remove single sign-on')}
             </button>
           ) : null}
         </div>

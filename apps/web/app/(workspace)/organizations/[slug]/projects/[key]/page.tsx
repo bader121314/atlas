@@ -41,6 +41,7 @@ import type {
   Task,
   WorkflowState,
 } from '../../../../../../lib/api';
+import { useT } from '../../../../../../lib/i18n';
 
 const day = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
@@ -133,6 +134,7 @@ function TaskCard({
 }
 
 export default function ProjectPage() {
+  const t = useT();
   const { slug, key } = useParams<{ slug: string; key: string }>();
   const base = `/organizations/${slug}/projects/${key}`;
   const [project, setProject] = useState<Project>();
@@ -217,10 +219,12 @@ export default function ProjectPage() {
   if (missing) {
     return (
       <>
-        <h1>Project not found</h1>
-        <p>It does not exist, or you do not have access to it.</p>
+        <h1>{t('Project not found')}</h1>
+        <p>{t('It does not exist, or you do not have access to it.')}</p>
         <p>
-          <Link href={`/organizations/${slug}`}>Back to the organization</Link>
+          <Link href={`/organizations/${slug}`}>
+            {t('Back to the organization')}
+          </Link>
         </p>
       </>
     );
@@ -228,7 +232,7 @@ export default function ProjectPage() {
   if (!project) {
     return (
       <p className="muted" role="status">
-        Loading…
+        {t('Loading…')}
       </p>
     );
   }
@@ -250,7 +254,9 @@ export default function ProjectPage() {
       setTasks(await allTasks(base, filters));
       return;
     }
-    setError(describeFailure(result.status, 'The task could not be created.'));
+    setError(
+      describeFailure(result.status, t('The task could not be created.')),
+    );
   }
 
   /**
@@ -289,7 +295,7 @@ export default function ProjectPage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> /{' '}
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link> /{' '}
         {project.key}
       </p>
       <h1>{project.name}</h1>
@@ -297,7 +303,9 @@ export default function ProjectPage() {
       <LiveStatusBadge status={live} />
       {project.status === 'archived' ? (
         <Notice>
-          <p>This project is archived. Tasks can be read but not changed.</p>
+          <p>
+            {t('This project is archived. Tasks can be read but not changed.')}
+          </p>
         </Notice>
       ) : null}
 
@@ -305,11 +313,11 @@ export default function ProjectPage() {
         <form className="inline-form section" onSubmit={addTask}>
           {error ? <Notice tone="error">{error}</Notice> : null}
           <div className="field fill">
-            <label htmlFor="taskTitle">New task</label>
+            <label htmlFor="taskTitle">{t('New task')}</label>
             <input id="taskTitle" name="taskTitle" required maxLength={200} />
           </div>
           <button className="button" type="submit">
-            Add task
+            {t('Add task')}
           </button>
         </form>
       ) : null}
@@ -336,7 +344,7 @@ export default function ProjectPage() {
         }}
       />
 
-      <nav className="tabs" aria-label="Task views">
+      <nav className="tabs" aria-label={t('Task views')}>
         {LAYOUTS.map((option) => (
           <a
             key={option}

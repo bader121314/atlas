@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { PRIORITIES, api, describeFailure, priorityLabel } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Recurrence {
   id: string;
@@ -37,6 +38,7 @@ export function RecurrencesSection({
   base: string;
   canWrite: boolean;
 }) {
+  const t = useT();
   const [items, setItems] = useState<Recurrence[]>([]);
   const [error, setError] = useState('');
 
@@ -70,7 +72,7 @@ export function RecurrencesSection({
         ? ''
         : describeFailure(
             result.status,
-            'The recurring task could not be saved.',
+            t('The recurring task could not be saved.'),
           ),
     );
     if (result.ok) form.reset();
@@ -80,17 +82,17 @@ export function RecurrencesSection({
   if (!canWrite && items.length === 0) return null;
   return (
     <section className="section" aria-labelledby="recurring-heading">
-      <h2 id="recurring-heading">Recurring tasks</h2>
+      <h2 id="recurring-heading">{t('Recurring tasks')}</h2>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {items.length === 0 ? (
-        <p className="muted">Nothing repeats yet.</p>
+        <p className="muted">{t('Nothing repeats yet.')}</p>
       ) : null}
       <ul className="rows">
         {items.map((r) => (
           <li key={r.id}>
             <span className="grow">
               <span className="title">{r.title}</span>
-              {r.enabled ? null : <span className="muted"> (off)</span>}
+              {r.enabled ? null : <span className="muted"> {t('(off)')}</span>}
               <br />
               <span className="muted">
                 {every(r)}, next {when.format(new Date(r.nextRunAt))}
@@ -124,7 +126,7 @@ export function RecurrencesSection({
                       }).then(load);
                   }}
                 >
-                  Delete
+                  {t('Delete')}
                 </button>
               </>
             ) : null}
@@ -134,12 +136,12 @@ export function RecurrencesSection({
       {canWrite ? (
         <form className="form section" onSubmit={create}>
           <div className="field">
-            <label htmlFor="recurTitle">Task title</label>
+            <label htmlFor="recurTitle">{t('Task title')}</label>
             <input id="recurTitle" name="recurTitle" required maxLength={200} />
           </div>
           <div className="inline-form">
             <div className="field">
-              <label htmlFor="recurInterval">Every</label>
+              <label htmlFor="recurInterval">{t('Every')}</label>
               <input
                 id="recurInterval"
                 name="recurInterval"
@@ -151,23 +153,23 @@ export function RecurrencesSection({
               />
             </div>
             <div className="field">
-              <label htmlFor="recurFrequency">Unit</label>
+              <label htmlFor="recurFrequency">{t('Unit')}</label>
               <select
                 id="recurFrequency"
                 name="recurFrequency"
                 defaultValue="weekly"
               >
-                <option value="daily">Days</option>
-                <option value="weekly">Weeks</option>
-                <option value="monthly">Months</option>
+                <option value="daily">{t('Days')}</option>
+                <option value="weekly">{t('Weeks')}</option>
+                <option value="monthly">{t('Months')}</option>
               </select>
             </div>
             <div className="field">
-              <label htmlFor="recurStart">First time</label>
+              <label htmlFor="recurStart">{t('First time')}</label>
               <input id="recurStart" name="recurStart" type="datetime-local" />
             </div>
             <div className="field">
-              <label htmlFor="recurPriority">Priority</label>
+              <label htmlFor="recurPriority">{t('Priority')}</label>
               <select
                 id="recurPriority"
                 name="recurPriority"
@@ -181,7 +183,7 @@ export function RecurrencesSection({
               </select>
             </div>
             <div className="field">
-              <label htmlFor="recurDue">Due after (days)</label>
+              <label htmlFor="recurDue">{t('Due after (days)')}</label>
               <input
                 id="recurDue"
                 name="recurDue"
@@ -192,7 +194,7 @@ export function RecurrencesSection({
             </div>
           </div>
           <button className="button secondary" type="submit">
-            Add recurring task
+            {t('Add recurring task')}
           </button>
         </form>
       ) : null}

@@ -15,6 +15,7 @@ import { api } from '../lib/api';
 import type { Organization, SessionUser } from '../lib/api';
 import type { Shortcut } from '../lib/shortcuts';
 import { ShortcutHint, ShortcutProvider } from './shortcuts';
+import { LanguageSwitch, useT } from '../lib/i18n';
 
 interface Shell {
   user: SessionUser;
@@ -35,6 +36,7 @@ export function useShell(): Shell {
  * the switcher, and sends signed-out visitors to the sign-in page.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<SessionUser>();
@@ -137,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <main className="page">
         <p className="muted" role="status">
-          Loading your workspace…
+          {t('Loading your workspace…')}
         </p>
       </main>
     );
@@ -149,15 +151,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     >
       <ShortcutProvider global={global}>
         <a className="skip-link" href="#main">
-          Skip to content
+          {t('Skip to content')}
         </a>
         <header className="topbar">
           <Link className="wordmark" href="/organizations">
-            Atlas
+            {t('Atlas')}
           </Link>
           {organizations.length > 0 ? (
             <label>
-              <span className="muted">Organization </span>
+              <span className="muted">{t('Organization')} </span>
               <select
                 value={currentSlug ?? ''}
                 onChange={(event) => {
@@ -167,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   );
                 }}
               >
-                <option value="">All organizations</option>
+                <option value="">{t('All organizations')}</option>
                 {organizations.map((org) => (
                   <option key={org.id} value={org.slug}>
                     {org.name}
@@ -178,7 +180,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           <span className="spacer" />
           {currentSlug ? (
-            <Link href={`/organizations/${currentSlug}/search`}>Search</Link>
+            <Link href={`/organizations/${currentSlug}/search`}>
+              {t('Search')}
+            </Link>
           ) : null}
           {currentSlug ? (
             <Link href={`/organizations/${currentSlug}/notifications`}>
@@ -187,7 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="count-badge">
                   {' '}
                   {unread}
-                  <span className="visually-hidden"> unread</span>
+                  <span className="visually-hidden"> {t('unread')}</span>
                 </span>
               ) : null}
             </Link>
@@ -199,8 +203,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={signOut}
           >
-            Sign out
+            {t('Sign out')}
           </button>
+          <LanguageSwitch />
         </header>
         <main className="page" id="main" tabIndex={-1}>
           {children}

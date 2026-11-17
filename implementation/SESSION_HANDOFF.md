@@ -193,7 +193,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     record_tour and print_screenshots, then decoded from the job log.
 27. The owner tried Oracle sign-up (Riyadh, Jeddah) and was rate limited
     after card attempts; a reminder to retry fires in this session.
-28. Remaining M9 items need approval or hosted services: billing (Stripe
+28. Done (PR #80): Arabic interface with right-to-left layout (ADR-063).
+    New text in the web app must use t('...') and get an entry in
+    apps/web/lib/locales/ar.ts (tests/i18n.test.ts enforces it).
+29. Remaining M9 items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo. Everything buildable without approval
     is done; wait for the user's decision before starting these.

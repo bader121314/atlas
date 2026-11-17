@@ -7,8 +7,10 @@ import { useShell } from '../../../../components/app-shell';
 import { Notice } from '../../../../components/form';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
+import { useT } from '../../../../lib/i18n';
 
 function Accept() {
+  const t = useT();
   const token = useSearchParams().get('token') ?? '';
   const router = useRouter();
   const { user, refreshOrganizations } = useShell();
@@ -40,10 +42,12 @@ function Accept() {
 
   return (
     <>
-      <h1>Join an organization</h1>
+      <h1>{t('Join an organization')}</h1>
       <p>
-        You are signed in as <strong>{user.email}</strong>. Invitations only
-        work for the address they were sent to.
+        {t(
+          'You are signed in as {email}. Invitations only work for the address they were sent to.',
+          { email: user.email },
+        )}
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <p>
@@ -57,7 +61,7 @@ function Accept() {
         </button>
       </p>
       <p>
-        <Link href="/organizations">Not now</Link>
+        <Link href="/organizations">{t('Not now')}</Link>
       </p>
     </>
   );

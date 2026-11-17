@@ -6,10 +6,12 @@ import { Suspense, useState } from 'react';
 import { AuthShell } from '../../components/auth-shell';
 import { Notice } from '../../components/form';
 import { api, describeFailure } from '../../lib/api';
+import { useT } from '../../lib/i18n';
 
 // Verification needs a click: link scanners in mail clients often open links
 // automatically, and a GET must never change state.
 function Verify() {
+  const t = useT();
   const token = useSearchParams().get('token') ?? '';
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>(
     'idle',
@@ -30,7 +32,9 @@ function Verify() {
     setError(
       describeFailure(
         result.status,
-        'This link is invalid or has expired. Request a new one from the sign-in page.',
+        t(
+          'This link is invalid or has expired. Request a new one from the sign-in page.',
+        ),
       ),
     );
   }
@@ -39,11 +43,11 @@ function Verify() {
     return (
       <>
         <Notice>
-          <p>Your email is verified.</p>
+          <p>{t('Your email is verified.')}</p>
         </Notice>
         <p className="switch">
           <Link className="button" href="/login">
-            Sign in
+            {t('Sign in')}
           </Link>
         </p>
       </>
@@ -67,8 +71,9 @@ function Verify() {
 }
 
 export default function VerifyEmailPage() {
+  const t = useT();
   return (
-    <AuthShell title="Verify your email">
+    <AuthShell title={t('Verify your email')}>
       <Suspense>
         <Verify />
       </Suspense>

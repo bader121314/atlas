@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Token {
   id: string;
@@ -18,6 +19,7 @@ const day = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
 
 /** Personal API tokens for scripts in this organization (ADR-037). */
 export function ApiTokensSection({ slug }: { slug: string }) {
+  const t = useT();
   const base = `/organizations/${slug}/api-tokens`;
   const [tokens, setTokens] = useState<Token[]>([]);
   const [secret, setSecret] = useState<string>();
@@ -51,7 +53,7 @@ export function ApiTokensSection({ slug }: { slug: string }) {
       form.reset();
     } else {
       setError(
-        describeFailure(result.status, 'The token could not be created.'),
+        describeFailure(result.status, t('The token could not be created.')),
       );
     }
     await load();
@@ -70,11 +72,12 @@ export function ApiTokensSection({ slug }: { slug: string }) {
 
   return (
     <section className="section" aria-labelledby="tokens-heading">
-      <h2 id="tokens-heading">Your API tokens</h2>
+      <h2 id="tokens-heading">{t('Your API tokens')}</h2>
       <p className="muted">
-        For scripts: send <code>Authorization: Bearer &lt;token&gt;</code>. A
-        token can read or change tasks in projects you can open in this
-        organization, and nothing else.
+        {t(
+          'For scripts: send the header {header}. A token can read or change tasks in projects you can open in this organization, and nothing else.',
+          { header: 'Authorization: Bearer <token>' },
+        )}
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {secret ? (
@@ -88,7 +91,7 @@ export function ApiTokensSection({ slug }: { slug: string }) {
             type="button"
             onClick={() => setSecret(undefined)}
           >
-            I have saved it
+            {t('I have saved it')}
           </button>
         </Notice>
       ) : null}
@@ -114,31 +117,31 @@ export function ApiTokensSection({ slug }: { slug: string }) {
               type="button"
               onClick={() => void revoke(token)}
             >
-              Revoke
+              {t('Revoke')}
             </button>
           </li>
         ))}
       </ul>
       <form className="inline-form section" onSubmit={create}>
         <div className="field">
-          <label htmlFor="tokenName">Token name</label>
+          <label htmlFor="tokenName">{t('Token name')}</label>
           <input id="tokenName" name="tokenName" required maxLength={60} />
         </div>
         <div className="field">
-          <label htmlFor="tokenDays">Expires after</label>
+          <label htmlFor="tokenDays">{t('Expires after')}</label>
           <select id="tokenDays" name="tokenDays" defaultValue="90">
-            <option value="7">7 days</option>
-            <option value="30">30 days</option>
-            <option value="90">90 days</option>
-            <option value="365">1 year</option>
+            <option value="7">{t('7 days')}</option>
+            <option value="30">{t('30 days')}</option>
+            <option value="90">{t('90 days')}</option>
+            <option value="365">{t('1 year')}</option>
           </select>
         </div>
         <label className="checks inline">
           <input type="checkbox" name="tokenWrite" />
-          Can change tasks
+          {t('Can change tasks')}
         </label>
         <button className="button secondary" type="submit">
-          Create token
+          {t('Create token')}
         </button>
       </form>
     </section>

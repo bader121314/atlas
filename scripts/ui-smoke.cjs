@@ -516,6 +516,21 @@ const pages = [];
   await shot(pwa, '17-offline');
   await pwa.context().setOffline(false);
 
+  // Arabic, right to left (ADR-063).
+  const arabic = await open(desktop);
+  await arabic.goto(`${BASE}/login`);
+  await arabic.getByRole('button', { name: 'العربية' }).click();
+  await arabic.getByRole('heading', { name: 'تسجيل الدخول' }).waitFor();
+  if ((await arabic.getAttribute('html', 'dir')) !== 'rtl')
+    throw new Error('Arabic pages must be right to left');
+  await arabic.getByLabel('البريد الإلكتروني').fill(aliceEmail);
+  await arabic.getByLabel('كلمة المرور').fill(PASSWORD);
+  await arabic.getByRole('button', { name: 'تسجيل الدخول' }).click();
+  await arabic.getByRole('heading', { name: 'مؤسساتك' }).waitFor();
+  await shot(arabic, '19-arabic');
+  await arabic.getByRole('button', { name: 'English' }).click();
+  await arabic.getByRole('heading', { name: 'Your organizations' }).waitFor();
+
   // Single sign-on for an address no organization has claimed.
   const ssoPage = await open(desktop);
   await ssoPage.goto(`${BASE}/login/sso`);

@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { formatDuration, parseDuration } from '../lib/duration';
 import { Notice } from './form';
+import { useT } from '../lib/i18n';
 
 interface Entry {
   id: string;
@@ -43,6 +44,7 @@ export function TimeSection({
   canManage: boolean;
   estimateMinutes?: number | null;
 }) {
+  const t = useT();
   const [data, setData] = useState<{
     totalMinutes: number;
     entries: Entry[];
@@ -65,7 +67,7 @@ export function TimeSection({
     const values = new FormData(form);
     const minutes = parseDuration(String(values.get('duration') ?? ''));
     if (minutes === undefined) {
-      setError('Enter time like 45m, 1h 30m or 1:30, up to 24 hours.');
+      setError(t('Enter time like 45m, 1h 30m or 1:30, up to 24 hours.'));
       return;
     }
     const note = String(values.get('note') ?? '').trim();
@@ -81,7 +83,9 @@ export function TimeSection({
       setError(
         describeFailure(
           result.status,
-          'The time could not be logged. Days in the future are not allowed.',
+          t(
+            'The time could not be logged. Days in the future are not allowed.',
+          ),
         ),
       );
       return;
@@ -104,7 +108,7 @@ export function TimeSection({
 
   return (
     <section className="section" aria-labelledby="time-heading">
-      <h2 id="time-heading">Time</h2>
+      <h2 id="time-heading">{t('Time')}</h2>
       {!data ? null : (
         <>
           <p>
@@ -139,7 +143,7 @@ export function TimeSection({
                     type="button"
                     onClick={() => void remove(entry)}
                   >
-                    Remove
+                    {t('Remove')}
                   </button>
                 ) : null}
               </li>
@@ -151,17 +155,17 @@ export function TimeSection({
       {canWrite ? (
         <form className="inline-form section" onSubmit={(e) => void log(e)}>
           <div className="field">
-            <label htmlFor="timeDuration">Time spent</label>
+            <label htmlFor="timeDuration">{t('Time spent')}</label>
             <input
               id="timeDuration"
               name="duration"
-              placeholder="1h 30m"
+              placeholder={t('1h 30m')}
               required
               autoComplete="off"
             />
           </div>
           <div className="field">
-            <label htmlFor="timeDay">Day</label>
+            <label htmlFor="timeDay">{t('Day')}</label>
             <input
               id="timeDay"
               name="spentOn"
@@ -172,11 +176,11 @@ export function TimeSection({
             />
           </div>
           <div className="field">
-            <label htmlFor="timeNote">Note (optional)</label>
+            <label htmlFor="timeNote">{t('Note (optional)')}</label>
             <input id="timeNote" name="note" maxLength={500} />
           </div>
           <button className="button secondary" type="submit">
-            Log time
+            {t('Log time')}
           </button>
         </form>
       ) : null}

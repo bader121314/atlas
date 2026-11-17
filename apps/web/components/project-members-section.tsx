@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { Label } from '../lib/api';
 import { Notice } from './form';
+import { useT } from '../lib/i18n';
 
 type Role = 'manager' | 'editor' | 'commenter' | 'viewer';
 
@@ -39,6 +40,7 @@ export function ProjectMembersSection({
   base: string;
   slug: string;
 }) {
+  const t = useT();
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [people, setPeople] = useState<OrganizationMember[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
@@ -82,7 +84,9 @@ export function ProjectMembersSection({
             tone: 'error',
             text: describeFailure(
               result.status,
-              'That change is not allowed. Guests can be at most commenters.',
+              t(
+                'That change is not allowed. Guests can be at most commenters.',
+              ),
             ),
           },
     );
@@ -112,7 +116,7 @@ export function ProjectMembersSection({
         ? { tone: 'info', text: `${member.displayName} was removed.` }
         : {
             tone: 'error',
-            text: describeFailure(result.status, 'Not removed.'),
+            text: describeFailure(result.status, t('Not removed.')),
           },
     );
     await load();
@@ -127,7 +131,7 @@ export function ProjectMembersSection({
 
   return (
     <section className="section" aria-labelledby="project-members-heading">
-      <h2 id="project-members-heading">Project members</h2>
+      <h2 id="project-members-heading">{t('Project members')}</h2>
       <p className="muted">
         Owners and admins manage every project. Add people here to give them a
         role in this project; guests can also be limited to tasks with chosen
@@ -141,10 +145,10 @@ export function ProjectMembersSection({
             <li key={member.userId}>
               <span className="grow">
                 <span className="title">{member.displayName}</span>
-                {guest ? <span className="muted"> (guest)</span> : null}
+                {guest ? <span className="muted"> {t('(guest)')}</span> : null}
                 {guest ? (
                   <fieldset className="checks plain">
-                    <legend>Sees tasks labelled</legend>
+                    <legend>{t('Sees tasks labelled')}</legend>
                     <label>
                       <input
                         type="checkbox"
@@ -162,7 +166,7 @@ export function ProjectMembersSection({
                           )
                         }
                       />
-                      Any label (every task)
+                      {t('Any label (every task)')}
                     </label>
                     {member.labelIds === null
                       ? null
@@ -225,7 +229,7 @@ export function ProjectMembersSection({
                 type="button"
                 onClick={() => void remove(member)}
               >
-                Remove
+                {t('Remove')}
               </button>
             </li>
           );
@@ -234,7 +238,7 @@ export function ProjectMembersSection({
       {candidates.length > 0 ? (
         <form className="inline-form section" onSubmit={(e) => void add(e)}>
           <div className="field">
-            <label htmlFor="projectMemberPerson">Person</label>
+            <label htmlFor="projectMemberPerson">{t('Person')}</label>
             <select id="projectMemberPerson" name="person">
               {candidates.map((p) => (
                 <option key={p.userId} value={p.userId}>
@@ -245,7 +249,7 @@ export function ProjectMembersSection({
             </select>
           </div>
           <div className="field">
-            <label htmlFor="projectMemberRole">Role</label>
+            <label htmlFor="projectMemberRole">{t('Role')}</label>
             <select id="projectMemberRole" name="role" defaultValue="commenter">
               {ROLES.map(([role, label]) => (
                 <option key={role} value={role}>
@@ -255,7 +259,7 @@ export function ProjectMembersSection({
             </select>
           </div>
           <button className="button secondary" type="submit">
-            Add to project
+            {t('Add to project')}
           </button>
         </form>
       ) : null}

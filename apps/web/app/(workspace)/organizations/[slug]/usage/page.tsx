@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
+import { useT } from '../../../../../lib/i18n';
 
 interface Usage {
   members: number;
@@ -36,6 +37,7 @@ function bytes(value: number): string {
 
 /** Organization size and metered usage for owners and admins (ADR-056). */
 export default function UsagePage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const [usage, setUsage] = useState<Usage>();
   const [status, setStatus] = useState<number>();
@@ -50,28 +52,29 @@ export default function UsagePage() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> / Usage
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Usage')}
       </p>
-      <h1>Usage</h1>
+      <h1>{t('Usage')}</h1>
       {status === 403 ? (
-        <p>Only owners and admins can see usage.</p>
+        <p>{t('Only owners and admins can see usage.')}</p>
       ) : !usage ? (
         <p className="muted" role="status">
-          Loading…
+          {t('Loading…')}
         </p>
       ) : (
         <>
           <dl className="usage-facts">
             <div>
-              <dt>Members</dt>
+              <dt>{t('Members')}</dt>
               <dd>{number.format(usage.members)}</dd>
             </div>
             <div>
-              <dt>Guests</dt>
+              <dt>{t('Guests')}</dt>
               <dd>{number.format(usage.guests)}</dd>
             </div>
             <div>
-              <dt>Projects</dt>
+              <dt>{t('Projects')}</dt>
               <dd>
                 {number.format(usage.projects.active)}
                 {usage.projects.archived > 0
@@ -80,37 +83,38 @@ export default function UsagePage() {
               </dd>
             </div>
             <div>
-              <dt>Tasks</dt>
+              <dt>{t('Tasks')}</dt>
               <dd>{number.format(usage.tasks)}</dd>
             </div>
             <div>
-              <dt>File storage</dt>
+              <dt>{t('File storage')}</dt>
               <dd>{bytes(usage.storageBytes)}</dd>
             </div>
           </dl>
           <section className="section" aria-labelledby="metered-heading">
-            <h2 id="metered-heading">By month</h2>
+            <h2 id="metered-heading">{t('By month')}</h2>
             <p className="muted">
-              Requests from API tokens and your identity provider, webhook
-              deliveries and notification emails, counted in UTC months.
+              {t(
+                'Requests from API tokens and your identity provider, webhook deliveries and notification emails, counted in UTC months.',
+              )}
             </p>
             <div
               className="table-wrap"
               tabIndex={0}
               role="region"
-              aria-label="Usage by month"
+              aria-label={t('Usage by month')}
             >
               <table className="tasks-table">
                 <caption className="visually-hidden">
-                  Metered usage for the last six months
+                  {t('Metered usage for the last six months')}
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col">Month</th>
-                    <th scope="col">API requests</th>
-                    <th scope="col">Provisioning requests</th>
-                    <th scope="col">Webhook deliveries</th>
-                    <th scope="col">Notification emails</th>
+                    <th scope="col">{t('Month')}</th>
+                    <th scope="col">{t('API requests')}</th>
+                    <th scope="col">{t('Provisioning requests')}</th>
+                    <th scope="col">{t('Webhook deliveries')}</th>
+                    <th scope="col">{t('Notification emails')}</th>
                   </tr>
                 </thead>
                 <tbody>

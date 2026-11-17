@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { PRIORITIES, api, describeFailure, priorityLabel } from '../lib/api';
 import type { Label, WorkflowState } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Rule {
   id: string;
@@ -32,6 +33,7 @@ export function AutomationsSection({
   states: WorkflowState[];
   labels: Label[];
 }) {
+  const t = useT();
   const [rules, setRules] = useState<Rule[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [trigger, setTrigger] = useState('task.created');
@@ -114,7 +116,7 @@ export function AutomationsSection({
         ? ''
         : describeFailure(
             result.status,
-            'The rule could not be saved. Check its choices.',
+            t('The rule could not be saved. Check its choices.'),
           ),
     );
     if (result.ok) {
@@ -192,15 +194,17 @@ export function AutomationsSection({
 
   return (
     <section className="section" aria-labelledby="automations-heading">
-      <h2 id="automations-heading">Automations</h2>
+      <h2 id="automations-heading">{t('Automations')}</h2>
       {error ? <Notice tone="error">{error}</Notice> : null}
-      {rules.length === 0 ? <p className="muted">No rules yet.</p> : null}
+      {rules.length === 0 ? (
+        <p className="muted">{t('No rules yet.')}</p>
+      ) : null}
       <ul className="rows">
         {rules.map((r) => (
           <li key={r.id}>
             <span className="grow">
               <span className="title">{r.name}</span>
-              {r.enabled ? null : <span className="muted"> (off)</span>}
+              {r.enabled ? null : <span className="muted"> {t('(off)')}</span>}
               <br />
               <span className="muted">{describe(r)}</span>
             </span>
@@ -226,34 +230,36 @@ export function AutomationsSection({
                   }).then(load);
               }}
             >
-              Delete
+              {t('Delete')}
             </button>
           </li>
         ))}
       </ul>
       <form className="form section" id="ruleForm" onSubmit={create}>
         <div className="field">
-          <label htmlFor="ruleName">Rule name</label>
+          <label htmlFor="ruleName">{t('Rule name')}</label>
           <input id="ruleName" name="ruleName" required maxLength={80} />
         </div>
         <div className="inline-form">
           <div className="field">
-            <label htmlFor="ruleTrigger">When</label>
+            <label htmlFor="ruleTrigger">{t('When')}</label>
             <select
               id="ruleTrigger"
               value={trigger}
               onChange={(e) => setTrigger(e.target.value)}
             >
-              <option value="task.created">A task is created</option>
-              <option value="task.state_changed">A task changes status</option>
-              <option value="comment.created">Someone comments</option>
+              <option value="task.created">{t('A task is created')}</option>
+              <option value="task.state_changed">
+                {t('A task changes status')}
+              </option>
+              <option value="comment.created">{t('Someone comments')}</option>
             </select>
           </div>
           {trigger === 'task.state_changed' ? (
             <div className="field">
-              <label htmlFor="ruleToState">To status</label>
+              <label htmlFor="ruleToState">{t('To status')}</label>
               <select id="ruleToState" name="ruleToState">
-                <option value="">Any status</option>
+                <option value="">{t('Any status')}</option>
                 {states.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.label}
@@ -263,9 +269,9 @@ export function AutomationsSection({
             </div>
           ) : null}
           <div className="field">
-            <label htmlFor="rulePriority">Only if priority is</label>
+            <label htmlFor="rulePriority">{t('Only if priority is')}</label>
             <select id="rulePriority" name="rulePriority">
-              <option value="">Any priority</option>
+              <option value="">{t('Any priority')}</option>
               {PRIORITIES.map((p) => (
                 <option key={p} value={p}>
                   {priorityLabel(p)}
@@ -276,19 +282,19 @@ export function AutomationsSection({
         </div>
         <div className="inline-form">
           <div className="field">
-            <label htmlFor="ruleAction">Then</label>
+            <label htmlFor="ruleAction">{t('Then')}</label>
             <select
               id="ruleAction"
               value={action}
               onChange={(e) => setAction(e.target.value)}
             >
-              <option value="set_priority">Set priority</option>
-              <option value="assign">Assign to</option>
+              <option value="set_priority">{t('Set priority')}</option>
+              <option value="assign">{t('Assign to')}</option>
               {labels.length > 0 ? (
-                <option value="add_label">Add label</option>
+                <option value="add_label">{t('Add label')}</option>
               ) : null}
-              <option value="set_state">Move to status</option>
-              <option value="comment">Add a comment</option>
+              <option value="set_state">{t('Move to status')}</option>
+              <option value="comment">{t('Add a comment')}</option>
             </select>
           </div>
           <div className="field fill">
@@ -313,10 +319,10 @@ export function AutomationsSection({
               )
             }
           >
-            Preview matches
+            {t('Preview matches')}
           </button>
           <button className="button" type="submit">
-            Save rule
+            {t('Save rule')}
           </button>
         </div>
       </form>

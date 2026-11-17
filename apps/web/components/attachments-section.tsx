@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice } from './form';
+import { useT } from '../lib/i18n';
 
 interface Attachment {
   id: string;
@@ -45,6 +46,7 @@ export function AttachmentsSection({
   canWrite: boolean;
   canManage: boolean;
 }) {
+  const t = useT();
   const [items, setItems] = useState<Attachment[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{
@@ -148,9 +150,11 @@ export function AttachmentsSection({
 
   return (
     <section className="section" aria-labelledby="attachments-heading">
-      <h2 id="attachments-heading">Attachments</h2>
+      <h2 id="attachments-heading">{t('Attachments')}</h2>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
-      {items.length === 0 ? <p className="muted">No files yet.</p> : null}
+      {items.length === 0 ? (
+        <p className="muted">{t('No files yet.')}</p>
+      ) : null}
       <ul className="rows">
         {items.map((item) => (
           <li key={item.id}>
@@ -180,7 +184,7 @@ export function AttachmentsSection({
                 type="button"
                 onClick={() => void remove(item)}
               >
-                Delete
+                {t('Delete')}
               </button>
             ) : null}
           </li>
@@ -189,7 +193,7 @@ export function AttachmentsSection({
       {canWrite ? (
         <div className="field section">
           <label htmlFor="attachmentFile">
-            Add a file (images, PDF, text or CSV, up to 10 MB)
+            {t('Add a file (images, PDF, text or CSV, up to 10 MB)')}
           </label>
           <input
             id="attachmentFile"

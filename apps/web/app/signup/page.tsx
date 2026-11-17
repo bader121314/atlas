@@ -6,8 +6,10 @@ import type { FormEvent } from 'react';
 import { AuthShell } from '../../components/auth-shell';
 import { Field, Notice, value } from '../../components/form';
 import { api, describeFailure } from '../../lib/api';
+import { useT } from '../../lib/i18n';
 
 export default function SignupPage() {
+  const t = useT();
   const [state, setState] = useState<'idle' | 'busy' | 'sent'>('idle');
   const [error, setError] = useState('');
 
@@ -31,42 +33,52 @@ export default function SignupPage() {
     setState('idle');
     if (result.status === 403) {
       setError(
-        'New accounts are closed on this demo. Sign in with the demo account shown on the sign-in page.',
+        t(
+          'New accounts are closed on this demo. Sign in with the demo account shown on the sign-in page.',
+        ),
       );
       return;
     }
     setError(
       describeFailure(
         result.status,
-        'Check the details: use a valid email and a password of at least 12 characters.',
+        t(
+          'Check the details: use a valid email and a password of at least 12 characters.',
+        ),
       ),
     );
   }
 
   if (state === 'sent') {
     return (
-      <AuthShell title="Check your email">
+      <AuthShell title={t('Check your email')}>
         <Notice>
           <p>
-            If this address can be used, a verification link is on its way. Open
-            it to finish creating your account.
+            {t(
+              'If this address can be used, a verification link is on its way. Open it to finish creating your account.',
+            )}
           </p>
         </Notice>
         <p className="switch">
-          <Link href="/login">Go to sign in</Link>
+          <Link href="/login">{t('Go to sign in')}</Link>
         </p>
       </AuthShell>
     );
   }
 
   return (
-    <AuthShell title="Create your account">
+    <AuthShell title={t('Create your account')}>
       <form className="form" onSubmit={submit} noValidate={false}>
         {error ? <Notice tone="error">{error}</Notice> : null}
-        <Field label="Your name" name="displayName" autoComplete="name" />
-        <Field label="Email" name="email" type="email" autoComplete="email" />
+        <Field label={t('Your name')} name="displayName" autoComplete="name" />
         <Field
-          label="Password"
+          label={t('Email')}
+          name="email"
+          type="email"
+          autoComplete="email"
+        />
+        <Field
+          label={t('Password')}
           name="password"
           type="password"
           autoComplete="new-password"
@@ -78,7 +90,8 @@ export default function SignupPage() {
         </button>
       </form>
       <p className="switch">
-        Already have an account? <Link href="/login">Sign in</Link>
+        {t('Already have an account?')}{' '}
+        <Link href="/login">{t('Sign in')}</Link>
       </p>
     </AuthShell>
   );

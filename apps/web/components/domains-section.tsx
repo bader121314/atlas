@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
+import { useT } from '../lib/i18n';
 
 interface Domain {
   id: string;
@@ -14,6 +15,7 @@ interface Domain {
 
 /** Email domains the organization proves it controls (ADR-057). */
 export function DomainsSection({ slug }: { slug: string }) {
+  const t = useT();
   const base = `/organizations/${slug}/domains`;
   const [domains, setDomains] = useState<Domain[]>([]);
   const [message, setMessage] = useState<{
@@ -41,7 +43,7 @@ export function DomainsSection({ slug }: { slug: string }) {
       form.reset();
       setMessage({
         tone: 'info',
-        text: 'Domain added. Publish the TXT record below, then verify.',
+        text: t('Domain added. Publish the TXT record below, then verify.'),
       });
     } else {
       setMessage({
@@ -81,11 +83,11 @@ export function DomainsSection({ slug }: { slug: string }) {
 
   return (
     <section className="section" aria-labelledby="domains-heading">
-      <h2 id="domains-heading">Verified domains</h2>
+      <h2 id="domains-heading">{t('Verified domains')}</h2>
       <p className="muted">
-        Prove your organization controls an email domain by publishing a DNS TXT
-        record. Once a domain is verified, provisioning only adds people with
-        addresses on your verified domains.
+        {t(
+          'Prove your organization controls an email domain by publishing a DNS TXT record. Once a domain is verified, provisioning only adds people with addresses on your verified domains.',
+        )}
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <ul className="rows">
@@ -100,8 +102,8 @@ export function DomainsSection({ slug }: { slug: string }) {
                 <>
                   <br />
                   <span className="muted">
-                    TXT record <code>{domain.record.name}</code> with value{' '}
-                    <code className="secret">{domain.record.value}</code>
+                    {t('TXT record')} <code>{domain.record.name}</code> with
+                    value <code className="secret">{domain.record.value}</code>
                   </span>
                 </>
               )}
@@ -112,7 +114,7 @@ export function DomainsSection({ slug }: { slug: string }) {
                 type="button"
                 onClick={() => void verify(domain)}
               >
-                Verify
+                {t('Verify')}
               </button>
             )}
             <button
@@ -120,25 +122,25 @@ export function DomainsSection({ slug }: { slug: string }) {
               type="button"
               onClick={() => void remove(domain)}
             >
-              Remove
+              {t('Remove')}
             </button>
           </li>
         ))}
       </ul>
       <form className="inline-form section" onSubmit={(e) => void add(e)}>
         <div className="field">
-          <label htmlFor="domainName">Domain</label>
+          <label htmlFor="domainName">{t('Domain')}</label>
           <input
             id="domainName"
             name="domainName"
-            placeholder="example.com"
+            placeholder={t('example.com')}
             required
             maxLength={253}
             autoComplete="off"
           />
         </div>
         <button className="button secondary" type="submit">
-          Add domain
+          {t('Add domain')}
         </button>
       </form>
     </section>

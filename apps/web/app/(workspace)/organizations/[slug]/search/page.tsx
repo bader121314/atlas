@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../../../../../lib/api';
+import { useT } from '../../../../../lib/i18n';
 
 interface Hit {
   key: string;
@@ -17,6 +18,7 @@ interface Hit {
 }
 
 function SearchResults() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const params = useSearchParams();
@@ -53,8 +55,8 @@ function SearchResults() {
   if (missing) {
     return (
       <>
-        <h1>Organization not found</h1>
-        <p>It does not exist, or you are not a member.</p>
+        <h1>{t('Organization not found')}</h1>
+        <p>{t('It does not exist, or you are not a member.')}</p>
       </>
     );
   }
@@ -62,12 +64,13 @@ function SearchResults() {
   return (
     <>
       <p className="muted">
-        <Link href={`/organizations/${slug}`}>Organization</Link> / Search
+        <Link href={`/organizations/${slug}`}>{t('Organization')}</Link>{' '}
+        {t('/ Search')}
       </p>
-      <h1>Search</h1>
+      <h1>{t('Search')}</h1>
       <form className="inline-form" role="search" onSubmit={submit}>
         <div className="field fill">
-          <label htmlFor="searchQuery">Search tasks and comments</label>
+          <label htmlFor="searchQuery">{t('Search tasks and comments')}</label>
           <input
             id="searchQuery"
             name="q"
@@ -79,13 +82,14 @@ function SearchResults() {
           />
         </div>
         <button className="button" type="submit">
-          Search
+          {t('Search')}
         </button>
       </form>
       {hits === undefined ? (
         <p className="muted">
-          Type words from a title, description or comment, or a task key like
-          NW-12.
+          {t(
+            'Type words from a title, description or comment, or a task key like NW-12.',
+          )}
         </p>
       ) : hits.length === 0 ? (
         <p className="muted" role="status">
