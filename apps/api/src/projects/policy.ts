@@ -16,6 +16,7 @@ export const PROJECT_ACTIONS = [
   'task.read',
   'task.write',
   'task.comment',
+  'task.export',
 ] as const;
 export type ProjectAction = (typeof PROJECT_ACTIONS)[number];
 
@@ -26,6 +27,8 @@ const GRANTS: Record<ProjectAction, readonly ProjectRole[]> = {
   'task.read': ['manager', 'editor', 'commenter', 'viewer'],
   'task.write': ['manager', 'editor'],
   'task.comment': ['manager', 'editor', 'commenter'],
+  // Exports copy every task out of Atlas, so viewers and commenters cannot.
+  'task.export': ['manager', 'editor'],
 };
 
 const RANK: Record<ProjectRole, number> = {

@@ -346,3 +346,16 @@ model Attachment {
   checkedAt DateTime? @map("checked_at") @db.Timestamptz(6)
   @@map("attachments")
 }
+model Export {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  requestedByUserId String @map("requested_by_user_id") @db.Uuid
+  status String @default("queued") @db.VarChar(16)
+  rowCount Int? @map("row_count")
+  storageKey String? @map("storage_key") @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(6)
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(6)
+  @@map("exports")
+}

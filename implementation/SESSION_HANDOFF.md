@@ -131,7 +131,9 @@ whatever is installed; check before designing.
    node:crypto), quarantine until magic-byte and malware checks pass, signed
    downloads; S3 test double in `packages/shared/src/testing` used by
    integration and smoke tests (ADR-034).
-4. Background CSV export of a project's tasks via the worker.
+4. Done (PR #34): background CSV exports with a `task.export` permission,
+   access rechecked by the worker, 24-hour expiry, formula-safe cells
+   (ADR-035).
 5. Carry-overs: trusted-proxy client addresses, request IDs in audit events,
    change password while signed in, multiple assignees, OpenAPI client
    generation and contract tests, mentions.

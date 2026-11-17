@@ -967,6 +967,32 @@ paths:
       responses:
         '204': { description: Deleted }
         '403': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}/exports:
+    get:
+      operationId: listExports
+      security: [{ sessionCookie: [] }]
+      description: "The caller's ten latest exports of this project: { id, status (queued | ready | failed | expired), rowCount, createdAt, expiresAt }. Managers and editors. ADR-035."
+      responses:
+        '200': { description: Exports }
+    post:
+      operationId: requestExport
+      security: [{ sessionCookie: [] }]
+      description: Queues a CSV export of every task; the worker builds it. Managers and editors.
+      responses:
+        '201': { description: The queued export }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: Three exports are already waiting }
+        '503': { description: Storage is not configured }
+  /organizations/{slug}/projects/{key}/exports/{id}/download:
+    get:
+      operationId: downloadExport
+      security: [{ sessionCookie: [] }]
+      description: The requester only, for 24 hours after it is ready.
+      responses:
+        '302': { description: Redirect to a one-minute signed download URL }
+        '404': { description: Unknown, or someone else's export }
+        '409': { description: Not ready yet, or failed }
+        '410': { description: Expired }
 components:
   parameters:
     Slug:

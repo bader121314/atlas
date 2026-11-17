@@ -186,6 +186,17 @@ export class ObjectStore {
     });
   }
 
+  /** Stores an object (used by the worker for generated files). */
+  async put(key: string, body: Uint8Array, contentType: string): Promise<void> {
+    const response = await fetch(this.uploadUrl(key, contentType, 60), {
+      method: 'PUT',
+      headers: { 'content-type': contentType },
+      // A copy with a plain ArrayBuffer, as fetch's body type requires.
+      body: new Uint8Array(body),
+    });
+    if (!response.ok) throw new Error(`storage PUT ${response.status}`);
+  }
+
   /** Size of a stored object, or undefined if it does not exist. */
   async size(key: string): Promise<number | undefined> {
     const response = await fetch(

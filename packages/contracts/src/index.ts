@@ -692,6 +692,18 @@ export const attachmentSchema = z
   .strict();
 export type Attachment = z.infer<typeof attachmentSchema>;
 
+/** A background CSV export of a project's tasks (ADR-035). */
+export const exportSchema = z
+  .object({
+    id: z.uuid(),
+    status: z.enum(['queued', 'ready', 'failed', 'expired']),
+    rowCount: z.number().int().nullable(),
+    createdAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime().nullable(),
+  })
+  .strict();
+export type TaskExport = z.infer<typeof exportSchema>;
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

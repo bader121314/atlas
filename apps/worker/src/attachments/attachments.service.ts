@@ -6,12 +6,16 @@ import type {
 import { Pool } from 'pg';
 import { parseEnvironment } from '@atlas/config';
 import { ObjectStore, storageSettings } from '@atlas/shared';
+import { expireExports, runExports } from '../exports/exporter';
 import { checkBatch, removeAbandoned } from './checker';
 
 const CHECK_MS = 2000;
 const CLEANUP_MS = 10 * 60 * 1000;
 
-/** Runs attachment checks in the worker when storage is configured. */
+/**
+ * Storage jobs in the worker when storage is configured: attachment checks
+ * (ADR-034) and task exports (ADR-035).
+ */
 @Injectable()
 export class AttachmentChecksService
   implements OnApplicationBootstrap, OnApplicationShutdown
@@ -19,7 +23,7 @@ export class AttachmentChecksService
   private readonly logger = new Logger('Attachments');
   private pool: Pool | undefined;
   private timers: ReturnType<typeof setInterval>[] = [];
-  private busy = false;
+  private readonly busy = new Set<string>();
 
   onApplicationBootstrap(): void {
     const settings = storageSettings(process.env);
@@ -30,24 +34,32 @@ export class AttachmentChecksService
       max: 2,
     });
     this.pool = pool;
-    const guarded = (run: () => Promise<unknown>) => async () => {
-      if (this.busy) return;
-      this.busy = true;
+    // One flag per job: a slow job skips its own next turn, never another's.
+    const guarded = (name: string, run: () => Promise<unknown>) => async () => {
+      if (this.busy.has(name)) return;
+      this.busy.add(name);
       try {
         await run();
       } catch {
         this.logger.error('attachment checks failed; retrying');
       } finally {
-        this.busy = false;
+        this.busy.delete(name);
       }
     };
     this.timers.push(
       setInterval(
-        guarded(() => checkBatch(pool, store)),
+        guarded('check', () => checkBatch(pool, store)),
         CHECK_MS,
       ),
       setInterval(
-        guarded(() => removeAbandoned(pool, store)),
+        guarded('export', () => runExports(pool, store)),
+        CHECK_MS,
+      ),
+      setInterval(
+        guarded('cleanup', async () => {
+          await removeAbandoned(pool, store);
+          await expireExports(pool, store);
+        }),
         CLEANUP_MS,
       ),
     );
