@@ -36,6 +36,14 @@ export const verifyEmailRequestSchema = z
   .strict();
 export type VerifyEmailRequest = z.infer<typeof verifyEmailRequestSchema>;
 
+export const changePasswordRequestSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(128),
+    newPassword: password,
+  })
+  .strict();
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
 export const passwordResetRequestSchema = z.object({ email }).strict();
 export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
 

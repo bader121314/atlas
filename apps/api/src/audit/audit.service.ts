@@ -22,6 +22,7 @@ export type AuditAction =
   | 'auth.logout'
   | 'auth.password_reset.requested'
   | 'auth.password_reset.completed'
+  | 'auth.password.changed'
   | 'auth.session.revoked'
   | 'auth.sessions.revoked_others'
   | 'org.created'

@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  changePasswordRequestSchema,
   loginRequestSchema,
   parseRequest,
   passwordResetConfirmSchema,
@@ -159,6 +160,28 @@ export class AuthController {
     ) {
       throw new BadRequestException();
     }
+  }
+
+  @Post('password')
+  @HttpCode(204)
+  @UseGuards(SessionGuard)
+  async changePassword(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    const who = caller(request);
+    await this.limits.consume([
+      { rule: 'passwordChangePerAccount', subject: who.user.id },
+    ]);
+    const input = parse(changePasswordRequestSchema, body);
+    const changed = await this.auth.changePassword(
+      who,
+      input.currentPassword,
+      input.newPassword,
+      requestMeta(request),
+    );
+    // A wrong current password is a validation error, not a sign-out.
+    if (!changed) throw new BadRequestException();
   }
 
   @Post('logout')

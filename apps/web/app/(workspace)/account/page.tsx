@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useShell } from '../../../components/app-shell';
+import { ChangePasswordSection } from '../../../components/change-password';
 import { Notice } from '../../../components/form';
 import { api, describeFailure } from '../../../lib/api';
 
@@ -107,6 +108,7 @@ export default function AccountPage() {
         <span className="muted">{user.email}</span>
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      <ChangePasswordSection onChanged={() => void load()} />
       <section className="section" aria-labelledby="sessions-heading">
         <h2 id="sessions-heading">Where you are signed in</h2>
         <ul className="rows">
