@@ -7,7 +7,9 @@ import type { FormEvent } from 'react';
 import { useShell } from '../../../../../../../../components/app-shell';
 import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
+import { LiveStatusBadge } from '../../../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../../../components/shortcuts';
+import { useProjectEvents } from '../../../../../../../../lib/live';
 import {
   PRIORITIES,
   api,
@@ -176,6 +178,29 @@ export default function TaskPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const [stale, setStale] = useState(false);
+  const showLatest = useCallback(async () => {
+    const fresh = await api<Task>(`${base}/tasks/${number}`);
+    if (fresh.data) setTask(fresh.data);
+    setStale(false);
+    await loadThread();
+  }, [base, number, loadThread]);
+  const live = useProjectEvents(base, {
+    onEvent: (event) => {
+      if (!task || event.taskId !== task.id) return;
+      if (event.actorUserId === user.id) return;
+      // Replacing the form would throw away text being typed: ask instead.
+      const active = document.activeElement;
+      const typing =
+        active instanceof HTMLInputElement ||
+        (active instanceof HTMLTextAreaElement && active.id !== 'comment');
+      if (typing && event.version > task.version) setStale(true);
+      else void showLatest();
+    },
+    onResync: () => void load(),
+    onRevoked: () => setMissing(true),
+  });
 
   if (missing) {
     return (
@@ -351,6 +376,22 @@ export default function TaskPage() {
         <Link href={`/organizations/${slug}`}>Organization</Link> /{' '}
         <Link href={base}>{project.name}</Link> / {task.key}
       </p>
+      <LiveStatusBadge status={live} />
+      {stale ? (
+        <Notice>
+          <p>
+            Someone else changed this task while you were typing. Your text is
+            kept until you choose.
+          </p>
+          <button
+            className="button secondary small"
+            type="button"
+            onClick={() => void showLatest()}
+          >
+            Show the latest version
+          </button>
+        </Notice>
+      ) : null}
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <div className="task-layout section">
         <div>

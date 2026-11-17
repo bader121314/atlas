@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
 import { FieldsSection } from '../../../../../../components/custom-fields';
+import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
+import { useProjectEvents } from '../../../../../../lib/live';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
 import {
   CalendarView,
@@ -183,6 +185,20 @@ export default function ProjectPage() {
     void load();
   }, [load]);
 
+  // Someone else's change arrives as an event; refetch the list once per
+  // burst of events rather than once per event.
+  const refresh = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const live = useProjectEvents(base, {
+    onEvent: () => {
+      clearTimeout(refresh.current);
+      refresh.current = setTimeout(() => {
+        void allTasks(base, filters).then(setTasks);
+      }, 250);
+    },
+    onResync: () => void load(),
+    onRevoked: () => setMissing(true),
+  });
+
   if (missing) {
     return (
       <>
@@ -263,6 +279,7 @@ export default function ProjectPage() {
       </p>
       <h1>{project.name}</h1>
       {project.description ? <p>{project.description}</p> : null}
+      <LiveStatusBadge status={live} />
       {project.status === 'archived' ? (
         <Notice>
           <p>This project is archived. Tasks can be read but not changed.</p>

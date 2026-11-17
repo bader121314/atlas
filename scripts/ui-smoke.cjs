@@ -296,6 +296,17 @@ const pages = [];
   await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
   await alice.getByRole('table', { name: /\d{4}/ }).waitFor();
   await shot(alice, '11f-calendar');
+  // Live updates: a second signed-in tab sees a new task without reloading.
+  const watcher = await open(desktop);
+  await signIn(watcher, aliceEmail, `/organizations/${slug}/projects/COAST`);
+  await watcher.getByText('Live: changes by others appear here').waitFor();
+  await alice.getByLabel('New task').fill('Raise the flag');
+  await alice.getByRole('button', { name: 'Add task' }).click();
+  await watcher
+    .getByRole('link', { name: /Raise the flag/ })
+    .waitFor({ timeout: 15000 });
+  await shot(watcher, '11i-live-update');
+  await watcher.close();
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 
