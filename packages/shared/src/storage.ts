@@ -191,7 +191,8 @@ export class ObjectStore {
     const response = await fetch(this.uploadUrl(key, contentType, 60), {
       method: 'PUT',
       headers: { 'content-type': contentType },
-      body,
+      // A copy with a plain ArrayBuffer, as fetch's body type requires.
+      body: new Uint8Array(body),
     });
     if (!response.ok) throw new Error(`storage PUT ${response.status}`);
   }
