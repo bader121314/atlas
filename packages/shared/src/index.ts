@@ -37,6 +37,7 @@ export {
 } from './webhooks';
 export type { WebhookEvent, WebhookSettings } from './webhooks';
 export {
+  loggedPath,
   requestIdFrom,
   requestLogging,
   trustProxySetting,

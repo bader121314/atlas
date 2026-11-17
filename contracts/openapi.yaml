@@ -1175,6 +1175,37 @@ paths:
       responses:
         '200': { description: '{ from, to, everyone, totalMinutes, rows[] }' }
         '400': { description: Invalid range }
+  /organizations/{slug}/projects/{key}/share-links:
+    get:
+      summary: Live public links for a project (managers; ADR-050)
+      responses:
+        '200':
+          {
+            description: 'Links: id, prefix, createdBy, createdAt, expiresAt, lastUsedAt. Never the token.',
+          }
+    post:
+      summary: Create a public read-only link (managers)
+      description: 'Body: { expiresInDays? (1-90, default 30) }. The token is returned once.'
+      responses:
+        '201': { description: '{ link, token }' }
+        '409': { description: Project already has 10 live links }
+  /organizations/{slug}/projects/{key}/share-links/{id}:
+    delete:
+      summary: Revoke a public link (managers)
+      responses:
+        '204': { description: Revoked }
+  /public/shares/{token}:
+    get:
+      summary: A shared project's task list, without signing in (ADR-050)
+      description: 'Titles, statuses, priorities and due dates only. Rate limited per IP. Any invalid, expired or revoked token is 404.'
+      security: []
+      responses:
+        '200':
+          {
+            description: '{ project: { key, name }, tasks[], truncated, expiresAt }',
+          }
+        '404': { description: Link does not work }
+        '429': { description: Too many requests }
   /organizations/{slug}/workload:
     get:
       operationId: getWorkload

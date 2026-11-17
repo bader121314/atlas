@@ -19,6 +19,11 @@ import { ApiTokensService } from '../tokens/api-tokens.service';
 import { WebhooksController } from '../webhooks/webhooks.controller';
 import { TaskTimeController, TimeReportController } from './time.controller';
 import { TimeService } from './time.service';
+import {
+  PublicSharesController,
+  ShareLinksController,
+} from '../shares/shares.controller';
+import { SharesService } from '../shares/shares.service';
 import { WorkloadController } from '../workload/workload.controller';
 import { WorkloadService } from '../workload/workload.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -85,6 +90,8 @@ import { ViewsService } from './views.service';
     WorkloadController,
     TaskTimeController,
     TimeReportController,
+    ShareLinksController,
+    PublicSharesController,
   ],
   providers: [
     ProjectsService,
@@ -113,6 +120,7 @@ import { ViewsService } from './views.service';
     RecurrencesService,
     WorkloadService,
     TimeService,
+    SharesService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })

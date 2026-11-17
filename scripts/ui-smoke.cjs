@@ -388,6 +388,19 @@ const pages = [];
     throw new Error(`export download failed: ${csv.status()}`);
   }
   await shot(alice, '11l-export');
+  // A public read-only link, opened by someone who is not signed in.
+  await alice.getByRole('button', { name: 'Create public link' }).click();
+  const shareUrl = (
+    await alice.locator('code.secret', { hasText: '/share/ats_' }).innerText()
+  ).trim();
+  const visitor = await open(desktop);
+  await visitor.goto(shareUrl);
+  await visitor
+    .getByRole('heading', { name: 'COAST Coastal survey' })
+    .waitFor();
+  await visitor.getByText(/COAST-1 Chart the harbour/).waitFor();
+  await shot(visitor, '11m-public-link');
+  await alice.getByRole('button', { name: 'I have copied it' }).click();
   await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();

@@ -155,8 +155,9 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
    (ADR-048).
 4. Done (PR #56): time tracking with task entries and a time report
    (ADR-049).
-5. Next M9 items, each with an ADR, threat model and acceptance gates:
-   public read-only share links with strict data fences.
+5. Done (PR #57): public read-only share links with strict data fences
+   (ADR-050).
+6. Next: M9 exit report (docs/20), then pick M10 scope from the roadmap.
 
 ## Environment and versions
 

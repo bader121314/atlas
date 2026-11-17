@@ -42,6 +42,17 @@ interface LogResponse {
 }
 
 /**
+ * The path as logged: no query string, and secrets that travel in the path
+ * (public share tokens, ADR-050) replaced by a placeholder.
+ */
+export function loggedPath(url: string): string {
+  return (url.split('?')[0] ?? '').replace(
+    /\/public\/shares\/[^/]+/,
+    '/public/shares/:token',
+  );
+}
+
+/**
  * Express middleware: assigns the request id (echoed as `X-Request-Id`) and
  * writes one JSON line per request with method, path without its query,
  * status, duration and user id. Query strings and bodies are never logged.
@@ -68,7 +79,7 @@ export function requestLogging(
             msg: 'request',
             requestId,
             method: request.method,
-            path: (request.originalUrl ?? request.url ?? '').split('?')[0],
+            path: loggedPath(request.originalUrl ?? request.url ?? ''),
             status: response.statusCode,
             durationMs:
               Number((process.hrtime.bigint() - started) / 1000n) / 1000,

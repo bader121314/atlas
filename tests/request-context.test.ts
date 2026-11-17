@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  loggedPath,
   requestIdFrom,
   requestLogging,
   trustProxySetting,
@@ -64,5 +65,16 @@ describe('request ids', () => {
       userId: 'u1',
     });
     expect(lines[0]).not.toContain('secret-value');
+  });
+});
+
+describe('logged paths', () => {
+  it('drops query strings and hides share tokens', () => {
+    expect(loggedPath('/v1/organizations/acme?x=1')).toBe(
+      '/v1/organizations/acme',
+    );
+    expect(loggedPath(`/v1/public/shares/ats_${'a'.repeat(43)}?utm=1`)).toBe(
+      '/v1/public/shares/:token',
+    );
   });
 });

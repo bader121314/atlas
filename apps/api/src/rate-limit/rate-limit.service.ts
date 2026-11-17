@@ -29,6 +29,8 @@ export const DEFAULT_RATE_LIMITS = {
   orgCreatePerAccount: { limit: 10, windowSeconds: 60 * 60 },
   invitePerAccount: { limit: 50, windowSeconds: 60 * 60 },
   acceptInvitePerIp: { limit: 30, windowSeconds: 15 * 60 },
+  // Public share links (ADR-050): generous for reading, slow for guessing.
+  sharePerIp: { limit: 120, windowSeconds: 60 },
 } satisfies Record<string, RateLimitRule>;
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 
