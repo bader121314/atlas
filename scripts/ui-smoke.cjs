@@ -480,6 +480,22 @@ const pages = [];
   const cookies = await alice.context().cookies();
   const session = cookies.find((c) => c.name.includes('atlas_session'));
   const { spawnSync } = require('node:child_process');
+  // Installable app (ADR-053): a manifest, and an offline page once the
+  // service worker is running. Nothing but that page is served offline.
+  const pwa = await open(desktop);
+  const manifest = await pwa.request.get(`${BASE}/manifest.webmanifest`);
+  if (!manifest.ok() || (await manifest.json()).name !== 'Atlas') {
+    throw new Error(`manifest missing: ${manifest.status()}`);
+  }
+  await pwa.goto(`${BASE}/login`);
+  await pwa.evaluate(() => navigator.serviceWorker.ready);
+  await pwa.reload();
+  await pwa.context().setOffline(true);
+  await pwa.goto(`${BASE}/organizations`).catch(() => undefined);
+  await pwa.getByRole('heading', { name: 'You are offline' }).waitFor();
+  await shot(pwa, '17-offline');
+  await pwa.context().setOffline(false);
+
   const load = spawnSync(
     process.execPath,
     [

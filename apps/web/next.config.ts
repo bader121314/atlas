@@ -63,6 +63,17 @@ const config: NextConfig = {
         ],
       },
       {
+        // The service worker must always be revalidated so fixes ship at once.
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache' },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+        ],
+      },
+      {
         // Public share links carry their token in the path (ADR-050): never
         // leak it through Referer, and keep the pages out of search engines.
         source: '/share/:path*',
