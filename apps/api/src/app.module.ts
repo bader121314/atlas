@@ -14,6 +14,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { ScimModule } from './scim/scim.module';
 import { UsageModule } from './usage/usage.module';
 import { DomainsModule } from './domains/domains.module';
+import { SsoModule } from './sso/sso.module';
 @Controller('health')
 export class HealthController {
   @Get('ready') async ready(): Promise<Health> {
@@ -32,6 +33,7 @@ export class HealthController {
   imports: [
     UsageModule,
     DomainsModule,
+    SsoModule,
     AuthModule,
     OrganizationsModule,
     ProjectsModule,

@@ -52,7 +52,10 @@ export type AuditAction =
   | 'scim_token.revoked'
   | 'org.domain.added'
   | 'org.domain.verified'
-  | 'org.domain.removed';
+  | 'org.domain.removed'
+  | 'org.sso.updated'
+  | 'org.sso.removed'
+  | 'auth.sso.failed';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {

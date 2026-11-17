@@ -1290,6 +1290,44 @@ export const organizationDomainSchema = z
   .strict();
 export type OrganizationDomain = z.infer<typeof organizationDomainSchema>;
 
+/** An organization's OpenID Connect sign-in settings (ADR-058). */
+export const ssoConnectionRequestSchema = z
+  .object({
+    issuer: z
+      .url({ protocol: /^https?$/ })
+      .max(500)
+      .transform((u) => u.replace(/\/+$/, '')),
+    clientId: z.string().trim().min(1).max(255),
+    /** Omit to keep the stored secret. */
+    clientSecret: z.string().min(1).max(500).optional(),
+    enabled: z.boolean(),
+    requireSso: z.boolean(),
+  })
+  .strict()
+  .refine((c) => c.enabled || !c.requireSso, 'Requiring SSO needs it enabled');
+
+export const ssoConnectionSchema = z
+  .object({
+    issuer: z.string(),
+    clientId: z.string(),
+    enabled: z.boolean(),
+    requireSso: z.boolean(),
+    redirectUri: z.string(),
+    updatedAt: z.iso.datetime(),
+  })
+  .strict();
+export type SsoConnection = z.infer<typeof ssoConnectionSchema>;
+
+export const ssoStartQuerySchema = z
+  .object({ email: z.string().trim().toLowerCase().max(320).pipe(z.email()) })
+  .strict();
+
+export const ssoCallbackQuerySchema = z.looseObject({
+  state: z.string().min(16).max(200),
+  code: z.string().min(1).max(2000).optional(),
+  error: z.string().max(200).optional(),
+});
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

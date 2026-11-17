@@ -510,6 +510,14 @@ const pages = [];
   await shot(pwa, '17-offline');
   await pwa.context().setOffline(false);
 
+  // Single sign-on for an address no organization has claimed.
+  const ssoPage = await open(desktop);
+  await ssoPage.goto(`${BASE}/login/sso`);
+  await ssoPage.getByLabel('Work email').fill('someone@unclaimed.example');
+  await ssoPage.getByRole('button', { name: 'Continue' }).click();
+  await ssoPage.getByText('Single sign-on is not set up').waitFor();
+  await shot(ssoPage, '18-sso-unavailable');
+
   const load = spawnSync(
     process.execPath,
     [

@@ -28,6 +28,12 @@ function LoginForm() {
       return;
     }
     setBusy(false);
+    if (result.status === 403) {
+      setError(
+        'Your organization requires single sign-on. Use "Sign in with single sign-on" below.',
+      );
+      return;
+    }
     setError(
       describeFailure(
         result.status,
@@ -53,6 +59,9 @@ function LoginForm() {
       </form>
       <p className="switch">
         <Link href="/forgot-password">Forgot your password?</Link>
+      </p>
+      <p>
+        <Link href="/login/sso">Sign in with single sign-on</Link>
       </p>
       <p>
         New to Atlas? <Link href="/signup">Create an account</Link>

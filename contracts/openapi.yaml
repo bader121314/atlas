@@ -110,6 +110,8 @@ paths:
           description: Signed in. Sets the HttpOnly session cookie.
           headers:
             Set-Cookie: { schema: { type: string } }
+        '403':
+          description: Correct password, but the organization that verified this email domain requires single sign-on (ADR-058).
         '400': { $ref: '#/components/responses/Problem' }
         '401':
           description: Unknown email, wrong password, unverified or disabled account; indistinguishable by design.
@@ -1332,6 +1334,40 @@ paths:
       security: [{ sessionCookie: [] }]
       responses:
         '204': { description: Removed }
+  /organizations/{slug}/sso:
+    get:
+      operationId: getSso
+      security: [{ sessionCookie: [] }]
+      description: 'OpenID Connect settings without the secret. Owners only. ADR-058.'
+      responses:
+        '200': { description: '{ issuer, clientId, enabled, requireSso, redirectUri, updatedAt }' }
+        '404': { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: putSso
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { issuer, clientId, clientSecret? (kept when omitted), enabled, requireSso }. Enabling needs a verified domain; the issuer discovery document is checked.'
+      responses:
+        '200': { description: Settings }
+        '400': { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: deleteSso
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Removed }
+  /auth/sso/start:
+    get:
+      operationId: startSso
+      security: []
+      description: '?email=. 302 to the provider for the organization that verified the domain, or to /login/sso?error=unavailable.'
+      responses:
+        '302': { description: Redirect }
+  /auth/sso/callback:
+    get:
+      operationId: ssoCallback
+      security: []
+      description: '?state=&code=. On success sets the session cookie and redirects to the organization; otherwise to /login/sso?error=failed|suspended|unavailable.'
+      responses:
+        '302': { description: Redirect }
 components:
   parameters:
     Slug:

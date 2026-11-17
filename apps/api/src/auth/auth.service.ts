@@ -23,7 +23,9 @@ const VERIFICATION_TTL = '24 hours';
 const PASSWORD_RESET_TTL = '1 hour';
 const LAST_SEEN_RESOLUTION = '5 minutes';
 
-export type LoginResult = { ok: true; token: string } | { ok: false };
+export type LoginResult =
+  | { ok: true; token: string }
+  | { ok: false; ssoRequired?: true };
 
 @Injectable()
 export class AuthService {
@@ -195,6 +197,15 @@ export class AuthService {
         : user.status !== 'active'
           ? 'account_inactive'
           : undefined;
+    if (!reason && (await this.ssoRequired(input.email, user.id))) {
+      await this.audit.record({
+        action: 'auth.login.failed',
+        target: { type: 'user', id: user.id },
+        metadata: { reason: 'sso_required' },
+        request,
+      });
+      return { ok: false, ssoRequired: true };
+    }
     if (reason) {
       await this.audit.record({
         action: 'auth.login.failed',
@@ -204,13 +215,45 @@ export class AuthService {
       });
       return { ok: false };
     }
+    return {
+      ok: true,
+      token: await this.issueSession(user.id, request, 'password'),
+    };
+  }
+
+  /**
+   * Whether an organization that verified this email's domain requires
+   * single sign-on (ADR-058). Its owners keep password access so a broken
+   * identity provider cannot lock everyone out.
+   */
+  private async ssoRequired(email: string, userId: string): Promise<boolean> {
+    const result = await this.database.pool.query(
+      `SELECT 1 FROM sso_connections c
+       JOIN organization_domains d
+         ON d.organization_id = c.organization_id AND d.verified_at IS NOT NULL
+       JOIN organizations o ON o.id = c.organization_id AND o.status = 'active'
+       WHERE d.domain = $1 AND c.require_sso
+         AND NOT EXISTS (SELECT 1 FROM organization_memberships m
+           WHERE m.organization_id = c.organization_id AND m.user_id = $2
+             AND m.role = 'owner' AND m.state = 'active')`,
+      [email.split('@')[1] ?? '', userId],
+    );
+    return Boolean(result.rowCount);
+  }
+
+  /** Starts a session for a signed-in account. */
+  async issueSession(
+    userId: string,
+    request: RequestMeta,
+    method: 'password' | 'sso',
+  ): Promise<string> {
     const token = generateToken();
     const session = await this.database.pool.query<{ id: string }>(
       `INSERT INTO sessions (user_id, token_hash, expires_at, user_agent_summary)
        VALUES ($1, $2, now() + make_interval(secs => $3), $4)
        RETURNING id`,
       [
-        user.id,
+        userId,
         this.digest(token),
         SESSION_TTL_SECONDS,
         request.userAgent?.slice(0, 256) ?? null,
@@ -220,12 +263,13 @@ export class AuthService {
     if (sessionId) {
       await this.audit.record({
         action: 'auth.login.succeeded',
-        actorUserId: user.id,
+        actorUserId: userId,
         target: { type: 'session', id: sessionId },
+        metadata: { method },
         request,
       });
     }
-    return { ok: true, token };
+    return token;
   }
 
   /** Resolves a live session; revoked, expired or disabled ones are rejected. */
