@@ -17,9 +17,7 @@ WORKDIR /app
 FROM base AS build
 # The web server's proxy target is fixed when Next.js builds its routes.
 ARG API_ORIGIN=http://127.0.0.1:3001
-# Storage origin browsers upload to, for the content security policy.
-ARG STORAGE_PUBLIC_ORIGIN=
-ENV API_ORIGIN=$API_ORIGIN STORAGE_PUBLIC_ORIGIN=$STORAGE_PUBLIC_ORIGIN
+ENV API_ORIGIN=$API_ORIGIN
 COPY . .
 RUN pnpm install --frozen-lockfile && pnpm build
 
@@ -53,6 +51,10 @@ HEALTHCHECK --interval=15s --timeout=3s CMD node -e "fetch('http://127.0.0.1:300
 CMD ["node", "apps/worker/dist/main.js"]
 
 FROM runtime AS web
+# Storage origin browsers upload to, for the content security policy. Read
+# per request (ADR-064), so it can also be set when the container starts.
+ARG STORAGE_PUBLIC_ORIGIN=
+ENV STORAGE_PUBLIC_ORIGIN=$STORAGE_PUBLIC_ORIGIN
 WORKDIR /app/apps/web
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s CMD node -e "fetch('http://127.0.0.1:3000/health/live').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"

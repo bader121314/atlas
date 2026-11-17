@@ -118,6 +118,8 @@ async function signIn(page, email, next) {
 }
 
 const pages = [];
+// Anything the content security policy blocks fails the run (ADR-064).
+const blocked = [];
 
 (async () => {
   const browser = await chromium.launch();
@@ -126,6 +128,10 @@ const pages = [];
   const open = async (options) => {
     const page = await browser.newPage(options);
     pages.push(page);
+    page.on('console', (message) => {
+      if (/Content Security Policy/i.test(message.text()))
+        blocked.push(`${page.url()}: ${message.text()}`);
+    });
     return page;
   };
   const alice = await open(desktop);
@@ -144,6 +150,17 @@ const pages = [];
     if (!csp.includes(rule))
       throw new Error(`content security policy lacks ${rule}`);
   }
+  // Scripts run only with this response's nonce (ADR-064).
+  const scriptSrc = /script-src ([^;]*)/.exec(csp)?.[1] ?? '';
+  const nonce = /'nonce-([^']+)'/.exec(scriptSrc)?.[1];
+  if (!nonce || scriptSrc.includes('unsafe-inline'))
+    throw new Error(`scripts are not limited by a nonce: ${scriptSrc}`);
+  const again = await alice.request.get(`${BASE}/login`);
+  if ((again.headers()['content-security-policy'] ?? '').includes(nonce))
+    throw new Error('the nonce did not change between responses');
+  const html = await page.text();
+  if (!html.includes(`nonce="${nonce}"`))
+    throw new Error('page scripts do not carry the nonce');
   await alice.goto(`${BASE}/login`);
   await shot(alice, '01-login');
   await alice.goto(`${BASE}/signup`);
@@ -568,6 +585,8 @@ const pages = [];
     );
     process.exit(1);
   }
+  if (blocked.length > 0)
+    throw new Error(`content security policy blocked: ${blocked[0]}`);
   console.log('UI smoke test passed, no serious accessibility violations');
 })().catch(async (error) => {
   console.error(error);
