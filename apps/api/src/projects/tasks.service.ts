@@ -29,6 +29,7 @@ interface TaskRow {
   description: string;
   priority: Task['priority'];
   start_at: Date | null;
+  estimate_minutes: number | null;
   due_at: Date | null;
   completed_at: Date | null;
   version: string;
@@ -50,7 +51,7 @@ interface TaskRow {
 }
 
 const TASK_SELECT = `
-  SELECT t.id, t.number, t.title, t.description, t.priority, t.start_at, t.due_at,
+  SELECT t.id, t.number, t.title, t.description, t.priority, t.start_at, t.estimate_minutes, t.due_at,
     t.completed_at, t.version, t.created_at, t.updated_at,
     s.id AS state_id, s.key AS state_key, s.label AS state_label,
     s.category AS state_category, s.position AS state_position,
@@ -100,6 +101,7 @@ function toTask(row: TaskRow, projectKey: string): Task {
         ? { userId: row.assignee_user_id, displayName: row.assignee_name }
         : null,
     startAt: row.start_at?.toISOString() ?? null,
+    estimateMinutes: row.estimate_minutes,
     dueAt: row.due_at?.toISOString() ?? null,
     completedAt: row.completed_at?.toISOString() ?? null,
     parent:
@@ -152,6 +154,11 @@ function diff(before: TaskRow, after: TaskRow): Changes {
       after.assignees.map((a) => a.displayName).join(', ') || null,
     ],
     ['startAt', iso(before.start_at), iso(after.start_at)],
+    [
+      'estimate',
+      before.estimate_minutes === null ? null : String(before.estimate_minutes),
+      after.estimate_minutes === null ? null : String(after.estimate_minutes),
+    ],
     ['dueAt', iso(before.due_at), iso(after.due_at)],
     [
       'parent',
@@ -300,9 +307,10 @@ export class TasksService {
         .query(
           `INSERT INTO tasks (organization_id, project_id, number, title,
            description, state_id, priority, assignee_user_id, due_at,
-           completed_at, created_by_user_id, parent_task_id, milestone_id, start_at)
+           completed_at, created_by_user_id, parent_task_id, milestone_id, start_at,
+           estimate_minutes)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-           CASE WHEN $10 THEN now() END, $11, $12, $13, $14)`,
+           CASE WHEN $10 THEN now() END, $11, $12, $13, $14, $15)`,
           [
             tenant.organizationId,
             project.id,
@@ -318,6 +326,7 @@ export class TasksService {
             parentId,
             input.milestoneId,
             input.startAt,
+            input.estimateMinutes,
           ],
         )
         .catch(rejectInvalidParent);
@@ -399,6 +408,7 @@ export class TasksService {
            parent_task_id = CASE WHEN $13 THEN $14::uuid ELSE parent_task_id END,
            milestone_id = CASE WHEN $15 THEN $16::uuid ELSE milestone_id END,
            start_at = CASE WHEN $17 THEN $18::timestamptz ELSE start_at END,
+           estimate_minutes = CASE WHEN $19 THEN $20::integer ELSE estimate_minutes END,
            completed_at = CASE
              WHEN $12 THEN COALESCE(completed_at, now())
              ELSE NULL END,
@@ -424,6 +434,8 @@ export class TasksService {
             input.milestoneId ?? null,
             input.startAt !== undefined,
             input.startAt ?? null,
+            input.estimateMinutes !== undefined,
+            input.estimateMinutes ?? null,
           ],
         )
         .catch(rejectInvalidParent);

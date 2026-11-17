@@ -9,6 +9,10 @@ import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
 import { AttachmentsSection } from '../../../../../../../../components/attachments-section';
 import { TimeSection } from '../../../../../../../../components/time-section';
+import {
+  formatDuration,
+  parseDuration,
+} from '../../../../../../../../lib/duration';
 import { LiveStatusBadge } from '../../../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../../../lib/live';
@@ -87,6 +91,10 @@ function describe(entry: Activity, names: Map<string, string>): string {
           return to
             ? `set the due date to ${new Date(to).toLocaleDateString()}`
             : 'cleared the due date';
+        if (field === 'estimate')
+          return to
+            ? `set the estimate to ${formatDuration(Number(to))}`
+            : 'cleared the estimate';
         if (field === 'startAt')
           return to
             ? `set the start date to ${new Date(to).toLocaleDateString()}`
@@ -726,6 +734,34 @@ export default function TaskPage() {
                 ))}
             </fieldset>
           ) : null}
+          <div className="field">
+            <label htmlFor="estimate">Estimate</label>
+            <input
+              id="estimate"
+              disabled={!canWrite}
+              placeholder="e.g. 4h"
+              autoComplete="off"
+              defaultValue={
+                task.estimateMinutes === null
+                  ? ''
+                  : formatDuration(task.estimateMinutes)
+              }
+              key={`${task.version}-estimate`}
+              onBlur={(event) => {
+                const text = event.target.value.trim();
+                const minutes = text === '' ? null : parseDuration(text, 60000);
+                if (minutes === undefined) {
+                  setMessage({
+                    tone: 'error',
+                    text: 'Enter an estimate like 45m, 4h or 2h 30m, up to 1000 hours.',
+                  });
+                  return;
+                }
+                if (minutes === task.estimateMinutes) return;
+                void save({ estimateMinutes: minutes }, 'Estimate changed.');
+              }}
+            />
+          </div>
           <div className="field">
             <label htmlFor="start">Start date</label>
             <input

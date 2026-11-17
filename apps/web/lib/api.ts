@@ -99,6 +99,7 @@ export interface Task {
   assignee: { userId: string; displayName: string } | null;
   assignees: { userId: string; displayName: string }[];
   startAt: string | null;
+  estimateMinutes: number | null;
   dueAt: string | null;
   completedAt: string | null;
   parent: { number: number; key: string } | null;

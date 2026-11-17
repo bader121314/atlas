@@ -1,8 +1,9 @@
 /**
  * Reads what people type for time spent: "90" (minutes), "45m", "2h",
- * "1h 30m", "1.5h" or "1:30". Returns minutes, or undefined if unreadable.
+ * "1h 30m", "1.5h" or "1:30". Returns minutes, or undefined if unreadable
+ * or above `max` (a day by default).
  */
-export function parseDuration(text: string): number | undefined {
+export function parseDuration(text: string, max = 1440): number | undefined {
   const value = text.trim().toLowerCase();
   if (value === '') return undefined;
   let minutes: number;
@@ -13,7 +14,7 @@ export function parseDuration(text: string): number | undefined {
   else if (parts && (parts[1] || parts[2]))
     minutes = Math.round(Number(parts[1] ?? 0) * 60) + Number(parts[2] ?? 0);
   else return undefined;
-  return minutes >= 1 && minutes <= 1440 ? minutes : undefined;
+  return minutes >= 1 && minutes <= max ? minutes : undefined;
 }
 
 /** 0 → "0m", 45 → "45m", 120 → "2h", 135 → "2h 15m". */

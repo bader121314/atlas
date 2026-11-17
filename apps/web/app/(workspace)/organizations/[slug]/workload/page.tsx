@@ -2,14 +2,21 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { api } from '../../../../../lib/api';
+import { useCallback, useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useShell } from '../../../../../components/app-shell';
+import { Notice } from '../../../../../components/form';
+import { api, describeFailure } from '../../../../../lib/api';
+import type { Organization } from '../../../../../lib/api';
+import { formatDuration, parseDuration } from '../../../../../lib/duration';
 
 interface Person {
   userId: string;
   displayName: string;
   overdue: number;
   weeks: number[];
+  weekMinutes: number[];
+  capacityMinutes: number | null;
   later: number;
   noDueDate: number;
   total: number;
@@ -36,15 +43,62 @@ export default function WorkloadPage() {
     people: Person[];
   }>();
   const [status, setStatus] = useState<number>();
+  const [role, setRole] = useState<Organization['role']>();
+  const [members, setMembers] = useState<
+    { userId: string; displayName: string }[]
+  >([]);
+  const [message, setMessage] = useState<{
+    tone: 'info' | 'error';
+    text: string;
+  }>();
+  const { user } = useShell();
+  const admin = role === 'owner' || role === 'admin';
+
+  const load = useCallback(async () => {
+    const r = await api<{ weekStarts: string[]; people: Person[] }>(
+      `/organizations/${slug}/workload?weeks=6`,
+    );
+    setStatus(r.status);
+    setData(r.data);
+  }, [slug]);
 
   useEffect(() => {
-    void api<{ weekStarts: string[]; people: Person[] }>(
-      `/organizations/${slug}/workload?weeks=6`,
-    ).then((r) => {
-      setStatus(r.status);
-      setData(r.data);
-    });
-  }, [slug]);
+    void load();
+    void api<Organization>(`/organizations/${slug}`).then((r) =>
+      setRole(r.data?.role),
+    );
+    void api<{ members: { userId: string; displayName: string }[] }>(
+      `/organizations/${slug}/members`,
+    ).then((r) => setMembers(r.data?.members ?? []));
+  }, [slug, load]);
+
+  async function saveCapacity(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const values = new FormData(event.currentTarget);
+    const person = String(values.get('person') ?? user.id);
+    const text = String(values.get('hours') ?? '').trim();
+    const minutes = text === '' ? null : parseDuration(text, 10080);
+    if (minutes === undefined) {
+      setMessage({
+        tone: 'error',
+        text: 'Enter hours per week like 30h or 37h 30m, or leave it empty to clear it.',
+      });
+      return;
+    }
+    const result = await api(
+      `/organizations/${slug}/workload/capacity/${person}`,
+      { method: 'PUT', body: { weeklyMinutes: minutes } },
+    );
+    setMessage(
+      result.ok
+        ? { tone: 'info', text: 'Capacity saved.' }
+        : {
+            tone: 'error',
+            text: describeFailure(result.status, 'Capacity was not saved.'),
+          },
+    );
+    await load();
+  }
 
   return (
     <>
@@ -54,8 +108,11 @@ export default function WorkloadPage() {
       <h1>Workload</h1>
       <p className="muted">
         Open tasks assigned to each person, by the week they are due, across the
-        projects you can open.
+        projects you can open. Where tasks have estimates, each week also shows
+        the estimated hours against the person&apos;s weekly capacity; a task
+        with several assignees counts a share for each.
       </p>
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       {status === 403 ? (
         <p>Guests cannot see the team&apos;s workload.</p>
       ) : !data ? (
@@ -63,7 +120,9 @@ export default function WorkloadPage() {
           Loading…
         </p>
       ) : data.people.length === 0 ? (
-        <p className="muted">Nobody has open assigned tasks.</p>
+        <p className="muted">
+          Nobody has open assigned tasks or a capacity yet.
+        </p>
       ) : (
         <div className="table-wrap">
           <table className="tasks-table workload">
@@ -87,15 +146,40 @@ export default function WorkloadPage() {
             <tbody>
               {data.people.map((p) => (
                 <tr key={p.userId}>
-                  <th scope="row">{p.displayName}</th>
+                  <th scope="row">
+                    {p.displayName}
+                    <br />
+                    <span className="muted">
+                      {p.capacityMinutes === null
+                        ? 'No capacity set'
+                        : `${formatDuration(p.capacityMinutes)} a week`}
+                    </span>
+                  </th>
                   <td className={p.overdue > 0 ? 'load-over' : 'load-0'}>
                     {p.overdue}
                   </td>
-                  {p.weeks.map((count, i) => (
-                    <td key={data.weekStarts[i]} className={level(count)}>
-                      {count}
-                    </td>
-                  ))}
+                  {p.weeks.map((count, i) => {
+                    const minutes = p.weekMinutes[i] ?? 0;
+                    const over =
+                      p.capacityMinutes !== null && minutes > p.capacityMinutes;
+                    return (
+                      <td
+                        key={data.weekStarts[i]}
+                        className={over ? 'load-over' : level(count)}
+                      >
+                        {count}
+                        {minutes > 0 ? (
+                          <span className="load-hours">
+                            {formatDuration(minutes)}
+                            {p.capacityMinutes === null
+                              ? ''
+                              : ` of ${formatDuration(p.capacityMinutes)}`}
+                            {over ? ', over capacity' : ''}
+                          </span>
+                        ) : null}
+                      </td>
+                    );
+                  })}
                   <td>{p.later}</td>
                   <td>{p.noDueDate}</td>
                   <td>
@@ -107,6 +191,45 @@ export default function WorkloadPage() {
           </table>
         </div>
       )}
+      {status === 200 ? (
+        <section className="section" aria-labelledby="capacity-heading">
+          <h2 id="capacity-heading">Weekly capacity</h2>
+          <form className="inline-form" onSubmit={(e) => void saveCapacity(e)}>
+            {admin ? (
+              <div className="field">
+                <label htmlFor="capacityPerson">Person</label>
+                <select
+                  id="capacityPerson"
+                  name="person"
+                  defaultValue={user.id}
+                >
+                  {members.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.displayName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <input type="hidden" name="person" value={user.id} />
+            )}
+            <div className="field">
+              <label htmlFor="capacityHours">
+                {admin ? 'Hours per week' : 'Your hours per week'}
+              </label>
+              <input
+                id="capacityHours"
+                name="hours"
+                placeholder="e.g. 30h"
+                autoComplete="off"
+              />
+            </div>
+            <button className="button secondary" type="submit">
+              Save capacity
+            </button>
+          </form>
+        </section>
+      ) : null}
     </>
   );
 }

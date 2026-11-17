@@ -265,6 +265,9 @@ const pages = [];
   await alice.getByText('Due date changed.').waitFor();
   await alice.getByLabel('Start date').fill(day(0));
   await alice.getByText('Start date changed.').waitFor();
+  await alice.getByLabel('Estimate').fill('4h');
+  await alice.getByLabel('Estimate').press('Tab');
+  await alice.getByText('Estimate changed.').waitFor();
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice
@@ -418,6 +421,13 @@ const pages = [];
   await alice.goto(`${BASE}/organizations/${slug}/audit`);
   await alice.getByText('share_link.created').waitFor();
   await shot(alice, '11n-audit-log');
+  // Workload with an estimate against a weekly capacity.
+  await alice.goto(`${BASE}/organizations/${slug}/workload`);
+  await alice.getByLabel('Hours per week').fill('30h');
+  await alice.getByRole('button', { name: 'Save capacity' }).click();
+  await alice.getByText('Capacity saved.').waitFor();
+  await alice.getByText('30h a week').waitFor();
+  await shot(alice, '11p-workload');
   await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();

@@ -886,6 +886,11 @@ code.secret {
   background: var(--load-3);
   font-weight: 600;
 }
+.workload .load-hours {
+  display: block;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
 .workload .load-over {
   background: var(--danger-soft);
   color: var(--danger);
