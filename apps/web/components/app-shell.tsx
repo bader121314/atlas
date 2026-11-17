@@ -7,11 +7,14 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
 import type { Organization, SessionUser } from '../lib/api';
+import type { Shortcut } from '../lib/shortcuts';
+import { ShortcutHint, ShortcutProvider } from './shortcuts';
 
 interface Shell {
   user: SessionUser;
@@ -36,6 +39,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [user, setUser] = useState<SessionUser>();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+
+  const global = useMemo<Shortcut[]>(
+    () => [
+      {
+        keys: 'g o',
+        description: 'Go to your organizations',
+        run: () => router.push('/organizations'),
+      },
+      {
+        keys: 'g a',
+        description: 'Go to your account',
+        run: () => router.push('/account'),
+      },
+    ],
+    [router],
+  );
 
   const refreshOrganizations = useCallback(async () => {
     const result = await api<{ organizations: Organization[] }>(
@@ -86,40 +105,50 @@ export function AppShell({ children }: { children: ReactNode }) {
     <ShellContext.Provider
       value={{ user, organizations, refreshOrganizations }}
     >
-      <header className="topbar">
-        <Link className="wordmark" href="/organizations">
-          Atlas
-        </Link>
-        {organizations.length > 0 ? (
-          <label>
-            <span className="muted">Organization </span>
-            <select
-              value={currentSlug ?? ''}
-              onChange={(event) => {
-                const slug = event.target.value;
-                router.push(slug ? `/organizations/${slug}` : '/organizations');
-              }}
-            >
-              <option value="">All organizations</option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.slug}>
-                  {org.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-        <span className="spacer" />
-        <Link href="/account">{user.displayName}</Link>
-        <button
-          className="button secondary small"
-          type="button"
-          onClick={signOut}
-        >
-          Sign out
-        </button>
-      </header>
-      <main className="page">{children}</main>
+      <ShortcutProvider global={global}>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <header className="topbar">
+          <Link className="wordmark" href="/organizations">
+            Atlas
+          </Link>
+          {organizations.length > 0 ? (
+            <label>
+              <span className="muted">Organization </span>
+              <select
+                value={currentSlug ?? ''}
+                onChange={(event) => {
+                  const slug = event.target.value;
+                  router.push(
+                    slug ? `/organizations/${slug}` : '/organizations',
+                  );
+                }}
+              >
+                <option value="">All organizations</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.slug}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <span className="spacer" />
+          <ShortcutHint />
+          <Link href="/account">{user.displayName}</Link>
+          <button
+            className="button secondary small"
+            type="button"
+            onClick={signOut}
+          >
+            Sign out
+          </button>
+        </header>
+        <main className="page" id="main" tabIndex={-1}>
+          {children}
+        </main>
+      </ShortcutProvider>
     </ShellContext.Provider>
   );
 }

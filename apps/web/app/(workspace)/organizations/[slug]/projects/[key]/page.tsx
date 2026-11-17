@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Notice, value } from '../../../../../../components/form';
 import { FieldsSection } from '../../../../../../components/custom-fields';
+import { useShortcuts } from '../../../../../../components/shortcuts';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
 import {
   CalendarView,
@@ -132,6 +133,28 @@ export default function ProjectPage() {
   const [error, setError] = useState('');
   const [moveError, setMoveError] = useState('');
   const [dropTarget, setDropTarget] = useState<string>();
+
+  const shortcuts = useMemo(
+    () => [
+      {
+        keys: 'n',
+        description: 'Write a new task',
+        run: () => document.getElementById('taskTitle')?.focus(),
+      },
+      {
+        keys: 'f',
+        description: 'Filter by status',
+        run: () => document.getElementById('filter-state')?.focus(),
+      },
+      ...LAYOUTS.map((layout) => ({
+        keys: layout.charAt(0),
+        description: `Show the ${layout} view`,
+        run: () => setView(layout),
+      })),
+    ],
+    [],
+  );
+  useShortcuts('project', shortcuts);
 
   const load = useCallback(async () => {
     const result = await api<Project>(base);

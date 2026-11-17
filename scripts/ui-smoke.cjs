@@ -268,6 +268,30 @@ const pages = [];
   await alice.getByRole('link', { name: 'Table', exact: true }).click();
   await alice.getByRole('cell', { name: 'North' }).waitFor();
   await shot(alice, '11g-custom-field');
+  // Keyboard only: the shortcut list, a new task, switching views.
+  await alice.keyboard.press('?');
+  await alice.getByRole('dialog', { name: 'Keyboard shortcuts' }).waitFor();
+  await shot(alice, '11h-shortcuts');
+  await alice.keyboard.press('Escape');
+  await alice.getByRole('dialog').waitFor({ state: 'hidden' });
+  await alice.keyboard.press('b');
+  await alice.getByRole('region', { name: 'In review' }).waitFor();
+  await alice.keyboard.press('n');
+  await alice.keyboard.type('Check the buoys');
+  await alice.keyboard.press('Enter');
+  await alice.getByRole('link', { name: /Check the buoys/ }).waitFor();
+  await alice.keyboard.press('t');
+  await alice.getByRole('cell', { name: 'Check the buoys' }).waitFor();
+  // The first Tab on a page reaches the skip link.
+  await alice.reload();
+  await alice.getByRole('heading', { name: 'Coastal survey' }).waitFor();
+  await alice.keyboard.press('Tab');
+  const focused = await alice.evaluate(
+    () => document.activeElement?.textContent,
+  );
+  if (focused !== 'Skip to content') {
+    throw new Error(`first Tab focused ${JSON.stringify(focused)}`);
+  }
   await alice.getByRole('link', { name: 'Calendar', exact: true }).click();
   await alice.getByRole('table', { name: /\d{4}/ }).waitFor();
   await shot(alice, '11f-calendar');
