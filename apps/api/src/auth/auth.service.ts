@@ -23,9 +23,16 @@ const VERIFICATION_TTL = '24 hours';
 const PASSWORD_RESET_TTL = '1 hour';
 const LAST_SEEN_RESOLUTION = '5 minutes';
 
-export type LoginResult =
-  | { ok: true; token: string }
-  | { ok: false; ssoRequired?: true };
+interface LoginSuccess {
+  ok: true;
+  token: string;
+}
+interface LoginFailure {
+  ok: false;
+  /** The password was right but SSO is required (ADR-058). */
+  ssoRequired?: true;
+}
+export type LoginResult = LoginSuccess | LoginFailure;
 
 @Injectable()
 export class AuthService {
