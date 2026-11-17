@@ -81,7 +81,7 @@ export function DomainsSection({ slug }: { slug: string }) {
 
   return (
     <section className="section" aria-labelledby="domains-heading">
-      <h2 id="domains-heading">Email domains</h2>
+      <h2 id="domains-heading">Verified domains</h2>
       <p className="muted">
         Prove your organization controls an email domain by publishing a DNS TXT
         record. Once a domain is verified, provisioning only adds people with

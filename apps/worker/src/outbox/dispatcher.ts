@@ -102,8 +102,10 @@ export async function dispatchBatch(
       }
     }
     if (published.length > 0) {
+      // One timestamp per batch: replay orders by it, then by occurrence, so
+      // events in a batch replay in the order they happened.
       await client.query(
-        `UPDATE outbox_events SET published_at = clock_timestamp(),
+        `UPDATE outbox_events SET published_at = now(),
            attempt_count = attempt_count + 1, next_attempt_at = NULL
          WHERE id = ANY($1::uuid[])`,
         [published],
