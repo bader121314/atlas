@@ -776,3 +776,32 @@ kbd {
   color: var(--sea-deep);
   margin: 0 0 var(--space-3);
 }
+
+/* Notifications */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.count-badge {
+  font-weight: 600;
+  color: var(--danger);
+}
+.link-button {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--sea-deep);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+.rows li.unread {
+  border-left: 3px solid var(--sea);
+  padding-left: var(--space-3);
+}

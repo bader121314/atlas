@@ -877,6 +877,40 @@ paths:
       security: [{ sessionCookie: [] }]
       responses:
         '204': { description: The caller is no longer shown }
+  /organizations/{slug}/notifications:
+    get:
+      operationId: listNotifications
+      security: [{ sessionCookie: [] }]
+      description: "The caller's latest 50 notifications in this organization, newest first; ?unread=true for unread only. Each is { id, kind (task.assigned | comment.created), actor, task { key, projectKey, number, title }, createdAt, readAt }. Notifications about projects the caller can no longer read are hidden. ADR-031."
+      responses:
+        '200': { description: Notifications }
+        '404': { $ref: '#/components/responses/NotFoundOrNotMember' }
+  /organizations/{slug}/notifications/unread-count:
+    get:
+      operationId: countUnreadNotifications
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: '{ count }' }
+  /organizations/{slug}/notifications/read:
+    post:
+      operationId: markNotificationsRead
+      security: [{ sessionCookie: [] }]
+      description: "Body: { ids: [uuid] (1-100) } or { all: true }. Ids that are not the caller's are ignored."
+      responses:
+        '204': { description: Marked read }
+        '400': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/notification-settings:
+    get:
+      operationId: getNotificationSettings
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: '{ email: boolean } (default true)' }
+    put:
+      operationId: updateNotificationSettings
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { email: boolean }.'
+      responses:
+        '200': { description: The saved settings }
 components:
   parameters:
     Slug:

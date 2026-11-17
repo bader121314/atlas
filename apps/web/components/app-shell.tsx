@@ -48,6 +48,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         run: () => router.push('/organizations'),
       },
       {
+        keys: 'g n',
+        description: 'Go to notifications in this organization',
+        run: () => {
+          const slug = window.location.pathname.split('/')[2];
+          if (window.location.pathname.startsWith('/organizations/') && slug)
+            router.push(`/organizations/${slug}/notifications`);
+        },
+      },
+      {
         keys: 'g a',
         description: 'Go to your account',
         run: () => router.push('/account'),
@@ -82,6 +91,31 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [pathname, refreshOrganizations, router]);
 
+  const currentSlug = pathname.startsWith('/organizations/')
+    ? pathname.split('/')[2]
+    : undefined;
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (!currentSlug || !user) return;
+    let active = true;
+    const check = async () => {
+      const result = await api<{ count: number }>(
+        `/organizations/${currentSlug}/notifications/unread-count`,
+      );
+      if (active) setUnread(result.data?.count ?? 0);
+    };
+    void check();
+    const timer = setInterval(() => void check(), 60_000);
+    window.addEventListener('focus', check);
+    window.addEventListener('atlas:notifications', check);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', check);
+      window.removeEventListener('atlas:notifications', check);
+    };
+  }, [currentSlug, user, pathname]);
+
   async function signOut() {
     await api('/auth/logout', { method: 'POST' });
     router.replace('/login');
@@ -96,10 +130,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
     );
   }
-
-  const currentSlug = pathname.startsWith('/organizations/')
-    ? pathname.split('/')[2]
-    : undefined;
 
   return (
     <ShellContext.Provider
@@ -135,6 +165,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             </label>
           ) : null}
           <span className="spacer" />
+          {currentSlug ? (
+            <Link href={`/organizations/${currentSlug}/notifications`}>
+              Notifications
+              {unread > 0 ? (
+                <span className="count-badge">
+                  {' '}
+                  {unread}
+                  <span className="visually-hidden"> unread</span>
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
           <ShortcutHint />
           <Link href="/account">{user.displayName}</Link>
           <button

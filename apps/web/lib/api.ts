@@ -106,6 +106,15 @@ export interface Task {
   version: number;
 }
 
+export interface AppNotification {
+  id: string;
+  kind: 'task.assigned' | 'comment.created';
+  actor: string | null;
+  task: { key: string; projectKey: string; number: number; title: string };
+  createdAt: string;
+  readAt: string | null;
+}
+
 export interface CustomField {
   id: string;
   name: string;

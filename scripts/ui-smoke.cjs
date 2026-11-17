@@ -55,6 +55,21 @@ function latestToken(email, linkPath) {
   throw new Error(`no ${linkPath} token for ${email}`);
 }
 
+async function waitForMail(email, pattern) {
+  const log = process.env.WORKER_LOG ?? 'worker.log';
+  for (let i = 0; i < 100; i += 1) {
+    const text = fs.existsSync(log) ? fs.readFileSync(log, 'utf8') : '';
+    if (
+      text
+        .split('To: ')
+        .some((block) => block.startsWith(email) && pattern.test(block))
+    )
+      return;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error(`no email to ${email} matching ${pattern}`);
+}
+
 async function waitForToken(email, linkPath) {
   for (let i = 0; i < 50; i += 1) {
     try {
@@ -307,6 +322,21 @@ const pages = [];
     .waitFor({ timeout: 15000 });
   await shot(watcher, '11i-live-update');
   await watcher.close();
+  // Notifications: Alice assigns a task to Bob; Bob sees it in his inbox and
+  // the worker emails it (the smoke job sets no email delay).
+  await alice.goto(`${BASE}/organizations/${slug}/projects/COAST/tasks/5`);
+  await alice.getByLabel('Assignee').selectOption({ label: 'Bob Haddad' });
+  await alice.getByText('Assignee changed.').waitFor();
+  // The worker's notifier runs every second.
+  await alice.waitForTimeout(2500);
+  await bob.goto(`${BASE}/organizations/${slug}`);
+  await bob.getByRole('link', { name: /Notifications/ }).click();
+  await bob
+    .getByRole('button', { name: 'Alice Rahman assigned COAST-5 to you' })
+    .waitFor({ timeout: 15000 });
+  await shot(bob, '11j-notifications');
+  await waitForMail(bobEmail, /was assigned to you: Raise the flag/);
+  await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 

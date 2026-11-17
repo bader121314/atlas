@@ -301,7 +301,12 @@ export class TasksService {
         taskId: row.id,
         actorUserId: userId,
         action: 'task.created',
-        changes: { number, state: row.state_key, priority: row.priority },
+        changes: {
+          number,
+          state: row.state_key,
+          priority: row.priority,
+          ...(row.assignee_user_id ? { assignee: row.assignee_user_id } : {}),
+        },
         aggregateVersion: 1,
       });
       return toTask(row, project.key);

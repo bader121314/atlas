@@ -120,14 +120,18 @@ export async function dispatchBatch(
   }
 }
 
-/** Deletes published events older than the replay window. */
+/**
+ * Deletes published events older than the replay window, once the notifier
+ * has handled them.
+ */
 export async function prunePublished(
   pool: Pool,
   olderThanHours: number,
 ): Promise<number> {
   const result = await pool.query(
     `DELETE FROM outbox_events
-     WHERE published_at < now() - ($1 * interval '1 hour')`,
+     WHERE published_at < now() - ($1 * interval '1 hour')
+       AND notified_at IS NOT NULL`,
     [olderThanHours],
   );
   return result.rowCount ?? 0;
