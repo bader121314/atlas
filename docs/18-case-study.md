@@ -35,6 +35,11 @@ done. The scope came from a product and architecture specification
 | Uploads quarantined until magic bytes and a scan pass, always downloaded as attachments | Uploaded files can never run as pages on our origins                                      | ADR-034          |
 | Webhooks resolve DNS and pin the checked address                                        | Closes SSRF including DNS rebinding                                                       | ADR-036          |
 | Rules carry a depth and ignore their own changes                                        | Two rules that undo each other stop after three steps                                     | ADR-038          |
+| Public links built from their own narrow query, never by filtering a task response      | New task fields cannot leak through a share link by default                               | ADR-050          |
+| SCIM changes membership only, never account profiles, and never owners or admins        | One organization's directory cannot reach accounts it shares with others                  | ADR-055          |
+| SSO routed by DNS-verified domains, with owners exempt from "require SSO"               | Sign-in follows proven control, and a broken provider cannot lock everyone out            | ADR-057, ADR-058 |
+| Guest label scopes as one SQL predicate on every task read path                         | An attribute rule that a single forgotten query cannot bypass, with a test for each path  | ADR-059          |
+| Web push encryption and VAPID on `node:crypto`                                          | Standard push without a dependency; payloads never carry comment text                     | ADR-060          |
 
 ## Problems found, and how
 
@@ -54,20 +59,25 @@ done. The scope came from a product and architecture specification
 - **Accessibility regressions** (a calendar announced as an interactive grid,
   ambiguous labels) were caught by the axe audit added to the browser test
   in M3, not by review.
+- **A flaky replay order.** Live-update replay sometimes returned two events
+  in the wrong order. The dispatcher stamped each event of a batch with its
+  own clock time while updating them in arbitrary order. Fix: one publish
+  time per batch, then order by occurrence.
 
 ## Results
 
-- 48 merged pull requests across eight milestones, each with CI green on
+- 75 merged pull requests across nine milestones, each with CI green on
   five workflows: checks and tests, browser test, image builds, Terraform
   validation and the release drill.
-- 187 unit and 134 integration tests; a browser test across three screen
+- 228 unit and 157 integration tests; a browser test across three screen
   sizes with an accessibility audit and a load baseline (p95 19 ms at 747
   requests per second on a CI machine).
-- 44 architecture decision records and seven exit reports, each listing
-  what was deferred and why.
+- 61 architecture decision records, seven exit reports and an M9 progress
+  report, each listing what was deferred and why.
 
 ## What I would do next
 
 Deploy staging and repeat the release drill there; replace the malware
 scanner stub; move S3 signing to role credentials; nonce-based content
-security policy; multiple assignees and mentions.
+security policy; billing on top of usage metering once a payment provider
+is chosen.
