@@ -141,8 +141,11 @@ export class SsoService {
       return 'invalid-issuer';
     }
     return this.database.transaction(async (client) => {
-      const existing = await client.query<{ client_secret_sealed: string }>(
-        'SELECT client_secret_sealed FROM sso_connections WHERE organization_id = $1 FOR UPDATE',
+      const existing = await client.query<{
+        client_secret_sealed: string;
+        require_sso: boolean;
+      }>(
+        'SELECT client_secret_sealed, require_sso FROM sso_connections WHERE organization_id = $1 FOR UPDATE',
         [tenant.organizationId],
       );
       const sealed = input.clientSecret
@@ -171,6 +174,24 @@ export class SsoService {
       );
       const row = saved.rows[0];
       if (!row) throw new Error('sso upsert returned no row');
+      // Turning the requirement on signs out everyone it now applies to, so
+      // existing password sessions do not outlive it (owners exempt).
+      let signedOut = 0;
+      if (input.requireSso && !existing.rows[0]?.require_sso) {
+        const revoked = await client.query(
+          `UPDATE sessions s SET revoked_at = now()
+           FROM users u
+           JOIN organization_domains d
+             ON d.organization_id = $1 AND d.verified_at IS NOT NULL
+            AND d.domain = split_part(u.email_normalized, '@', 2)
+           WHERE s.user_id = u.id AND s.revoked_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM organization_memberships m
+               WHERE m.organization_id = $1 AND m.user_id = u.id
+                 AND m.role = 'owner' AND m.state = 'active')`,
+          [tenant.organizationId],
+        );
+        signedOut = revoked.rowCount ?? 0;
+      }
       await this.audit.record(
         {
           action: 'org.sso.updated',
@@ -181,6 +202,7 @@ export class SsoService {
             enabled: input.enabled,
             requireSso: input.requireSso,
             secretChanged: Boolean(input.clientSecret),
+            sessionsEnded: signedOut,
           },
           request,
         },

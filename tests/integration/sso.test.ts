@@ -254,19 +254,19 @@ describe('single sign-on', () => {
     await fx.api.request('POST', '/verify-email', {
       body: { token: fx.api.mailer.token(email, '/verify-email') },
     });
-    expect(
-      (
-        await fx.api.request('POST', '/login', {
-          body: { email, password: PASSWORD },
-        })
-      ).status,
-    ).toBe(204);
+    const saraCookie = await fx.api.login(email);
+    const session = (cookie: string) =>
+      fx.api.api('GET', '/auth/session', { cookie });
+    expect((await session(saraCookie)).status).toBe(200);
 
     expect((await settings({ requireSso: true })).status).toBe(400); // no secret stored yet
     expect(
       (await settings({ clientSecret: 'provider-secret', requireSso: true }))
         .status,
     ).toBe(200);
+    // Existing sessions on the domain end; the owner's do not.
+    expect((await session(saraCookie)).status).toBe(401);
+    expect((await session(owner.cookie)).status).toBe(200);
     expect(
       (
         await fx.api.request('POST', '/login', {
