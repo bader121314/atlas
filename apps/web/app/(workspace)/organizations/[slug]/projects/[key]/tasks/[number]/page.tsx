@@ -13,6 +13,7 @@ import {
   priorityLabel,
 } from '../../../../../../../../lib/api';
 import type {
+  Label,
   Project,
   Task,
   WorkflowState,
@@ -90,6 +91,7 @@ export default function TaskPage() {
   const [missing, setMissing] = useState(false);
   const [states, setStates] = useState<WorkflowState[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [labels, setLabels] = useState<Label[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [history, setHistory] = useState<Activity[]>([]);
   const [message, setMessage] = useState<{
@@ -107,11 +109,12 @@ export default function TaskPage() {
   }, [base, number]);
 
   const load = useCallback(async () => {
-    const [p, t, s, m] = await Promise.all([
+    const [p, t, s, m, l] = await Promise.all([
       api<Project>(base),
       api<Task>(`${base}/tasks/${number}`),
       api<WorkflowState[]>(`${base}/states`),
       api<{ members: Member[] }>(`/organizations/${slug}/members`),
+      api<Label[]>(`/organizations/${slug}/labels`),
     ]);
     if (!p.data || !t.data) {
       setMissing(true);
@@ -121,6 +124,7 @@ export default function TaskPage() {
     setTask(t.data);
     setStates(s.data ?? []);
     setMembers(m.data?.members ?? []);
+    setLabels(l.data ?? []);
     await loadThread();
   }, [base, number, slug, loadThread]);
 
@@ -179,6 +183,26 @@ export default function TaskPage() {
       tone: 'error',
       text: describeFailure(result.status, 'The change could not be saved.'),
     });
+  }
+
+  async function toggleLabel(label: Label, checked: boolean) {
+    if (!task) return;
+    const ids = new Set(task.labels.map((l) => l.id));
+    if (checked) ids.add(label.id);
+    else ids.delete(label.id);
+    const result = await api<Task>(`${base}/tasks/${number}/labels`, {
+      method: 'PUT',
+      body: { labelIds: [...ids] },
+    });
+    if (result.data) {
+      setTask(result.data);
+      await loadThread();
+    } else {
+      setMessage({
+        tone: 'error',
+        text: describeFailure(result.status, 'Labels could not be changed.'),
+      });
+    }
   }
 
   async function saveText(event: FormEvent<HTMLFormElement>) {
@@ -419,6 +443,55 @@ export default function TaskPage() {
                   'Due date changed.',
                 )
               }
+            />
+          </div>
+          {labels.length > 0 ? (
+            <fieldset
+              className="checks"
+              style={{ border: 0, padding: 0, margin: 0 }}
+            >
+              <legend style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
+                Labels
+              </legend>
+              {labels.map((label) => (
+                <label key={label.id}>
+                  <input
+                    type="checkbox"
+                    disabled={!canWrite}
+                    checked={task.labels.some((l) => l.id === label.id)}
+                    onChange={(event) =>
+                      void toggleLabel(label, event.target.checked)
+                    }
+                  />
+                  <span className={`label label-${label.color}`}>
+                    {label.name}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
+          <div className="field">
+            <label htmlFor="parent">Part of task number</label>
+            <input
+              id="parent"
+              type="number"
+              min={1}
+              disabled={!canWrite}
+              defaultValue={task.parent?.number ?? ''}
+              key={`${task.version}-parent`}
+              onBlur={(event) => {
+                const next = event.target.value
+                  ? Number(event.target.value)
+                  : null;
+                if (next !== (task.parent?.number ?? null)) {
+                  void save(
+                    { parentNumber: next },
+                    next
+                      ? `Now part of ${key}-${next}.`
+                      : 'No longer a subtask.',
+                  );
+                }
+              }}
             />
           </div>
           {task.completedAt ? (

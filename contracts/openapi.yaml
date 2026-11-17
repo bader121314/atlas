@@ -575,7 +575,7 @@ paths:
     get:
       operationId: listTasks
       security: [{ sessionCookie: [] }]
-      description: 'Query: state (key), assignee (me | none | uuid), priority, after (task number cursor), limit (1-100, default 50). Unknown parameters return 400.'
+      description: 'Query: state (key), assignee (me | none | uuid), priority, label (id), parent (task number | none), after (task number cursor), limit (1-100, default 50). Unknown parameters return 400.'
       responses:
         '200':
           {
@@ -586,7 +586,7 @@ paths:
     post:
       operationId: createTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), dueAt? (ISO 8601). Editor or manager.'
+      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), dueAt? (ISO 8601), parentNumber? (task in the same project). Editor or manager.'
       responses:
         '201': { description: 'Created with key PROJECT-N' }
         '400': { $ref: '#/components/responses/Problem' }
@@ -603,7 +603,7 @@ paths:
     patch:
       operationId: updateTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), dueAt (null clears).'
+      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), dueAt (null clears), parentNumber (null clears; loops and nesting beyond 5 levels return 400).'
       responses:
         '200': { description: Updated; version incremented }
         '400': { $ref: '#/components/responses/Problem' }
@@ -654,6 +654,40 @@ paths:
           {
             description: 'Activity oldest first: action, actor, field-level changes, time',
           }
+        '404': { description: Unknown task or no access }
+  /organizations/{slug}/labels:
+    get:
+      operationId: listLabels
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Organization labels by name }
+    post:
+      operationId: createLabel
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name (1-40), color? (slate | sea | sage | sand | rose | violet). Owner, admin or member.'
+      responses:
+        '201': { description: Created }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: Name already used (case-insensitive) }
+  /organizations/{slug}/labels/{id}:
+    delete:
+      operationId: deleteLabel
+      security: [{ sessionCookie: [] }]
+      description: Owner or admin. Also removes the label from every task.
+      responses:
+        '204': { description: Deleted }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { description: Unknown label }
+  /organizations/{slug}/projects/{key}/tasks/{number}/labels:
+    put:
+      operationId: setTaskLabels
+      security: [{ sessionCookie: [] }]
+      description: 'Body: labelIds (up to 20, organization labels only). Replaces the set and increments the task version.'
+      responses:
+        '200': { description: The updated task }
+        '400':
+          { description: A label is unknown or belongs to another organization }
+        '403': { $ref: '#/components/responses/Problem' }
         '404': { description: Unknown task or no access }
 components:
   parameters:

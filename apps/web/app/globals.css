@@ -449,3 +449,41 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.label {
+  font-size: 0.8rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.label-slate {
+  color: #475569;
+}
+.label-sea {
+  color: var(--sea-deep);
+}
+.label-sage {
+  color: #3f6b55;
+}
+.label-sand {
+  color: #8a6516;
+}
+.label-rose {
+  color: #a3264a;
+}
+.label-violet {
+  color: #5b3ea6;
+}
+.checks {
+  display: grid;
+  gap: 0.35rem;
+}
+.checks label {
+  font-weight: 400;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.checks input {
+  height: auto;
+}
