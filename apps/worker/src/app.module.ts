@@ -11,6 +11,7 @@ import { checkDependencies, metricsAuthorized } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
 import { AttachmentChecksService } from './attachments/attachments.service';
 import { AutomationsService } from './automations/automations.service';
+import { DomainChecksService } from './domains/domains.service';
 import { NotificationsService } from './notifications/notifications.service';
 import { workerMetrics } from './metrics';
 import { OutboxService } from './outbox/outbox.service';
@@ -48,6 +49,7 @@ export class MetricsController {
     AttachmentChecksService,
     WebhooksService,
     AutomationsService,
+    DomainChecksService,
   ],
 })
 export class AppModule {}

@@ -53,6 +53,8 @@ export type AuditAction =
   | 'org.domain.added'
   | 'org.domain.verified'
   | 'org.domain.removed'
+  // Recorded by the worker when a verified domain's record disappears.
+  | 'org.domain.unverified'
   | 'org.sso.updated'
   | 'org.sso.removed'
   | 'auth.sso.failed';
