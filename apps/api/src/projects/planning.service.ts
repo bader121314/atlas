@@ -11,6 +11,7 @@ import type { DependenciesResponse, Milestone } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
 import { ActivityService } from './activity.service';
+import { inScope, scopeOf } from './label-scope';
 
 interface MilestoneRow {
   id: string;
@@ -55,8 +56,9 @@ export class PlanningService {
   ): Promise<{ id: string; version: number } | undefined> {
     const result = await runner.query<{ id: string; version: string }>(
       `SELECT id, version FROM tasks
-       WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
-      [tenant.organizationId, project.id, number],
+       WHERE organization_id = $1 AND project_id = $2 AND number = $3
+         AND ${inScope('tasks.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     const row = result.rows[0];
     return row ? { id: row.id, version: Number(row.version) } : undefined;
@@ -79,12 +81,14 @@ export class PlanningService {
          t.completed_at IS NOT NULL AS done
        FROM task_dependencies d JOIN tasks t ON t.id = d.blocker_task_id
        WHERE d.organization_id = $1 AND d.blocked_task_id = $2
+         AND ${inScope('t.id', '$3')}
        UNION ALL
        SELECT 'blocking', t.number, t.title, t.completed_at IS NOT NULL
        FROM task_dependencies d JOIN tasks t ON t.id = d.blocked_task_id
        WHERE d.organization_id = $1 AND d.blocker_task_id = $2
+         AND ${inScope('t.id', '$3')}
        ORDER BY 2`,
-      [tenant.organizationId, task.id],
+      [tenant.organizationId, task.id, scopeOf(project)],
     );
     const response: DependenciesResponse = { blockedBy: [], blocking: [] };
     for (const row of result.rows) {
@@ -174,12 +178,17 @@ export class PlanningService {
     project: ProjectContext,
   ): Promise<Milestone[]> {
     const result = await this.database.pool.query<MilestoneRow>(
-      `${MILESTONE_SELECT}
+      `SELECT m.id, m.title, m.due_at, m.status,
+         count(t.id) AS task_count,
+         count(t.id) FILTER (WHERE t.completed_at IS NOT NULL) AS done_count
+       FROM milestones m
+       -- Scoped guests only count tasks they can see (ADR-059).
+       LEFT JOIN tasks t ON t.milestone_id = m.id AND ${inScope('t.id', '$3')}
        WHERE m.organization_id = $1 AND m.project_id = $2
        GROUP BY m.id
        ORDER BY m.status, m.due_at NULLS LAST, m.title
        LIMIT 200`,
-      [tenant.organizationId, project.id],
+      [tenant.organizationId, project.id, scopeOf(project)],
     );
     return result.rows.map(toMilestone);
   }

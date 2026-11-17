@@ -171,9 +171,10 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 16. Done (PR #68): single sign-on with OpenID Connect (ADR-058). New
     optional env: SSO_SECRET_KEY (SSO_ALLOW_HTTP, SSO_ALLOWED_HOSTS for
     development only).
-17. Next M9 candidates: fine-grained access rules (guest label scoping),
-    offline editing and push notifications. Billing waits for a decision
-    on Stripe test mode (deferred by the user for now).
+17. Done (PR #69): label-scoped guest access (ADR-059).
+18. Next M9 candidates: offline editing and web push notifications.
+    Billing waits for a decision on Stripe test mode (deferred by the user
+    for now).
 
 ## Environment and versions
 

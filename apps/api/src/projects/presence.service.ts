@@ -8,6 +8,7 @@ import type { Presence } from '@atlas/contracts';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
 import { RedisService } from '../redis.service';
+import { inScope, scopeOf } from './label-scope';
 
 /** A viewer drops off this long after their last heartbeat. */
 export const PRESENCE_TTL_MS = 45_000;
@@ -78,8 +79,9 @@ export class PresenceService {
   ): Promise<string> {
     const task = await this.database.pool.query<{ id: string }>(
       `SELECT id FROM tasks
-       WHERE organization_id = $1 AND project_id = $2 AND number = $3`,
-      [tenant.organizationId, project.id, number],
+       WHERE organization_id = $1 AND project_id = $2 AND number = $3
+         AND ${inScope('tasks.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     const id = task.rows[0]?.id;
     if (!id) throw new NotFoundException();

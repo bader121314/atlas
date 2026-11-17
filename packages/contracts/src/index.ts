@@ -214,7 +214,19 @@ export const projectListResponseSchema = z
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 
 export const setProjectMemberRequestSchema = z
-  .object({ role: projectRole })
+  .object({
+    role: projectRole,
+    /**
+     * Guests only (ADR-059): limit them to tasks with any of these labels;
+     * null removes the limit, omitted keeps the current one.
+     */
+    labelIds: z
+      .array(z.uuid())
+      .max(20)
+      .refine((ids) => new Set(ids).size === ids.length, 'Duplicate label')
+      .nullable()
+      .optional(),
+  })
   .strict();
 
 export const projectMemberListResponseSchema = z
@@ -225,6 +237,8 @@ export const projectMemberListResponseSchema = z
           userId: z.uuid(),
           displayName: z.string(),
           role: projectRole,
+          /** Set when a guest only sees tasks with these labels (ADR-059). */
+          labelIds: z.array(z.uuid()).nullable(),
         })
         .strict(),
     ),

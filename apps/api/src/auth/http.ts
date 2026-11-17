@@ -46,6 +46,8 @@ export interface ProjectContext {
   id: string;
   key: string;
   role: 'manager' | 'editor' | 'commenter' | 'viewer';
+  /** For scoped guests: the labels whose tasks they may see (ADR-059). */
+  labelScope?: string[];
 }
 
 export function header(request: HttpRequest, name: string): string | undefined {

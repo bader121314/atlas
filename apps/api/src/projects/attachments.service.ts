@@ -11,6 +11,7 @@ import type { Attachment, CreateAttachmentRequest } from '@atlas/contracts';
 import { ObjectStore, safeFilename, storageSettings } from '@atlas/shared';
 import type { ProjectContext, TenantContext } from '../auth/http';
 import { DatabaseService } from '../database.service';
+import { inScope, scopeOf } from './label-scope';
 
 const MAX_PER_TASK = 20;
 
@@ -201,8 +202,9 @@ export class AttachmentsService {
     number: number,
   ): Promise<string> {
     const task = await this.database.pool.query<{ id: string }>(
-      'SELECT id FROM tasks WHERE organization_id = $1 AND project_id = $2 AND number = $3',
-      [tenant.organizationId, project.id, number],
+      `SELECT id FROM tasks WHERE organization_id = $1 AND project_id = $2 AND number = $3
+         AND ${inScope('tasks.id', '$4')}`,
+      [tenant.organizationId, project.id, number, scopeOf(project)],
     );
     const id = task.rows[0]?.id;
     if (!id) throw new NotFoundException();
@@ -215,8 +217,9 @@ export class AttachmentsService {
     id: string,
   ): Promise<Row> {
     const result = await this.database.pool.query<Row>(
-      `${SELECT} WHERE a.organization_id = $1 AND a.project_id = $2 AND a.id = $3`,
-      [tenant.organizationId, project.id, id],
+      `${SELECT} WHERE a.organization_id = $1 AND a.project_id = $2 AND a.id = $3
+         AND ${inScope('a.task_id', '$4')}`,
+      [tenant.organizationId, project.id, id, scopeOf(project)],
     );
     const row = result.rows[0];
     if (!row) throw new NotFoundException();

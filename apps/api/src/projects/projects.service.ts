@@ -70,8 +70,9 @@ export class ProjectsService {
       key: string;
       visibility: string;
       explicit_role: string | null;
+      label_scope: string[] | null;
     }>(
-      `SELECT p.id, p.key, p.visibility, pm.role AS explicit_role
+      `SELECT p.id, p.key, p.visibility, pm.role AS explicit_role, pm.label_scope
        FROM projects p
        LEFT JOIN project_memberships pm
          ON pm.project_id = p.id AND pm.user_id = $3
@@ -85,7 +86,11 @@ export class ProjectsService {
       row.visibility,
       row.explicit_role ?? undefined,
     );
-    return role ? { id: row.id, key: row.key, role } : undefined;
+    if (!role) return undefined;
+    // Label scopes only ever narrow guests (ADR-059).
+    return tenant.role === 'guest' && row.label_scope
+      ? { id: row.id, key: row.key, role, labelScope: row.label_scope }
+      : { id: row.id, key: row.key, role };
   }
 
   async list(
@@ -250,8 +255,9 @@ export class ProjectsService {
       user_id: string;
       display_name: string;
       role: ProjectRole;
+      label_scope: string[] | null;
     }>(
-      `SELECT pm.user_id, u.display_name, pm.role
+      `SELECT pm.user_id, u.display_name, pm.role, pm.label_scope
        FROM project_memberships pm
        JOIN organization_memberships om
          ON om.organization_id = pm.organization_id
@@ -267,6 +273,7 @@ export class ProjectsService {
         userId: row.user_id,
         displayName: row.display_name,
         role: row.role,
+        labelIds: row.label_scope,
       })),
     };
   }
@@ -278,6 +285,7 @@ export class ProjectsService {
     targetUserId: string,
     role: ProjectRole,
     request: RequestMeta,
+    labelIds?: string[] | null,
   ): Promise<void> {
     await this.database.transaction(async (client) => {
       const member = await client.query<{ role: string }>(
@@ -294,12 +302,31 @@ export class ProjectsService {
       ) {
         throw new BadRequestException();
       }
+      if (labelIds) {
+        // Only guests can be scoped, and only to this organization's labels.
+        if (organizationRole !== 'guest') throw new BadRequestException();
+        const known = await client.query<{ count: string }>(
+          'SELECT count(*) FROM labels WHERE organization_id = $1 AND id = ANY($2::uuid[])',
+          [tenant.organizationId, labelIds],
+        );
+        if (Number(known.rows[0]?.count) !== labelIds.length)
+          throw new BadRequestException();
+      }
       await client.query(
-        `INSERT INTO project_memberships (organization_id, project_id, user_id, role)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO project_memberships (organization_id, project_id, user_id, role, label_scope)
+         VALUES ($1, $2, $3, $4, $6::uuid[])
          ON CONFLICT (project_id, user_id)
-         DO UPDATE SET role = EXCLUDED.role, updated_at = now()`,
-        [tenant.organizationId, project.id, targetUserId, role],
+         DO UPDATE SET role = EXCLUDED.role,
+           label_scope = CASE WHEN $5 THEN $6::uuid[] ELSE project_memberships.label_scope END,
+           updated_at = now()`,
+        [
+          tenant.organizationId,
+          project.id,
+          targetUserId,
+          role,
+          labelIds !== undefined,
+          labelIds ?? null,
+        ],
       );
       await this.audit.record(
         {
@@ -307,7 +334,16 @@ export class ProjectsService {
           actorUserId,
           organizationId: tenant.organizationId,
           target: { type: 'project', id: project.id },
-          metadata: { userId: targetUserId, role },
+          metadata: {
+            userId: targetUserId,
+            role,
+            labelScope:
+              labelIds === undefined
+                ? 'unchanged'
+                : labelIds === null
+                  ? 'none'
+                  : labelIds.length,
+          },
           request,
         },
         client,

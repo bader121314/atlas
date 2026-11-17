@@ -111,6 +111,10 @@ export async function notifyBatch(
            AND m.state = 'active'
            AND (m.role IN ('owner', 'admin') OR pm.user_id IS NOT NULL
                 OR (m.role = 'member' AND p.visibility = 'organization'))
+           -- Scoped guests hear only about tasks they can see (ADR-059).
+           AND (m.role <> 'guest' OR pm.label_scope IS NULL OR EXISTS (
+             SELECT 1 FROM task_labels sl
+             WHERE sl.task_id = t.id AND sl.label_id = ANY(pm.label_scope)))
            -- People who muted this kind get nothing (ADR-048).
            AND NOT ($3::text = ANY(COALESCE(ns.muted_kinds, '{}'::text[])))
          ON CONFLICT (recipient_user_id, source_event_id) DO NOTHING`,
