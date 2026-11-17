@@ -132,27 +132,28 @@ consumer has its own `*_at` marker; pruning waits for all of them.
 Settings added: `WEBHOOK_SECRET_KEY` (and development-only
 `WEBHOOK_ALLOW_HTTP`, `WEBHOOK_ALLOWED_HOSTS`).
 
-### M7 — next (hardening, staging, observability)
+### M7 — complete
 
-Read `docs/08` M7 and `docs/06`. No cloud credentials are available here,
-so infrastructure work is code plus validation (`terraform validate` is not
-installed; keep modules small and documented). Suggested order:
+PRs #41–#47 (ADR-040 to ADR-044); exit report `docs/17-m7-exit-report.md`.
+CI now has five checks: validate, browser, images, terraform, drill.
+Turbo passes `API_ORIGIN`, `STORAGE_ENDPOINT` and `STORAGE_PUBLIC_ORIGIN`
+to builds (they are fixed at build time in Next.js).
 
-1. Done (PR #41): request ids in responses, problem details, audit events
-   and JSON request logs; `TRUST_PROXY` for client addresses (ADR-040).
-2. Done (PR #42): Prometheus metrics on the API and worker behind
-   `METRICS_TOKEN`: HTTP by route pattern, outbox lag, worker backlogs and
-   batch results (ADR-041).
-3. Done (PR #43): one Dockerfile with api, worker, web and migrate targets,
-   non-root runtime, health checks, `LISTEN_HOST`; `compose.app.yml`; CI
-   builds the images; job timeouts and Vitest hook timeouts (ADR-042).
-4. Done (PR #44): Terraform for AWS (VPC, ECS Fargate with Service Connect,
-   RDS, ElastiCache, S3, ALB, Secrets Manager, alarms) validated in CI;
-   runbooks for deploy, rollback, backup and restore, outbox lag (ADR-043).
-5. Done (PR #45): security review (`docs/15`), content security policy and
-   permissions policy, load test script run in the smoke job (`docs/16`).
-6. Done (PR #46): change password while signed in (signs out other
-   devices, audited). Remaining carry-overs: multiple assignees, mentions.
+### M8 — next (public portfolio release)
+
+Read `docs/08` M8. Suggested order:
+
+1. Demo seed: a script (`pnpm demo:seed`) that creates a demo organization
+   with realistic projects, tasks, comments, labels, milestones and custom
+   fields through SQL, plus one demo account whose password is printed
+   once; no personal data.
+2. README rewrite for evaluators: what it is, a two-minute tour, screenshots
+   from the smoke run (refresh `docs/screenshots`), architecture diagram
+   (Mermaid in markdown), how it is tested, honest limitations.
+3. `docs/18-case-study.md`: problem, constraints, key decisions with ADR
+   links, what went wrong and how it was caught (the starved export job,
+   the Turbo env filter, parameter type inference), results.
+4. Carry-overs: multiple assignees, mentions.
 
 ## Environment and versions
 
