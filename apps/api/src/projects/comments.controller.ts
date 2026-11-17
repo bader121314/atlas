@@ -10,7 +10,10 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { commentBodySchema } from '@atlas/contracts';
+import {
+  commentBodySchema,
+  createCommentRequestSchema,
+} from '@atlas/contracts';
 import type { Activity, Comment } from '@atlas/contracts';
 import { caller, parse } from '../auth/auth.controller';
 import { SessionGuard } from '../auth/guards';
@@ -50,12 +53,14 @@ export class CommentsController {
     @Body() body: unknown,
     @Req() request: HttpRequest,
   ): Promise<Comment> {
+    const input = parse(createCommentRequestSchema, body);
     return this.comments.create(
       tenantOf(request),
       projectOf(request),
       taskNumber(number),
       caller(request).user.id,
-      parse(commentBodySchema, body).body,
+      input.body,
+      input.mentions,
     );
   }
 

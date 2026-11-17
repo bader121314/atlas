@@ -361,6 +361,18 @@ export const commentBodySchema = z
   .object({ body: z.string().trim().min(1).max(10000) })
   .strict();
 
+/** A new comment; mentioned people are notified (ADR-045). */
+export const createCommentRequestSchema = z
+  .object({
+    body: z.string().trim().min(1).max(10000),
+    mentions: z
+      .array(z.uuid())
+      .max(20)
+      .refine((list) => new Set(list).size === list.length, 'Duplicate mention')
+      .default([]),
+  })
+  .strict();
+
 export const commentSchema = z
   .object({
     id: z.uuid(),
@@ -567,7 +579,7 @@ export type Presence = z.infer<typeof presenceSchema>;
 export const notificationSchema = z
   .object({
     id: z.uuid(),
-    kind: z.enum(['task.assigned', 'comment.created']),
+    kind: z.enum(['task.assigned', 'comment.created', 'mention']),
     actor: z.string().nullable(),
     task: z
       .object({

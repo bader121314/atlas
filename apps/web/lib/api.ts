@@ -108,7 +108,7 @@ export interface Task {
 
 export interface AppNotification {
   id: string;
-  kind: 'task.assigned' | 'comment.created';
+  kind: 'task.assigned' | 'comment.created' | 'mention';
   actor: string | null;
   task: { key: string; projectKey: string; number: number; title: string };
   createdAt: string;

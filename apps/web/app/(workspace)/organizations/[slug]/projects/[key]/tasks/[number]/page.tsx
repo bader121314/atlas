@@ -348,13 +348,27 @@ export default function TaskPage() {
     );
   }
 
+  function mention(userId: string) {
+    const person = members.find((m) => m.userId === userId);
+    const box = document.getElementById(
+      'comment',
+    ) as HTMLTextAreaElement | null;
+    if (!person || !box) return;
+    box.value = `${box.value}${box.value && !box.value.endsWith(' ') ? ' ' : ''}@${person.displayName} `;
+    box.focus();
+  }
+
   async function comment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const body = String(new FormData(form).get('comment') ?? '');
+    // Everyone named as "@Display Name" in the text is notified.
+    const mentions = members
+      .filter((m) => m.userId !== user.id && body.includes(`@${m.displayName}`))
+      .map((m) => m.userId);
     const result = await api(`${base}/tasks/${number}/comments`, {
       method: 'POST',
-      body: { body },
+      body: { body, mentions },
     });
     if (result.ok) {
       form.reset();
@@ -364,7 +378,9 @@ export default function TaskPage() {
         tone: 'error',
         text: describeFailure(
           result.status,
-          'The comment could not be posted.',
+          result.status === 400
+            ? 'The comment could not be posted. Check that everyone you mentioned can open this project.'
+            : 'The comment could not be posted.',
         ),
       });
     }
@@ -553,11 +569,28 @@ export default function TaskPage() {
                     maxLength={10000}
                   />
                 </div>
-                <p>
+                <div className="inline-form">
+                  <div className="field">
+                    <label htmlFor="mention">Mention someone</label>
+                    <select
+                      id="mention"
+                      value=""
+                      onChange={(event) => mention(event.target.value)}
+                    >
+                      <option value="">Choose a person</option>
+                      {members
+                        .filter((m) => m.userId !== user.id)
+                        .map((m) => (
+                          <option key={m.userId} value={m.userId}>
+                            {m.displayName}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                   <button className="button" type="submit">
                     Post comment
                   </button>
-                </p>
+                </div>
               </form>
             ) : null}
           </section>

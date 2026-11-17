@@ -634,7 +634,7 @@ paths:
     post:
       operationId: createComment
       security: [{ sessionCookie: [] }]
-      description: 'Body: body (1-10000 characters). Commenter, editor or manager.'
+      description: 'Body: body (1-10000 characters), mentions? (up to 20 user ids, each able to open the project; they are notified, ADR-045). Commenter, editor or manager.'
       responses:
         '201': { description: Created }
         '403': { $ref: '#/components/responses/Problem' }
