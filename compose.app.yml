@@ -1,0 +1,53 @@
+# The whole application in containers, on top of docker-compose.yml's
+# PostgreSQL, Redis, MinIO and Mailpit (ADR-042). From the repository root:
+#   docker compose -f docker-compose.yml -f compose.app.yml up --build
+# Values come from .env (see .env.example).
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL, using host postgres}
+  REDIS_URL: redis://redis:6379
+  SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
+  WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+  TRUST_PROXY: '1'
+  METRICS_TOKEN: ${METRICS_TOKEN:-}
+  WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:-}
+  STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
+  STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+  STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
+  STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
+services:
+  migrate:
+    build:
+      {
+        context: .,
+        dockerfile: infrastructure/docker/Dockerfile,
+        target: migrate,
+      }
+    environment: *app-env
+    depends_on: [postgres]
+    restart: 'no'
+  api:
+    build:
+      { context: ., dockerfile: infrastructure/docker/Dockerfile, target: api }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_started }
+  worker:
+    build:
+      {
+        context: .,
+        dockerfile: infrastructure/docker/Dockerfile,
+        target: worker,
+      }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: web
+      args: { API_ORIGIN: 'http://api:3001' }
+    ports: ['127.0.0.1:3000:3000']
+    depends_on: [api]

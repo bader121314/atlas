@@ -5,6 +5,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:17.7-alpine
@@ -43,3 +44,25 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm test:integration
       - run: pnpm audit --prod --audit-level high
+  images:
+    # Production images build from a clean checkout (ADR-042).
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the api, worker, web and migrate images
+        run: |
+          for target in api worker migrate; do
+            docker build -f infrastructure/docker/Dockerfile --target "$target" -t "atlas-$target" .
+          done
+          docker build -f infrastructure/docker/Dockerfile --target web \
+            --build-arg API_ORIGIN=http://api:3001 -t atlas-web .
+      - name: Check the images run as a non-root user with their entry points
+        run: |
+          for target in api worker web; do
+            test "$(docker run --rm --entrypoint id "atlas-$target" -un)" = node
+          done
+          docker run --rm --entrypoint test atlas-api -f apps/api/dist/main.js
+          docker run --rm --entrypoint test atlas-worker -f apps/worker/dist/main.js
+          docker run --rm --entrypoint test atlas-web -d .next
+          docker images --format '{{.Repository}} {{.Size}}' | grep atlas-

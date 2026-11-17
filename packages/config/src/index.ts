@@ -13,6 +13,10 @@ export const environmentSchema = z.object({
     .default('development'),
   API_PORT: port.default(3001),
   WORKER_PORT: port.default(3002),
+  /** Interface to listen on: loopback by default, 0.0.0.0 in containers. */
+  LISTEN_HOST: z
+    .union([z.literal('127.0.0.1'), z.literal('0.0.0.0'), z.literal('::')])
+    .default('127.0.0.1'),
   DATABASE_URL: z
     .url()
     .refine((v) => hasProtocol(v, ['postgres:', 'postgresql:'])),

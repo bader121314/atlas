@@ -143,8 +143,9 @@ installed; keep modules small and documented). Suggested order:
 2. Done (PR #42): Prometheus metrics on the API and worker behind
    `METRICS_TOKEN`: HTTP by route pattern, outbox lag, worker backlogs and
    batch results (ADR-041).
-3. Dockerfiles for web, API and worker; a compose file for a full local
-   stack; CI builds the images.
+3. Done (PR #43): one Dockerfile with api, worker, web and migrate targets,
+   non-root runtime, health checks, `LISTEN_HOST`; `compose.app.yml`; CI
+   builds the images; job timeouts and Vitest hook timeouts (ADR-042).
 4. Terraform skeleton for AWS (VPC, RDS, ElastiCache, S3, ECS services,
    ALB, CloudFront) with variables and no secrets; runbooks for deploy,
    rollback, backup and restore.
