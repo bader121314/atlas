@@ -23,7 +23,7 @@ export class AttachmentChecksService
   private readonly logger = new Logger('Attachments');
   private pool: Pool | undefined;
   private timers: ReturnType<typeof setInterval>[] = [];
-  private busy = false;
+  private readonly busy = new Set<string>();
 
   onApplicationBootstrap(): void {
     const settings = storageSettings(process.env);
@@ -34,28 +34,29 @@ export class AttachmentChecksService
       max: 2,
     });
     this.pool = pool;
-    const guarded = (run: () => Promise<unknown>) => async () => {
-      if (this.busy) return;
-      this.busy = true;
+    // One flag per job: a slow job skips its own next turn, never another's.
+    const guarded = (name: string, run: () => Promise<unknown>) => async () => {
+      if (this.busy.has(name)) return;
+      this.busy.add(name);
       try {
         await run();
       } catch {
         this.logger.error('attachment checks failed; retrying');
       } finally {
-        this.busy = false;
+        this.busy.delete(name);
       }
     };
     this.timers.push(
       setInterval(
-        guarded(() => checkBatch(pool, store)),
+        guarded('check', () => checkBatch(pool, store)),
         CHECK_MS,
       ),
       setInterval(
-        guarded(() => runExports(pool, store)),
+        guarded('export', () => runExports(pool, store)),
         CHECK_MS,
       ),
       setInterval(
-        guarded(async () => {
+        guarded('cleanup', async () => {
           await removeAbandoned(pool, store);
           await expireExports(pool, store);
         }),
