@@ -268,6 +268,7 @@ const pages = [];
   await alice.getByLabel('Estimate').fill('4h');
   await alice.getByLabel('Estimate').press('Tab');
   await alice.getByText('Estimate changed.').waitFor();
+  await alice.getByText('of 4h estimated').waitFor();
   await shot(alice, '11c-task');
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice

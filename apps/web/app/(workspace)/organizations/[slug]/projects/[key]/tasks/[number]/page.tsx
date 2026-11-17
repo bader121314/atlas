@@ -567,6 +567,7 @@ export default function TaskPage() {
             userId={user.id}
             canWrite={canWrite}
             canManage={project.role === 'manager'}
+            estimateMinutes={task.estimateMinutes}
           />
 
           <section className="section" aria-labelledby="comments-heading">
