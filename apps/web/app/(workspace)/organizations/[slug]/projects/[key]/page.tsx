@@ -13,6 +13,7 @@ import { LiveStatusBadge } from '../../../../../../components/live-status';
 import { useShortcuts } from '../../../../../../components/shortcuts';
 import { useProjectEvents } from '../../../../../../lib/live';
 import { MilestonesSection } from '../../../../../../components/milestones-section';
+import { TimelineView } from '../../../../../../components/timeline-view';
 import { ShareLinksSection } from '../../../../../../components/share-links-section';
 import { RecurrencesSection } from '../../../../../../components/recurrences-section';
 import {
@@ -161,7 +162,8 @@ export default function ProjectPage() {
         run: () => document.getElementById('filter-state')?.focus(),
       },
       ...LAYOUTS.map((layout) => ({
-        keys: layout.charAt(0),
+        // Timeline uses i, since t is the table.
+        keys: layout === 'timeline' ? 'i' : layout.charAt(0),
         description: `Show the ${layout} view`,
         run: () => setView(layout),
       })),
@@ -411,6 +413,8 @@ export default function ProjectPage() {
         />
       ) : view === 'calendar' ? (
         <CalendarView tasks={tasks} href={href} />
+      ) : view === 'timeline' ? (
+        <TimelineView tasks={tasks} href={href} />
       ) : (
         <ul className="rows">
           {tasks.map((task) => (

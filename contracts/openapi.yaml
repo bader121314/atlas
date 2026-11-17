@@ -597,7 +597,7 @@ paths:
     post:
       operationId: createTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), dueAt? (ISO 8601), parentNumber? (task in the same project). Editor or manager.'
+      description: 'Body: title, description?, stateId? (defaults to the first state), priority? (none | low | medium | high | urgent), assigneeId? (must be able to see the project), startAt? and dueAt? (ISO 8601; start not after due, ADR-052), parentNumber? (task in the same project). Editor or manager.'
       responses:
         '201': { description: 'Created with key PROJECT-N' }
         '400': { $ref: '#/components/responses/Problem' }
@@ -614,7 +614,7 @@ paths:
     patch:
       operationId: updateTask
       security: [{ sessionCookie: [] }]
-      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), dueAt (null clears), parentNumber (null clears; loops and nesting beyond 5 levels return 400).'
+      description: 'Body: version (required) plus any of title, description, stateId, priority, assigneeId (null clears), startAt and dueAt (null clears; a start after the due date returns 400), parentNumber (null clears; loops and nesting beyond 5 levels return 400).'
       responses:
         '200': { description: Updated; version incremented }
         '400': { $ref: '#/components/responses/Problem' }

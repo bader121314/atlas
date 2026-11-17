@@ -159,8 +159,8 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
    (ADR-050).
 6. Done (PR #58): M9 progress report (docs/20).
 7. Done (PR #59): organization audit log view and CSV export (ADR-051).
-8. Next M9 items: a timeline (Gantt) view with milestones, then
-   installable PWA basics.
+8. Done (PR #60): start dates and a timeline view (ADR-052).
+9. Next M9 item: installable PWA basics (manifest, icons, offline page).
 
 ## Environment and versions
 

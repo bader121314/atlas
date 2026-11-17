@@ -98,6 +98,7 @@ export interface Task {
   priority: 'none' | 'low' | 'medium' | 'high' | 'urgent';
   assignee: { userId: string; displayName: string } | null;
   assignees: { userId: string; displayName: string }[];
+  startAt: string | null;
   dueAt: string | null;
   completedAt: string | null;
   parent: { number: number; key: string } | null;

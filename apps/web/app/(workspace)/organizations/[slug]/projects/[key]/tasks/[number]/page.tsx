@@ -87,6 +87,10 @@ function describe(entry: Activity, names: Map<string, string>): string {
           return to
             ? `set the due date to ${new Date(to).toLocaleDateString()}`
             : 'cleared the due date';
+        if (field === 'startAt')
+          return to
+            ? `set the start date to ${new Date(to).toLocaleDateString()}`
+            : 'cleared the start date';
         if (field === 'state') return `moved it to ${to?.replace('_', ' ')}`;
         return `set ${field} to ${to}`;
       });
@@ -723,12 +727,34 @@ export default function TaskPage() {
             </fieldset>
           ) : null}
           <div className="field">
+            <label htmlFor="start">Start date</label>
+            <input
+              id="start"
+              type="date"
+              disabled={!canWrite}
+              defaultValue={task.startAt?.slice(0, 10) ?? ''}
+              max={task.dueAt?.slice(0, 10)}
+              key={`${task.version}-start`}
+              onChange={(event) =>
+                void save(
+                  {
+                    startAt: event.target.value
+                      ? `${event.target.value}T12:00:00Z`
+                      : null,
+                  },
+                  'Start date changed.',
+                )
+              }
+            />
+          </div>
+          <div className="field">
             <label htmlFor="due">Due date</label>
             <input
               id="due"
               type="date"
               disabled={!canWrite}
               defaultValue={task.dueAt?.slice(0, 10) ?? ''}
+              min={task.startAt?.slice(0, 10)}
               key={`${task.version}-due`}
               onChange={(event) =>
                 void save(
