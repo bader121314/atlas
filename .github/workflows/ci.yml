@@ -84,6 +84,28 @@ jobs:
           bash -n .devcontainer/setup.sh
           docker run --rm atlas-migrate node -e "require('./packages/shared/dist/index.js').ObjectStore.prototype.ensureBucket || process.exit(1)"
           docker run --rm atlas-migrate test -f scripts/ensure-bucket.mjs -a -f scripts/demo-seed.mjs
+  images-arm64:
+    # The free demo server is Arm (ADR-062): build the same images natively
+    # on GitHub's Arm runner so the server's first build holds no surprises.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the api, worker, web and migrate images for arm64
+        run: |
+          for target in api worker migrate; do
+            docker build -f infrastructure/docker/Dockerfile --target "$target" -t "atlas-$target" .
+          done
+          docker build -f infrastructure/docker/Dockerfile --target web \
+            --build-arg API_ORIGIN=http://api:3001 -t atlas-web .
+          docker build -t atlas-minio infrastructure/local/minio
+      - name: Check architecture and entry points
+        run: |
+          test "$(docker image inspect atlas-api --format '{{.Architecture}}')" = arm64
+          docker run --rm --entrypoint test atlas-api -f apps/api/dist/main.js
+          docker run --rm --entrypoint test atlas-worker -f apps/worker/dist/main.js
+          docker run --rm --entrypoint test atlas-web -d .next
+          docker run --rm atlas-minio --version
   terraform:
     # The AWS stacks parse and validate without credentials (ADR-043).
     runs-on: ubuntu-latest
