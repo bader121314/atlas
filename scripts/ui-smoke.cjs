@@ -183,7 +183,7 @@ const pages = [];
 
   // Projects and tasks (M2).
   await alice.getByLabel('Project name').fill('Coastal survey');
-  await alice.getByLabel('Key').fill('COAST');
+  await alice.getByLabel('Key', { exact: true }).fill('COAST');
   await alice.getByRole('button', { name: 'Create project' }).click();
   await alice.getByRole('link', { name: 'Coastal survey' }).click();
   await alice.getByRole('heading', { name: 'Coastal survey' }).waitFor();
