@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useShell } from '../../../../components/app-shell';
 import { Field, Notice, value } from '../../../../components/form';
+import { ProjectsSection } from '../../../../components/projects-section';
 import { api, describeFailure } from '../../../../lib/api';
 import type { Organization } from '../../../../lib/api';
 
@@ -234,6 +235,8 @@ export default function OrganizationPage() {
         Your role here is <span className="role">{mine}</span>
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+
+      <ProjectsSection organization={organization} />
 
       <section className="section" aria-labelledby="members-heading">
         <h2 id="members-heading">Members</h2>

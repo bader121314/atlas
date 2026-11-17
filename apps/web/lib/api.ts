@@ -68,3 +68,51 @@ export interface Organization {
   role: 'owner' | 'admin' | 'member' | 'guest';
   createdAt: string;
 }
+
+export interface Project {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  visibility: 'organization' | 'private';
+  status: 'active' | 'archived';
+  role: 'manager' | 'editor' | 'commenter' | 'viewer';
+  version: number;
+}
+
+export interface WorkflowState {
+  id: string;
+  key: string;
+  label: string;
+  category: 'todo' | 'in_progress' | 'done';
+  position: number;
+}
+
+export interface Task {
+  id: string;
+  key: string;
+  number: number;
+  title: string;
+  description: string;
+  state: WorkflowState;
+  priority: 'none' | 'low' | 'medium' | 'high' | 'urgent';
+  assignee: { userId: string; displayName: string } | null;
+  dueAt: string | null;
+  completedAt: string | null;
+  version: number;
+}
+
+export const PRIORITIES: Task['priority'][] = [
+  'none',
+  'low',
+  'medium',
+  'high',
+  'urgent',
+];
+
+/** Same priority words everywhere in the interface. */
+export function priorityLabel(priority: Task['priority']): string {
+  return priority === 'none'
+    ? 'No priority'
+    : priority.charAt(0).toUpperCase() + priority.slice(1);
+}

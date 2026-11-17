@@ -108,7 +108,9 @@ Read `docs/08` M2, `docs/03` planning tables and the deferrals in
 3. Done (PR #13): comments, activity history, transactional outbox
    (ADR-020). The outbox dispatcher is M4.
 4. Filters and stable cursor pagination; OpenAPI and contract tests.
-5. Board and list views in the web app; extend the browser smoke test.
+5. Done (PR #14): project list/create on the organization page, board and
+   list views, task page (edit, status, priority, assignee, due date,
+   comments, history); smoke test covers it. Drag-and-drop is M3.
 6. Carry-overs: trusted-proxy client addresses before deployment, request IDs
    in audit events, change password while signed in, email notice after a
    reset, suspend/unsuspend members.
