@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { OnApplicationShutdown } from '@nestjs/common';
+import type {
+  BeforeApplicationShutdown,
+  OnApplicationShutdown,
+} from '@nestjs/common';
 import { createClient } from 'redis';
 import { parseEnvironment } from '@atlas/config';
 import { projectChannel, projectEventSchema } from '@atlas/contracts';
@@ -21,10 +24,13 @@ const RECENT_LIMIT = 2000;
  * since the dispatcher delivers at least once.
  */
 @Injectable()
-export class EventBus implements OnApplicationShutdown {
+export class EventBus
+  implements BeforeApplicationShutdown, OnApplicationShutdown
+{
   private readonly logger = new Logger('EventBus');
   private readonly listeners = new Map<string, Set<Listener>>();
   private readonly recent = new Set<string>();
+  private readonly streams = new Set<() => void>();
   private subscriber: ReturnType<typeof buildSubscriber> | undefined;
   private starting: Promise<void> | undefined;
 
@@ -45,6 +51,20 @@ export class EventBus implements OnApplicationShutdown {
       throw error;
     }
     return () => this.remove(channel, listener);
+  }
+
+  /**
+   * Registers an open stream's closer so shutdown can end it; browsers then
+   * reconnect to another instance. Returns the unregister function.
+   */
+  track(end: () => void): () => void {
+    this.streams.add(end);
+    return () => this.streams.delete(end);
+  }
+
+  beforeApplicationShutdown(): void {
+    for (const end of [...this.streams]) end();
+    this.streams.clear();
   }
 
   /** Delivers one raw message; public so tests can inject events. */

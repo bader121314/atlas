@@ -109,7 +109,12 @@ export class EventsController {
       clearInterval(heartbeat);
       clearInterval(revalidate);
       unsubscribe();
+      untrack();
     };
+    const untrack = this.bus.track(() => {
+      close();
+      response.end();
+    });
     const heartbeat = setInterval(() => {
       if (open) response.write(': ping\n\n');
     }, this.settings.heartbeatMs);
