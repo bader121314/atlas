@@ -114,7 +114,8 @@ Read `docs/08` M3 and the deferrals in `docs/10`. In order:
 4. Done (PR #20): filters, table (client-side sort) and calendar views,
    saved views private or shared (ADR-025). Note: local Prettier 3.8 differs
    from the project's 3.10 on long union types; keep them on one line.
-5. Custom fields (text, number, date, select) with typed validation.
+5. Done (PR #21): custom fields (text, number, date, choice list) with typed
+   value columns and validation; values shown in the table view (ADR-026).
 6. Design system pass: shared components, consistent spacing, WCAG checks;
    extend the browser smoke test to multiple viewports.
 7. Carry-overs: trusted-proxy client addresses before deployment, request IDs

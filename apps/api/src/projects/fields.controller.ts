@@ -17,7 +17,7 @@ import {
   setFieldValueRequestSchema,
   updateFieldRequestSchema,
 } from '@atlas/contracts';
-import type { CustomField } from '@atlas/contracts';
+import type { CustomField, Task } from '@atlas/contracts';
 import { caller, parse } from '../auth/auth.controller';
 import { SessionGuard } from '../auth/guards';
 import type { HttpRequest } from '../auth/http';
@@ -26,11 +26,15 @@ import { FieldsService } from './fields.service';
 import { ProjectGuard, RequireProjectPermission } from './project.guard';
 import { idParam, projectOf, tenantOf } from './projects.controller';
 import { taskNumber } from './tasks.controller';
+import { TasksService } from './tasks.service';
 
 @Controller('organizations/:slug/projects/:key')
 @UseGuards(SessionGuard, TenantGuard, ProjectGuard)
 export class FieldsController {
-  constructor(@Inject(FieldsService) private readonly fields: FieldsService) {}
+  constructor(
+    @Inject(FieldsService) private readonly fields: FieldsService,
+    @Inject(TasksService) private readonly tasks: TasksService,
+  ) {}
 
   @Get('fields')
   @RequirePermission('organization.read')
@@ -82,22 +86,25 @@ export class FieldsController {
   }
 
   @Put('tasks/:number/fields/:id')
-  @HttpCode(204)
   @RequirePermission('organization.read')
   @RequireProjectPermission('task.write')
-  setValue(
+  async setValue(
     @Param('number') number: string,
     @Param('id') id: string,
     @Body() body: unknown,
     @Req() request: HttpRequest,
-  ): Promise<void> {
-    return this.fields.setValue(
-      tenantOf(request),
-      projectOf(request),
-      taskNumber(number),
+  ): Promise<Task> {
+    const tenant = tenantOf(request);
+    const project = projectOf(request);
+    const task = taskNumber(number);
+    await this.fields.setValue(
+      tenant,
+      project,
+      task,
       idParam(id),
       caller(request).user.id,
       parse(setFieldValueRequestSchema, body).value,
     );
+    return this.tasks.get(tenant, project, task);
   }
 }

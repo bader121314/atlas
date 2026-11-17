@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useShell } from '../../../../../../../../components/app-shell';
+import { FieldInput } from '../../../../../../../../components/custom-fields';
 import { Notice } from '../../../../../../../../components/form';
 import {
   PRIORITIES,
@@ -13,6 +14,7 @@ import {
   priorityLabel,
 } from '../../../../../../../../lib/api';
 import type {
+  CustomField,
   Label,
   Milestone,
   Project,
@@ -99,6 +101,7 @@ export default function TaskPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [fields, setFields] = useState<CustomField[]>([]);
   const [deps, setDeps] = useState<{
     blockedBy: TaskRef[];
     blocking: TaskRef[];
@@ -143,8 +146,12 @@ export default function TaskPage() {
     setStates(s.data ?? []);
     setMembers(m.data?.members ?? []);
     setLabels(l.data ?? []);
-    const ms = await api<Milestone[]>(`${base}/milestones`);
+    const [ms, f] = await Promise.all([
+      api<Milestone[]>(`${base}/milestones`),
+      api<CustomField[]>(`${base}/fields`),
+    ]);
     setMilestones(ms.data ?? []);
+    setFields(f.data ?? []);
     await loadThread();
   }, [base, number, slug, loadThread]);
 
@@ -221,6 +228,29 @@ export default function TaskPage() {
       setMessage({
         tone: 'error',
         text: describeFailure(result.status, 'Labels could not be changed.'),
+      });
+    }
+  }
+
+  async function saveField(field: CustomField, next: string | number | null) {
+    const result = await api<Task>(
+      `${base}/tasks/${number}/fields/${field.id}`,
+      {
+        method: 'PUT',
+        body: { value: next },
+      },
+    );
+    if (result.data) {
+      setTask(result.data);
+      setMessage({ tone: 'info', text: `${field.name} saved.` });
+      await loadThread();
+    } else {
+      setMessage({
+        tone: 'error',
+        text: describeFailure(
+          result.status,
+          `${field.name} could not be saved. Check the value and try again.`,
+        ),
       });
     }
   }
@@ -607,6 +637,16 @@ export default function TaskPage() {
               </select>
             </div>
           ) : null}
+          {fields.map((field) => (
+            <FieldInput
+              key={field.id}
+              field={field}
+              stored={task.fields[field.id]}
+              disabled={!canWrite}
+              version={task.version}
+              onSave={(next) => saveField(field, next)}
+            />
+          ))}
           <div className="field">
             <label htmlFor="parent">Part of task number</label>
             <input

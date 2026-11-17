@@ -57,8 +57,8 @@ describe('custom fields', () => {
 
     const put = (fieldId: string, value: unknown) =>
       fx.call(owner, 'PUT', `${base}/tasks/1/fields/${fieldId}`, { value });
-    expect((await put(region.id, 'South')).status).toBe(204);
-    expect((await put(depth.id, 42.5)).status).toBe(204);
+    expect((await put(region.id, 'South')).status).toBe(200);
+    expect((await put(depth.id, 42.5)).status).toBe(200);
     expect((await put(region.id, 'East')).status).toBe(400);
     expect((await put(depth.id, 'deep')).status).toBe(400);
 
@@ -78,7 +78,7 @@ describe('custom fields', () => {
     };
     expect(after.fields).toEqual({ [depth.id]: 42.5 });
 
-    expect((await put(depth.id, null)).status).toBe(204);
+    expect((await put(depth.id, null)).status).toBe(200);
     expect(
       (await fx.call(owner, 'DELETE', `${base}/fields/${region.id}`)).status,
     ).toBe(204);
@@ -129,6 +129,6 @@ describe('custom fields', () => {
           value: 'Editors may set values',
         })
       ).status,
-    ).toBe(204);
+    ).toBe(200);
   });
 });

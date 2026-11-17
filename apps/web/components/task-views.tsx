@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { priorityLabel } from '../lib/api';
-import type { Task } from '../lib/api';
+import type { CustomField, Task } from '../lib/api';
+import { formatFieldValue } from './custom-fields';
 
 export type SortField =
   'number' | 'title' | 'priority' | 'due' | 'state' | 'assignee';
@@ -70,11 +71,13 @@ const day = new Intl.DateTimeFormat(undefined, {
 
 export function TableView({
   tasks,
+  fields = [],
   sort,
   onSort,
   href,
 }: {
   tasks: Task[];
+  fields?: CustomField[];
   sort: Sort;
   onSort: (sort: Sort) => void;
   href: (task: Task) => string;
@@ -108,6 +111,11 @@ export function TableView({
                 </th>
               );
             })}
+            {fields.map((field) => (
+              <th key={field.id} scope="col">
+                {field.name}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -133,6 +141,11 @@ export function TableView({
                   <span className="muted">None</span>
                 )}
               </td>
+              {fields.map((field) => (
+                <td key={field.id}>
+                  {formatFieldValue(field, task.fields[field.id])}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
