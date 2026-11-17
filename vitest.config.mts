@@ -3,6 +3,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     testTimeout: 15000,
+    // A hung server close should fail the run, not stall CI.
+    hookTimeout: 20000,
+    teardownTimeout: 20000,
     projects: [
       {
         extends: true,

@@ -25,7 +25,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new ProblemFilter());
   app.enableShutdownHooks();
-  await app.listen(config.API_PORT, '127.0.0.1');
+  await app.listen(config.API_PORT, config.LISTEN_HOST);
 }
 void bootstrap().catch(() => {
   console.error('api startup failed; verify configuration and local services.');

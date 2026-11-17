@@ -9,7 +9,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new ProblemFilter());
   app.enableShutdownHooks();
-  await app.listen(config.WORKER_PORT, '127.0.0.1');
+  await app.listen(config.WORKER_PORT, config.LISTEN_HOST);
 }
 void bootstrap().catch(() => {
   console.error(
