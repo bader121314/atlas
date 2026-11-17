@@ -109,7 +109,7 @@ webhooks and rule runs, each exactly once or deduplicated by event id. See
 
 Every pull request runs, on GitHub Actions:
 
-- 187 unit tests and 134 integration tests against real PostgreSQL and
+- 187 unit tests and 135 integration tests against real PostgreSQL and
   Redis, including negative tests for every tenant-scoped route;
 - a browser test that drives three users through signup, invitations,
   projects, views, live updates, uploads, notifications, search and exports
@@ -166,6 +166,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [M7 exit report](docs/17-m7-exit-report.md)
 - [Runbooks](docs/runbooks)
 - [Case study](docs/18-case-study.md)
+- [M8 exit report](docs/19-m8-exit-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
