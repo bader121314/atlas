@@ -37,7 +37,7 @@ export async function planBatch(
         continue;
       const inserted = await client.query(
         `INSERT INTO webhook_deliveries (organization_id, endpoint_id, event_id, event_type, payload)
-         SELECT e.organization_id, e.id, $2, $3, jsonb_build_object(
+         SELECT e.organization_id, e.id, $2::uuid, $3::text, jsonb_build_object(
            'id', $2::uuid,
            'type', $3::text,
            'occurredAt', to_char($5::timestamptz AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
@@ -47,10 +47,10 @@ export async function planBatch(
              'projectKey', p.key, 'title', t.title, 'state', ws.label,
              'priority', t.priority, 'version', t.version))
          FROM webhook_endpoints e
-         JOIN tasks t ON t.organization_id = e.organization_id AND t.id = $4
+         JOIN tasks t ON t.organization_id = e.organization_id AND t.id = $4::uuid
          JOIN projects p ON p.id = t.project_id
          JOIN workflow_states ws ON ws.id = t.state_id
-         WHERE e.organization_id = $1 AND e.status = 'active' AND $3 = ANY(e.events)
+         WHERE e.organization_id = $1::uuid AND e.status = 'active' AND $3::text = ANY(e.events)
          ON CONFLICT (endpoint_id, event_id) DO NOTHING`,
         [
           event.organization_id,
