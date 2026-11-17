@@ -391,7 +391,21 @@ export default function OrganizationPage() {
         </section>
       ) : null}
       {mine === 'owner' || mine === 'admin' ? (
-        <WebhooksSection slug={slug} />
+        <>
+          <WebhooksSection slug={slug} />
+          <section className="section" aria-labelledby="audit-heading">
+            <h2 id="audit-heading">Audit log</h2>
+            <p className="muted">
+              Who changed members, projects, tokens and links, and when.
+            </p>
+            <Link
+              className="button secondary small"
+              href={`/organizations/${slug}/audit`}
+            >
+              Open the audit log
+            </Link>
+          </section>
+        </>
       ) : null}
       {mine !== 'guest' ? <ApiTokensSection slug={slug} /> : null}
     </>

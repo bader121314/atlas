@@ -1206,6 +1206,20 @@ paths:
           }
         '404': { description: Link does not work }
         '429': { description: Too many requests }
+  /organizations/{slug}/audit-events:
+    get:
+      summary: The organization's audit log, newest first (owners and admins; ADR-051)
+      description: 'Query: action? (exact or dotted prefix), before? (event id), limit? (1-100, default 50). Session only.'
+      responses:
+        '200': { description: '{ items[], nextBefore }' }
+        '403': { description: Not an owner or admin }
+  /organizations/{slug}/audit-events/export:
+    get:
+      summary: Download the audit log as CSV (owners and admins)
+      description: 'Query: from, to (UTC dates, at most 366 days). Up to 100,000 rows; X-Atlas-Truncated when cut. The export is audited.'
+      responses:
+        '200': { description: text/csv attachment }
+        '400': { description: Invalid range }
   /organizations/{slug}/workload:
     get:
       operationId: getWorkload

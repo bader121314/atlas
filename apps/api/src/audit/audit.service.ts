@@ -41,7 +41,8 @@ export type AuditAction =
   | 'api_token.created'
   | 'api_token.revoked'
   | 'share_link.created'
-  | 'share_link.revoked';
+  | 'share_link.revoked'
+  | 'org.audit.exported';
 
 /** Where a request came from; summarized before storage. */
 export interface RequestMeta {

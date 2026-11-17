@@ -44,3 +44,4 @@ export {
 } from './request-context';
 export { Counter, Histogram, Registry, metricsAuthorized } from './metrics';
 export type { GaugeReading } from './metrics';
+export { csvCell, toCsv } from './csv';
