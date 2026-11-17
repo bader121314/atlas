@@ -9,10 +9,11 @@ on every change.
 **Status:** milestones M0 (foundation) and M1 (identity, organizations,
 tenancy) are complete; see the [M1 exit report](docs/09-m1-exit-report.md).
 M2 (projects and tasks), M3 (views, planning and accessibility), M4
-(real-time updates and notifications) and M5 (attachments, search and
-analytics) are complete too; see the [M2](docs/10-m2-exit-report.md),
-[M3](docs/11-m3-exit-report.md), [M4](docs/12-m4-exit-report.md) and
-[M5](docs/13-m5-exit-report.md) exit reports. Not deployed; no
+(real-time updates and notifications), M5 (attachments, search and
+analytics) and M6 (automation and integrations) are complete too; see the
+[M2](docs/10-m2-exit-report.md), [M3](docs/11-m3-exit-report.md),
+[M4](docs/12-m4-exit-report.md), [M5](docs/13-m5-exit-report.md) and
+[M6](docs/14-m6-exit-report.md) exit reports. Not deployed; no
 production-readiness claims.
 
 | Task board                                        | Task with comments and history                  |
@@ -52,6 +53,10 @@ production-readiness claims.
   search across tasks and comments that never reveals private projects;
   project numbers computed from the task rows; background CSV exports that
   expire after a day.
+- **Automation and integrations:** rules that react to task events with
+  loop protection and a preview; recurring tasks; signed outbound webhooks
+  with SSRF protection, retries and replay; scoped API tokens for scripts,
+  with a small client and webhook receiver in [`examples`](examples).
 - **Accessibility:** keyboard shortcuts and a skip link; colour tokens checked
   against WCAG contrast minimums; an axe-core audit of every page the
   browser test visits, at phone, tablet and desktop widths.
@@ -63,7 +68,7 @@ production-readiness claims.
 and React 19; NestJS 11; PostgreSQL 17 with hand-reviewed SQL migrations and
 Prisma schema; Redis; Zod; Vitest; Playwright smoke test; GitHub Actions.
 
-**How it is verified:** 145 unit tests and 114 integration tests against real
+**How it is verified:** about 185 unit tests and 131 integration tests against real
 PostgreSQL and Redis, plus a browser test that drives three users through
 signup, invitations, projects, tasks, views, live updates, notifications,
 attachments, search and exports, and audits accessibility. Design decisions are recorded as ADRs in
@@ -166,6 +171,7 @@ Implement a credible, robust, production-oriented collaborative workspace. The b
 - [M3 exit report](docs/11-m3-exit-report.md)
 - [M4 exit report](docs/12-m4-exit-report.md)
 - [M5 exit report](docs/13-m5-exit-report.md)
+- [M6 exit report](docs/14-m6-exit-report.md)
 - [Architecture decision records](docs/adrs)
 - [Representative OpenAPI contract](contracts/openapi-starter.yaml)
 
