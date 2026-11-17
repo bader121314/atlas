@@ -1,0 +1,11 @@
+environment       = "staging"
+region            = "me-central-1"
+domain_name       = "staging.atlas.example.com"
+certificate_arn   = "arn:aws:acm:me-central-1:000000000000:certificate/replace-me"
+image_tag         = "replace-with-commit-sha"
+db_instance_class = "db.t4g.small"
+db_multi_az       = false
+api_count         = 1
+web_count         = 1
+worker_count      = 1
+alarm_email       = "alerts@example.com"
