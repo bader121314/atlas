@@ -35,7 +35,8 @@ threat, the control and where it is tested. Open items are at the end.
 3. **Real malware scanning.** Replace the scanner stub with ClamAV or the
    provider's scan before accepting untrusted uploads in production.
 4. **Instant revocation.** Event streams recheck access every 30 seconds.
-5. **Provisioning domains.** SCIM can add any address, as invitations can;
-   restrict it to verified domains alongside SSO (ADR-055).
+5. **Provisioning domains.** SCIM is limited to verified domains once an
+   organization has one (ADR-057); organizations without one can still
+   provision any address, as invitations can.
 6. **Manual testing.** An external penetration test and a screen reader
    pass are still to be done.

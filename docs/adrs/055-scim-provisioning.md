@@ -40,8 +40,8 @@ service from Atlas; the customer's provider calls us.
 
 - Without domain verification, an owner's directory can add any address,
   as invitations can. The person can leave at any time, and new accounts
-  cannot be used until the owner of the address sets a password. Restricting
-  provisioning to verified domains is the next step, together with SSO.
+  cannot be used until the owner of the address sets a password. Once an
+  organization verifies a domain, provisioning is limited to it (ADR-057).
 - Groups (mapping directory groups to projects or roles) are not supported.
 
 ## Gates

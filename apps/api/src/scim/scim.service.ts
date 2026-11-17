@@ -6,6 +6,7 @@ import { AuditService } from '../audit/audit.service';
 import type { AuditAction, RequestMeta } from '../audit/audit.service';
 import { AuthService } from '../auth/auth.service';
 import { DatabaseService } from '../database.service';
+import { DomainsService } from '../domains/domains.service';
 import { ScimError } from './scim.errors';
 
 export const SCIM_USER = 'urn:ietf:params:scim:schemas:core:2.0:User';
@@ -91,6 +92,7 @@ export class ScimService {
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(DomainsService) private readonly domains: DomainsService,
   ) {}
 
   private async member(
@@ -161,6 +163,15 @@ export class ScimService {
     input: ScimUserInput,
     request: RequestMeta,
   ): Promise<ScimUser> {
+    // With verified domains, only their addresses can be provisioned (ADR-057).
+    const allowed = await this.domains.verifiedDomains(tenant.organizationId);
+    const domain = input.userName.split('@')[1] ?? '';
+    if (allowed.length > 0 && !allowed.includes(domain))
+      throw new ScimError(
+        400,
+        'The address is not in one of the organization’s verified domains.',
+        'invalidValue',
+      );
     let welcome = false;
     const user = await this.database.transaction(async (client) => {
       const existing = await client.query<{ id: string; status: string }>(

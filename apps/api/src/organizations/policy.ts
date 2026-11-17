@@ -22,6 +22,7 @@ export const ORGANIZATION_ACTIONS = [
   'audit.read',
   'scim.manage',
   'usage.read',
+  'domains.manage',
 ] as const;
 export type OrganizationAction = (typeof ORGANIZATION_ACTIONS)[number];
 
@@ -40,6 +41,8 @@ const GRANTS: Record<OrganizationAction, readonly OrganizationRole[]> = {
   // SCIM tokens add and remove members without review (ADR-055).
   'scim.manage': ['owner'],
   'usage.read': ['owner', 'admin'],
+  // Domains steer provisioning and sign-in for everyone (ADR-057).
+  'domains.manage': ['owner'],
 };
 
 export function isOrganizationRole(value: string): value is OrganizationRole {

@@ -526,3 +526,16 @@ model UsageCounter {
   @@id([organizationId, period, metric])
   @@map("usage_counters")
 }
+
+model OrganizationDomain {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  domain String @db.VarChar(253)
+  verificationToken String @map("verification_token") @db.VarChar(64)
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  verifiedAt DateTime? @map("verified_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, domain], map: "organization_domains_org_domain_key")
+  @@map("organization_domains")
+}
