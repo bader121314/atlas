@@ -280,6 +280,7 @@ const pages = [];
   await alice.keyboard.type('Check the buoys');
   await alice.keyboard.press('Enter');
   await alice.getByRole('link', { name: /Check the buoys/ }).waitFor();
+  await alice.keyboard.press('Escape');
   await alice.keyboard.press('t');
   await alice.getByRole('cell', { name: 'Check the buoys' }).waitFor();
   // The first Tab on a page reaches the skip link.

@@ -35,17 +35,28 @@ export function ShortcutProvider({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const bindings = useMemo(() => {
+    const leave: Shortcut = {
+      keys: 'Esc',
+      description: 'Leave a text field so shortcuts work again',
+      run: () => undefined,
+    };
     const help: Shortcut = {
       keys: '?',
       description: 'Show keyboard shortcuts',
       run: () => dialog.current?.showModal(),
     };
-    return [help, ...global, ...Object.values(groups).flat()];
+    return [help, leave, ...global, ...Object.values(groups).flat()];
   }, [global, groups]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (ignoresShortcuts(event) || dialog.current?.open) return;
+      if (dialog.current?.open) return;
+      // Escape leaves a text field so shortcuts work again.
+      if (event.key === 'Escape' && event.target instanceof HTMLElement) {
+        if (ignoresShortcuts(event)) event.target.blur();
+        return;
+      }
+      if (ignoresShortcuts(event)) return;
       const result = resolveKey(bindings, pending.current, event.key);
       pending.current = result.pending;
       clearTimeout(timer.current);
