@@ -2,7 +2,11 @@
 
 ## Context and deployment diagrams
 
-Browser -> CDN/WAF -> Next.js web -> authenticated NestJS REST API -> PostgreSQL, Redis, S3. Browser -> API WebSocket endpoint for live events (handshake authenticated, org membership validated). Separate BullMQ workers process due tasks, email, uploads, rules, imports and webhook delivery. API transaction -> outbox rows; dispatcher reads committed outbox rows, publishes to jobs/realtime, marks delivered safely; consumers dedupe by event ID.
+Browser -> Next.js web (same origin; `/api/*` is proxied) -> NestJS REST API -> PostgreSQL, Redis, S3-compatible storage. Live updates reach the browser as Server-Sent Events from the API, authenticated by the session cookie and checked against project membership (ADR-029). The worker runs PostgreSQL `SKIP LOCKED` loops for the outbox, notifications, uploads, exports, rules, recurrences, webhooks and domain checks (ADR-028, ADR-031). An API transaction writes the change, its history and an outbox row together; the dispatcher publishes committed rows to Redis and consumers dedupe by event id.
+
+The diagram in the [README](../README.md#architecture) shows the same picture.
+
+> The original specification named WebSockets and BullMQ. They were replaced by Server-Sent Events and database-backed loops; see ADR-029 and ADR-028.
 
 ## Monorepo layout
 
