@@ -165,9 +165,9 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 11. Done (PR #63): task estimates and weekly capacity on the workload view
     (ADR-054); estimates also exported.
 12. Done (PR #64): time logged shown against the estimate on the task page.
-13. Next: M9 progress report update (docs/20) for PRs #59 to #64, then
-    larger items (ABAC, SSO/SAML, SCIM) that need approval or hosted
-    services, or smaller polish items.
+13. Done (PR #65): SCIM 2.0 user provisioning (ADR-055).
+14. Next M9 candidates: usage metering per organization (no billing
+    provider), then SSO with OpenID Connect and verified domains.
 
 ## Environment and versions
 

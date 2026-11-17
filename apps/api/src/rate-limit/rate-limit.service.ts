@@ -31,6 +31,8 @@ export const DEFAULT_RATE_LIMITS = {
   acceptInvitePerIp: { limit: 30, windowSeconds: 15 * 60 },
   // Public share links (ADR-050): generous for reading, slow for guessing.
   sharePerIp: { limit: 120, windowSeconds: 60 },
+  // Directory syncs send bursts; generous but bounded per token (ADR-055).
+  scimPerToken: { limit: 600, windowSeconds: 60 },
 } satisfies Record<string, RateLimitRule>;
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 

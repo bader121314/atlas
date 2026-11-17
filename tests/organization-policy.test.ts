@@ -22,6 +22,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'labels.delete': true,
     'webhooks.manage': true,
     'audit.read': true,
+    'scim.manage': true,
   },
   admin: {
     'organization.read': true,
@@ -34,6 +35,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'labels.delete': true,
     'webhooks.manage': true,
     'audit.read': true,
+    'scim.manage': false,
   },
   member: {
     'organization.read': true,
@@ -46,6 +48,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'labels.delete': false,
     'webhooks.manage': false,
     'audit.read': false,
+    'scim.manage': false,
   },
   guest: {
     'organization.read': true,
@@ -58,6 +61,7 @@ const EXPECTED: Record<string, Record<string, boolean>> = {
     'labels.delete': false,
     'webhooks.manage': false,
     'audit.read': false,
+    'scim.manage': false,
   },
 };
 

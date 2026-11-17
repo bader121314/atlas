@@ -1237,6 +1237,65 @@ paths:
         '200': { description: '{ userId, weeklyMinutes }' }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/scim-tokens:
+    get:
+      operationId: listScimTokens
+      security: [{ sessionCookie: [] }]
+      description: 'Live SCIM tokens (prefix, creator, last use). Owners only. ADR-055.'
+      responses:
+        '200': { description: Tokens }
+    post:
+      operationId: createScimToken
+      security: [{ sessionCookie: [] }]
+      description: 'Creates a token, returned once as secret. At most two live. Owners only.'
+      responses:
+        '201': { description: '{ token, secret }' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/scim-tokens/{id}:
+    delete:
+      operationId: revokeScimToken
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Revoked }
+  /scim/v2/Users:
+    get:
+      operationId: scimListUsers
+      description: 'SCIM 2.0 (RFC 7644). Bearer SCIM token. filter: userName eq "x" or externalId eq "x"; startIndex, count (max 100). application/scim+json. ADR-055.'
+      responses:
+        '200': { description: ListResponse }
+        '401': { description: SCIM error }
+    post:
+      operationId: scimCreateUser
+      description: 'userName (email), externalId?, displayName?, name?, active?. Adds the person as a member; 409 uniqueness if already one.'
+      responses:
+        '201': { description: User }
+        '409': { description: SCIM error }
+  /scim/v2/Users/{id}:
+    get:
+      operationId: scimGetUser
+      responses:
+        '200': { description: User }
+        '404': { description: SCIM error }
+    put:
+      operationId: scimReplaceUser
+      description: 'Applies active and externalId; profile attributes are ignored.'
+      responses:
+        '200': { description: User }
+    patch:
+      operationId: scimPatchUser
+      description: 'PatchOp: active (boolean or "True"/"False") and externalId, by path or value object. Owners and admins return 403 mutability.'
+      responses:
+        '200': { description: User }
+        '403': { description: SCIM error }
+    delete:
+      operationId: scimDeleteUser
+      responses:
+        '204': { description: Removed from the organization }
+  /scim/v2/ServiceProviderConfig:
+    get:
+      operationId: scimServiceProviderConfig
+      responses:
+        '200': { description: Supported features }
 components:
   parameters:
     Slug:

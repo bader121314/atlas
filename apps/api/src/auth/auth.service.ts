@@ -321,6 +321,8 @@ export class AuthService {
   async requestPasswordReset(
     email: string,
     request: RequestMeta,
+    /** Set for people provisioned by SCIM: a welcome with a longer link (ADR-055). */
+    welcome?: { organizationName: string },
   ): Promise<void> {
     const token = generateToken();
     const issued = await this.database.transaction(async (client) => {
@@ -341,7 +343,7 @@ export class AuthService {
       await client.query(
         `INSERT INTO verification_tokens (user_id, purpose, token_hash, expires_at)
          VALUES ($1, 'password_reset', $2, now() + $3::interval)`,
-        [userId, this.digest(token), PASSWORD_RESET_TTL],
+        [userId, this.digest(token), welcome ? '7 days' : PASSWORD_RESET_TTL],
       );
       await this.audit.record(
         {
@@ -356,11 +358,19 @@ export class AuthService {
     if (!issued) return;
     const link = `${this.config.WEB_ORIGIN}/reset-password?token=${token}`;
     try {
-      await this.mailer.send({
-        to: email,
-        subject: 'Reset your Atlas password',
-        text: `Someone asked to reset the password for your Atlas account. If it was you, choose a new password here:\n\n${link}\n\nThis link expires in 1 hour. If you did not ask, you can ignore this email; your password has not changed.`,
-      });
+      await this.mailer.send(
+        welcome
+          ? {
+              to: email,
+              subject: `You have been added to ${welcome.organizationName} on Atlas`,
+              text: `Your organization added you to ${welcome.organizationName} on Atlas. Choose a password to sign in:\n\n${link}\n\nThis link expires in 7 days. Afterwards, use "Forgot password" on the sign-in page.`,
+            }
+          : {
+              to: email,
+              subject: 'Reset your Atlas password',
+              text: `Someone asked to reset the password for your Atlas account. If it was you, choose a new password here:\n\n${link}\n\nThis link expires in 1 hour. If you did not ask, you can ignore this email; your password has not changed.`,
+            },
+      );
     } catch {
       this.logger.error('password reset email could not be sent');
     }

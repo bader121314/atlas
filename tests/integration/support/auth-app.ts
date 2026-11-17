@@ -93,7 +93,7 @@ export async function startAuthApp() {
       ...options.headers,
     };
     if (options.cookie) headers.cookie = options.cookie;
-    if (options.body !== undefined)
+    if (options.body !== undefined && !headers['content-type'])
       headers['content-type'] = 'application/json';
     return fetch(root + path, {
       method,
