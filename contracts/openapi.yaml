@@ -1063,6 +1063,46 @@ paths:
       security: [{ sessionCookie: [] }]
       responses:
         '204': { description: Revoked at once }
+  /organizations/{slug}/projects/{key}/automations:
+    get:
+      operationId: listAutomations
+      security: [{ sessionCookie: [] }]
+      description: 'Rules: { id, name, enabled, trigger, conditions, actions, createdBy, createdAt }. Managers. ADR-038.'
+      responses:
+        '200': { description: Rules }
+    post:
+      operationId: createAutomation
+      security: [{ sessionCookie: [] }]
+      description: 'Body: name, trigger ({ type: task.created | comment.created } or { type: task.state_changed, toStateId? }), conditions? ({ priorities?, labelId?, unassigned? }), actions (1-5 of assign {userId}, set_priority {priority}, add_label {labelId}, set_state {stateId}, comment {body}), enabled?. Every referenced id must exist here.'
+      responses:
+        '201': { description: Created }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /organizations/{slug}/projects/{key}/automations/simulate:
+    post:
+      operationId: simulateAutomation
+      security: [{ sessionCookie: [] }]
+      description: 'Body: { conditions }. Returns { matched: [{ key, title }], checked } for the latest 50 tasks; changes nothing.'
+      responses:
+        '200': { description: Matches }
+  /organizations/{slug}/projects/{key}/automations/{id}:
+    patch:
+      operationId: updateAutomation
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Updated }
+    delete:
+      operationId: deleteAutomation
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Deleted }
+  /organizations/{slug}/projects/{key}/automations/{id}/runs:
+    get:
+      operationId: listAutomationRuns
+      security: [{ sessionCookie: [] }]
+      description: 'Latest 50: { id, status (applied | skipped | failed), detail, task, createdAt }.'
+      responses:
+        '200': { description: Runs }
 components:
   parameters:
     Slug:

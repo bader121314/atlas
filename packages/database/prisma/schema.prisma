@@ -231,6 +231,7 @@ model OutboxEvent {
   nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(6)
   notifiedAt DateTime? @map("notified_at") @db.Timestamptz(6)
   webhooksAt DateTime? @map("webhooks_at") @db.Timestamptz(6)
+  automationsAt DateTime? @map("automations_at") @db.Timestamptz(6)
   @@index([projectId, publishedAt], map: "outbox_events_stream_idx")
   @@map("outbox_events")
 }
@@ -405,4 +406,32 @@ model ApiToken {
   revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
   @@index([organizationId, userId], map: "api_tokens_owner_idx")
   @@map("api_tokens")
+}
+model AutomationRule {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  name String @db.VarChar(80)
+  enabled Boolean @default(true)
+  trigger Json
+  conditions Json @default("{}")
+  actions Json
+  createdByUserId String @map("created_by_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  @@unique([organizationId, projectId, id], map: "automation_rules_scope_key")
+  @@map("automation_rules")
+}
+model AutomationRun {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  ruleId String @map("rule_id") @db.Uuid
+  eventId String @map("event_id") @db.Uuid
+  taskId String @map("task_id") @db.Uuid
+  status String @db.VarChar(16)
+  detail String? @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@unique([ruleId, eventId], map: "automation_runs_once_key")
+  @@map("automation_runs")
 }

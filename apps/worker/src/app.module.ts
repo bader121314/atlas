@@ -7,6 +7,7 @@ import {
 import { checkDependencies } from '@atlas/shared';
 import type { Health } from '@atlas/contracts';
 import { AttachmentChecksService } from './attachments/attachments.service';
+import { AutomationsService } from './automations/automations.service';
 import { NotificationsService } from './notifications/notifications.service';
 import { OutboxService } from './outbox/outbox.service';
 import { WebhooksService } from './webhooks/webhooks.service';
@@ -31,6 +32,7 @@ export class HealthController {
     NotificationsService,
     AttachmentChecksService,
     WebhooksService,
+    AutomationsService,
   ],
 })
 export class AppModule {}

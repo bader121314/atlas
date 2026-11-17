@@ -791,6 +791,106 @@ export const apiTokenSchema = z
   .strict();
 export type ApiToken = z.infer<typeof apiTokenSchema>;
 
+/** What starts a rule (ADR-038). */
+export const automationTriggerSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('task.created') }).strict(),
+  z
+    .object({
+      type: z.literal('task.state_changed'),
+      /** Only when the task moves to this state; any state when absent. */
+      toStateId: z.uuid().optional(),
+    })
+    .strict(),
+  z.object({ type: z.literal('comment.created') }).strict(),
+]);
+export type AutomationTrigger = z.infer<typeof automationTriggerSchema>;
+
+/** All given conditions must hold for the task when the rule runs. */
+export const automationConditionsSchema = z
+  .object({
+    priorities: z.array(priority).min(1).optional(),
+    labelId: z.uuid().optional(),
+    unassigned: z.boolean().optional(),
+  })
+  .strict();
+export type AutomationConditions = z.infer<typeof automationConditionsSchema>;
+
+export const automationActionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('assign'), userId: z.uuid() }).strict(),
+  z.object({ type: z.literal('set_priority'), priority: priority }).strict(),
+  z.object({ type: z.literal('add_label'), labelId: z.uuid() }).strict(),
+  z.object({ type: z.literal('set_state'), stateId: z.uuid() }).strict(),
+  z
+    .object({
+      type: z.literal('comment'),
+      body: z.string().trim().min(1).max(2000),
+    })
+    .strict(),
+]);
+export type AutomationAction = z.infer<typeof automationActionSchema>;
+
+export const createAutomationRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    trigger: automationTriggerSchema,
+    conditions: automationConditionsSchema.default({}),
+    actions: z.array(automationActionSchema).min(1).max(5),
+    enabled: z.boolean().default(true),
+  })
+  .strict();
+export type CreateAutomationRequest = z.infer<
+  typeof createAutomationRequestSchema
+>;
+
+export const updateAutomationRequestSchema = createAutomationRequestSchema
+  .partial()
+  .strict();
+
+export const simulateAutomationRequestSchema = z
+  .object({ conditions: automationConditionsSchema })
+  .strict();
+
+export const automationRuleSchema = z
+  .object({
+    id: z.uuid(),
+    name: z.string(),
+    enabled: z.boolean(),
+    trigger: automationTriggerSchema,
+    conditions: automationConditionsSchema,
+    actions: z.array(automationActionSchema),
+    createdBy: z.string(),
+    createdAt: z.iso.datetime(),
+  })
+  .strict();
+export type AutomationRule = z.infer<typeof automationRuleSchema>;
+
+/** The task facts conditions look at. */
+export interface ConditionSubject {
+  priority: string;
+  labelIds: string[];
+  assigneeId: string | null;
+}
+
+/** True when the task satisfies every condition given (none means true). */
+export function matchesConditions(
+  task: ConditionSubject,
+  conditions: AutomationConditions,
+): boolean {
+  if (
+    conditions.priorities &&
+    !conditions.priorities.includes(task.priority as never)
+  )
+    return false;
+  if (conditions.labelId && !task.labelIds.includes(conditions.labelId))
+    return false;
+  if (
+    conditions.unassigned !== undefined &&
+    conditions.unassigned !== (task.assigneeId === null)
+  )
+    return false;
+  return true;
+}
+
 /** Redis channel for one project's events. */
 export function projectChannel(organizationId: string, projectId: string) {
   return `atlas:events:${organizationId}:${projectId}`;

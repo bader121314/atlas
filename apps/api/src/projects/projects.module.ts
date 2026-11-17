@@ -22,6 +22,8 @@ import { ActivityService } from './activity.service';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { AttachmentsController } from './attachments.controller';
+import { AutomationsController } from './automations.controller';
+import { AutomationsService } from './automations.service';
 import { AttachmentsService, StorageProvider } from './attachments.service';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
@@ -72,6 +74,7 @@ import { ViewsService } from './views.service';
     ExportsController,
     WebhooksController,
     ApiTokensController,
+    AutomationsController,
   ],
   providers: [
     ProjectsService,
@@ -96,6 +99,7 @@ import { ViewsService } from './views.service';
     ExportsService,
     WebhooksService,
     ApiTokensService,
+    AutomationsService,
   ],
   exports: [ProjectsService, ProjectGuard],
 })
