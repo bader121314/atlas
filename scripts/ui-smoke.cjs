@@ -187,6 +187,27 @@ const pages = [];
   await alice.getByLabel('New status').fill('In review');
   await alice.getByRole('button', { name: 'Add status' }).click();
   await alice.getByRole('region', { name: 'In review' }).waitFor();
+  // Drag a card to another column, and move one with the keyboard control.
+  await alice
+    .locator('.card', { hasText: 'Survey the cliffs' })
+    .dragTo(alice.getByRole('region', { name: 'Done' }));
+  await alice
+    .getByRole('region', { name: 'Done' })
+    .getByText('Survey the cliffs')
+    .waitFor();
+  await alice
+    .getByLabel('Move COAST-3 to')
+    .selectOption({ label: 'In review' });
+  await alice
+    .getByRole('region', { name: 'In review' })
+    .getByText('Mark the tide lines')
+    .waitFor();
+  await alice.reload();
+  await alice
+    .getByRole('region', { name: 'Done' })
+    .getByText('Survey the cliffs')
+    .waitFor();
+  await shot(alice, '11d-board-moved');
   await alice.goto(`${BASE}/organizations/${slug}`);
   await alice.getByText('Bob Haddad').waitFor();
 

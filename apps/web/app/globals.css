@@ -372,7 +372,28 @@ select:focus-visible {
 }
 .card:hover {
   border-color: var(--contour);
+}
+.card[draggable='true'] {
+  cursor: grab;
+}
+.card-link {
+  display: block;
   color: var(--ink);
+  text-decoration: none;
+}
+.card-link:hover {
+  color: var(--sea-deep);
+}
+.card-move {
+  margin-top: 0.5rem;
+  width: 100%;
+  height: 2rem;
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+}
+.column.drop {
+  outline: 2px dashed var(--sea);
+  outline-offset: -2px;
 }
 .card .key {
   color: var(--ink-soft);
