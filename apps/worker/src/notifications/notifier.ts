@@ -10,7 +10,7 @@ interface EventRow {
   event_type: string;
   payload: {
     actorUserId?: string;
-    changes?: { assignee?: { to?: string | null } };
+    changes?: { assignee?: string | { to?: string | null } };
   };
 }
 
@@ -19,18 +19,15 @@ export async function recipientsFor(
   client: PoolClient,
   event: EventRow,
 ): Promise<{ kind: NotificationKind; userIds: string[] } | undefined> {
+  const assignee = event.payload.changes?.assignee;
   if (event.event_type === 'task.created') {
-    const task = await client.query<{ assignee_user_id: string | null }>(
-      'SELECT assignee_user_id FROM tasks WHERE organization_id = $1 AND id = $2',
-      [event.organization_id, event.aggregate_id],
-    );
-    const assignee = task.rows[0]?.assignee_user_id;
-    return assignee
+    // Created already assigned: the event records the assignee.
+    return typeof assignee === 'string'
       ? { kind: 'task.assigned', userIds: [assignee] }
       : undefined;
   }
   if (event.event_type === 'task.updated') {
-    const to = event.payload.changes?.assignee?.to;
+    const to = typeof assignee === 'object' ? assignee.to : undefined;
     return to ? { kind: 'task.assigned', userIds: [to] } : undefined;
   }
   if (event.event_type === 'comment.created') {

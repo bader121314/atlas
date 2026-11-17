@@ -68,7 +68,7 @@ export async function emailBatch(
       [options.organizationId ?? null],
     );
     const rows = await client.query<PendingRow>(
-      `SELECT n.id, n.kind, u.email, u.display_name AS recipient_name,
+      `SELECT n.id, n.kind, u.email_normalized AS email, u.display_name AS recipient_name,
               a.display_name AS actor_name, o.slug, p.key AS project_key,
               t.number, t.title, s.email_enabled
        FROM notifications n
