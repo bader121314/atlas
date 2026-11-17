@@ -314,7 +314,7 @@ const pages = [];
       ['organization', `${BASE}/organizations/${slug}`, 'Northwind Survey'],
       ['board', project, 'Coastal survey'],
       ['table', project, 'Coastal survey'],
-      ['task', `${project}/tasks/1`, 'Chart the harbour'],
+      ['task', `${project}/tasks/1`, 'Comments'],
     ]) {
       await page.goto(url);
       await page.getByRole('heading', { name: heading }).first().waitFor();
