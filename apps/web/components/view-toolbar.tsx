@@ -6,7 +6,7 @@ import { PRIORITIES, api, describeFailure, priorityLabel } from '../lib/api';
 import type { Label, Milestone, WorkflowState } from '../lib/api';
 import { Notice } from './form';
 import type { Sort } from './task-views';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 export const LAYOUTS = [
   'board',
@@ -16,6 +16,14 @@ export const LAYOUTS = [
   'timeline',
 ] as const;
 export type Layout = (typeof LAYOUTS)[number];
+/** Tab names for the views, translated where shown. */
+export const VIEW_NAMES: Record<Layout, string> = {
+  board: n('Board'),
+  list: n('List'),
+  table: n('Table'),
+  calendar: n('Calendar'),
+  timeline: n('Timeline'),
+};
 
 export interface Filters {
   state?: string;

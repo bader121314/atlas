@@ -24,6 +24,7 @@ import {
 import type { Sort } from '../../../../../../components/task-views';
 import {
   LAYOUTS,
+  VIEW_NAMES,
   ViewToolbar,
 } from '../../../../../../components/view-toolbar';
 import type {
@@ -360,7 +361,7 @@ export default function ProjectPage() {
               setView(option);
             }}
           >
-            {option.charAt(0).toUpperCase() + option.slice(1)}
+            {t(VIEW_NAMES[option])}
           </a>
         ))}
       </nav>

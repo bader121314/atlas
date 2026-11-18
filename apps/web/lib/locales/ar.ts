@@ -741,4 +741,12 @@ export const ar: Record<string, string> = {
   'it failed the malware check': 'فشل في فحص البرمجيات الخبيثة',
   'the upload was incomplete': 'الرفع لم يكتمل',
   'it failed the checks': 'فشل في الفحوص',
+  Board: 'لوحة',
+  List: 'قائمة',
+  Table: 'جدول',
+  'Connecting to live updates…': 'جارٍ الاتصال بالتحديثات المباشرة…',
+  'Live: changes by others appear here': 'مباشر: تظهر هنا تغييرات الآخرين',
+  'Reconnecting…': 'جارٍ إعادة الاتصال…',
+  'Live updates are off; reload to see changes':
+    'التحديثات المباشرة متوقفة؛ أعد التحميل لرؤية التغييرات',
 };

@@ -27,7 +27,7 @@ describe('Arabic interface text (ADR-063)', () => {
   for (const file of [
     ...sources(join(root, 'app')),
     ...sources(join(root, 'components')),
-    join(root, 'lib/api.ts'),
+    ...sources(join(root, 'lib')).filter((path) => !path.includes('locales')),
   ]) {
     const text = readFileSync(file, 'utf8');
     for (const match of text.matchAll(

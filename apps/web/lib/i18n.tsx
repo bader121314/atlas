@@ -10,7 +10,7 @@ export type { Locale } from './locale';
 
 /**
  * Interface language (ADR-063). English text is the key: components call
- * t('English text'), and the Arabic dictionary supplies the translation,
+ * t() with the English text, and the Arabic dictionary supplies the translation,
  * falling back to English for anything not yet translated. Values such as
  * {count} are filled in after translation.
  */
