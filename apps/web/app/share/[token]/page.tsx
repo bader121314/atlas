@@ -104,7 +104,7 @@ export default function SharedProjectPage() {
                           {[
                             PRIORITY[task.priority]
                               ? t('{priority} priority', {
-                                  priority: t(PRIORITY[task.priority]),
+                                  priority: t(PRIORITY[task.priority] ?? ''),
                                 })
                               : '',
                             task.dueOn
