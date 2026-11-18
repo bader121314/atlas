@@ -4,6 +4,10 @@
 #   First time:  ./setup.sh            (installs Docker, writes .env, starts)
 #   Update:      ./setup.sh update     (pulls the latest code and rebuilds)
 #   Demo login:  ./setup.sh password   (prints the shared demo sign-in)
+#   Back up:     ./setup.sh backup     (database dump; the last 7 are kept)
+#   Fresh data:  ./setup.sh reset      (back up, then reload the demo data)
+#
+# start and update also schedule a daily backup and a nightly reset (ADR-067).
 #
 # Secrets are generated here, on the server, and never leave it.
 set -euo pipefail
@@ -53,6 +57,53 @@ ENV
   chmod 600 .env
 }
 
+BACKUPS="${BACKUP_DIR:-$HOME/atlas-backups}"
+LOG="$HOME/atlas-demo.log"
+
+backup() {
+  mkdir -p "$BACKUPS"
+  chmod 700 "$BACKUPS"
+  local file
+  file="$BACKUPS/atlas-$(date -u +%Y%m%d-%H%M).dump"
+  # Custom format: compressed, and pg_restore can load it selectively.
+  compose exec -T postgres pg_dump -U atlas -d atlas -Fc > "$file.part"
+  mv "$file.part" "$file"
+  # The secrets in .env are needed to read the sealed values in a dump.
+  install -m 600 .env "$BACKUPS/env-latest"
+  # Keep the newest seven.
+  ls -1t "$BACKUPS"/atlas-*.dump | tail -n +8 | xargs -r rm -f
+  echo "Backup written: $file"
+}
+
+reset_data() {
+  backup
+  echo "Reloading the demo data…"
+  # Only the database and file store are replaced; certificates, ClamAV
+  # signatures and the built images stay.
+  compose stop api worker web seed
+  compose rm -sf postgres minio migrate seed
+  sudo docker volume rm atlas-demo_postgres-data atlas-demo_minio-data
+  compose up -d
+  # Sessions and rate limits live in Redis; start them fresh too.
+  compose exec -T redis redis-cli FLUSHALL >/dev/null
+  compose logs -f seed || true
+  echo "Demo data reset at $(date -u +%Y-%m-%dT%H:%MZ)"
+}
+
+schedule() {
+  # Times are UTC (the server's clock): backup 23:30, reset 00:00, which is
+  # 02:30 and 03:00 in Riyadh.
+  local here
+  here="$(pwd)"
+  sudo tee /etc/cron.d/atlas-demo >/dev/null <<CRON
+# Written by setup.sh (ADR-067). Remove this file to stop both jobs.
+30 23 * * * $USER cd $here && ./setup.sh backup >> $LOG 2>&1
+0 0 * * * $USER cd $here && ./setup.sh reset >> $LOG 2>&1
+CRON
+  sudo chmod 644 /etc/cron.d/atlas-demo
+  echo "Scheduled: daily backup and nightly reset (log: $LOG)"
+}
+
 show_access() {
   # shellcheck disable=SC1091
   . ./.env
@@ -70,12 +121,24 @@ case "${1:-start}" in
     echo "Building and starting (the first build takes 10–20 minutes)…"
     compose up -d --build
     compose logs -f seed || true
+    schedule
     show_access
     ;;
   update)
     git -C ../.. pull --ff-only
+    # Run the freshly pulled copy of this script for the rest.
+    exec ./setup.sh rebuild
+    ;;
+  rebuild)
     compose up -d --build
+    schedule
     show_access
+    ;;
+  backup)
+    backup
+    ;;
+  reset)
+    reset_data
     ;;
   password)
     show_access
@@ -84,7 +147,7 @@ case "${1:-start}" in
     compose down
     ;;
   *)
-    echo "Usage: ./setup.sh [start|update|password|stop]" >&2
+    echo "Usage: ./setup.sh [start|update|password|backup|reset|stop]" >&2
     exit 2
     ;;
 esac

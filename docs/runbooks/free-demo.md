@@ -55,14 +55,20 @@ visitors also see on the sign-in page.
 
 ## Day to day
 
-| Task                       | Command (in `atlas/infrastructure/demo`)                                |
-| -------------------------- | ----------------------------------------------------------------------- |
-| Show the address and login | `./setup.sh password`                                                   |
-| Deploy the latest code     | `./setup.sh update`                                                     |
-| See logs                   | `sudo docker compose logs -f api worker web`                            |
-| Restart                    | `sudo docker compose --env-file .env restart`                           |
-| Back up the database       | `sudo docker compose exec postgres pg_dump -U atlas atlas > backup.sql` |
-| Reset all demo data        | `sudo docker compose --env-file .env down -v && ./setup.sh`             |
+| Task                       | Command (in `atlas/infrastructure/demo`)                  |
+| -------------------------- | --------------------------------------------------------- |
+| Show the address and login | `./setup.sh password`                                     |
+| Deploy the latest code     | `./setup.sh update`                                       |
+| See logs                   | `sudo docker compose logs -f api worker web`              |
+| Restart                    | `sudo docker compose --env-file .env restart`             |
+| Back up the database now   | `./setup.sh backup` (kept in `~/atlas-backups`, newest 7) |
+| Reset the demo data now    | `./setup.sh reset` (backs up first)                       |
+| See the scheduled jobs     | `cat /etc/cron.d/atlas-demo` and `tail ~/atlas-demo.log`  |
+
+Every night the server backs up the database (23:30 UTC) and reloads the
+demo data (00:00 UTC), and GitHub checks every hour that the demo answers,
+emailing you if it does not (ADR-067). To restore a backup:
+`sudo docker compose --env-file .env exec -T postgres pg_restore -U atlas -d atlas --clean < ~/atlas-backups/<file>.dump`.
 
 ## Troubleshooting
 
