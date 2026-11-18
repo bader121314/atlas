@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../../../../../lib/api';
-import { useT } from '../../../../../lib/i18n';
+import { n, useT } from '../../../../../lib/i18n';
 
 interface AuditEvent {
   id: string;
@@ -23,13 +23,13 @@ const when = new Intl.DateTimeFormat(undefined, {
 });
 
 const FILTERS: [string, string][] = [
-  ['', 'Everything'],
-  ['org.member', 'Members'],
-  ['org.invitation', 'Invitations'],
-  ['project', 'Projects'],
+  ['', n('Everything')],
+  ['org.member', n('Members')],
+  ['org.invitation', n('Invitations')],
+  ['project', n('Projects')],
   ['api_token', 'API tokens'],
-  ['share_link', 'Public links'],
-  ['org.audit', 'Audit exports'],
+  ['share_link', n('Public links')],
+  ['org.audit', n('Audit exports')],
 ];
 
 function details(metadata: Record<string, unknown>): string {
@@ -95,9 +95,9 @@ export default function AuditPage() {
       ) : (
         <>
           <p className="muted">
-            Changes to this organization&apos;s members, projects, tokens and
-            links. Networks are shortened to protect privacy; sign-ins belong to
-            each person&apos;s own account.
+            {t(
+              "Changes to this organization's members, projects, tokens and links. Networks are shortened to protect privacy; sign-ins belong to each person's own account.",
+            )}
           </p>
           <div className="field">
             <label htmlFor="auditFilter">{t('Show')}</label>
@@ -108,7 +108,7 @@ export default function AuditPage() {
             >
               {FILTERS.map(([value, label]) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </option>
               ))}
             </select>
@@ -143,7 +143,7 @@ export default function AuditPage() {
                       <th scope="row">
                         <code>{item.action}</code>
                       </th>
-                      <td>{item.actor?.displayName ?? 'System'}</td>
+                      <td>{item.actor?.displayName ?? t('System')}</td>
                       <td>{details(item.metadata)}</td>
                       <td>{item.ipSummary ?? ''}</td>
                     </tr>

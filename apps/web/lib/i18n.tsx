@@ -10,7 +10,7 @@ export type { Locale } from './locale';
 
 /**
  * Interface language (ADR-063). English text is the key: components call
- * t('English text'), and the Arabic dictionary supplies the translation,
+ * t() with the English text, and the Arabic dictionary supplies the translation,
  * falling back to English for anything not yet translated. Values such as
  * {count} are filled in after translation.
  */
@@ -54,6 +54,10 @@ export function tr(text: string, vars?: Vars): string {
   return translate(locale, text, vars);
 }
 
+/** Marks text for translation where t() is not available, such as module
+ * constants; render it with t(). The text itself is returned unchanged. */
+export const n = (text: string): string => text;
+
 export function useT(): (text: string, vars?: Vars) => string {
   const locale = useLocale();
   return useCallback(
@@ -65,7 +69,15 @@ export function useT(): (text: string, vars?: Vars) => string {
 /** Remembers the choice for a year and reloads in the new language. */
 export function chooseLocale(locale: Locale): void {
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`;
-  window.location.reload();
+  // Signed in: emails and push follow the choice too (ADR-066). Signed out,
+  // this fails quietly and the next sign-in records the cookie instead.
+  void fetch('/api/auth/locale', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ locale }),
+  })
+    .catch(() => undefined)
+    .finally(() => window.location.reload());
 }
 
 /** A link-styled button offering the other language, labelled in it. */

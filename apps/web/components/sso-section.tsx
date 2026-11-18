@@ -83,9 +83,9 @@ export function SsoSection({ slug }: { slug: string }) {
     <section className="section" aria-labelledby="sso-heading">
       <h2 id="sso-heading">{t('Single sign-on')}</h2>
       <p className="muted">
-        People with addresses on your verified domains sign in through your
-        OpenID Connect provider and join as members. Register this redirect URL
-        with the provider:{' '}
+        {t(
+          'People with addresses on your verified domains sign in through your OpenID Connect provider and join as members. Register this redirect URL with the provider:',
+        )}{' '}
         <code>
           {connection?.redirectUri ??
             (typeof window === 'undefined'
@@ -117,8 +117,8 @@ export function SsoSection({ slug }: { slug: string }) {
         </div>
         <div className="field">
           <label htmlFor="ssoSecret">
-            Client secret
-            {connection ? ' (leave empty to keep the saved one)' : ''}
+            {t('Client secret')}
+            {connection ? ` ${t('(leave empty to keep the saved one)')}` : ''}
           </label>
           <input
             id="ssoSecret"

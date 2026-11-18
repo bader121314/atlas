@@ -20,8 +20,11 @@ const when = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 });
 
-function device(userAgent: string | null): string {
-  if (!userAgent) return 'Unknown device';
+function device(
+  userAgent: string | null,
+  t: (text: string, vars?: Record<string, string>) => string,
+): string {
+  if (!userAgent) return t('Unknown device');
   const browser = /Edg\//.test(userAgent)
     ? 'Edge'
     : /Chrome\//.test(userAgent)
@@ -30,7 +33,7 @@ function device(userAgent: string | null): string {
         ? 'Firefox'
         : /Safari\//.test(userAgent)
           ? 'Safari'
-          : 'Browser';
+          : t('Browser');
   const system = /Windows/.test(userAgent)
     ? 'Windows'
     : /Android/.test(userAgent)
@@ -41,8 +44,8 @@ function device(userAgent: string | null): string {
           ? 'macOS'
           : /Linux/.test(userAgent)
             ? 'Linux'
-            : 'another system';
-  return `${browser} on ${system}`;
+            : t('another system');
+  return t('{browser} on {system}', { browser, system });
 }
 
 export default function AccountPage() {
@@ -118,15 +121,19 @@ export default function AccountPage() {
             <li key={session.id}>
               <span className="grow">
                 <span className="title">
-                  {device(session.userAgent)}
-                  {session.current ? ' (this device)' : ''}
+                  {device(session.userAgent, t)}
+                  {session.current ? ` ${t('(this device)')}` : ''}
                 </span>
                 <br />
                 <span className="muted">
-                  Signed in {when.format(new Date(session.issuedAt))}
                   {session.lastSeenAt
-                    ? `, last active ${when.format(new Date(session.lastSeenAt))}`
-                    : ''}
+                    ? t('Signed in {date}, last active {last}', {
+                        date: when.format(new Date(session.issuedAt)),
+                        last: when.format(new Date(session.lastSeenAt)),
+                      })
+                    : t('Signed in {date}', {
+                        date: when.format(new Date(session.issuedAt)),
+                      })}
                 </span>
               </span>
               {session.current ? null : (
@@ -148,7 +155,11 @@ export default function AccountPage() {
               type="button"
               onClick={signOutOthers}
             >
-              Sign out of {others} other {others === 1 ? 'device' : 'devices'}
+              {others === 1
+                ? t('Sign out of 1 other device')
+                : t('Sign out of {count} other devices', {
+                    count: String(others),
+                  })}
             </button>
           </p>
         ) : null}

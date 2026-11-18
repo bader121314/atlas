@@ -16,7 +16,12 @@ import type {
   InvitationListResponse,
   Organization,
 } from '@atlas/contracts';
-import { digestToken, generateToken } from '@atlas/shared';
+import {
+  digestToken,
+  generateToken,
+  message,
+  messageLocale,
+} from '@atlas/shared';
 import { AuditService } from '../audit/audit.service';
 import type { RequestMeta } from '../audit/audit.service';
 import { Mailer } from '../auth/mailer';
@@ -119,10 +124,25 @@ export class MembershipsService {
     });
     const origin = parseAuthEnvironment(process.env).WEB_ORIGIN;
     try {
+      // The invitee's language if they have an account, else the inviter's.
+      const chosen = await this.database.pool.query<{ locale: string }>(
+        `SELECT COALESCE(
+           (SELECT locale FROM users WHERE email_normalized = $1),
+           (SELECT locale FROM users WHERE id = $2)) AS locale`,
+        [input.email, actor.user.id],
+      );
+      const locale = messageLocale(chosen.rows[0]?.locale);
       await this.mailer.send({
         to: input.email,
-        subject: `You're invited to join ${tenant.slug} on Atlas`,
-        text: `${actor.user.displayName} invited you to join the "${tenant.slug}" organization on Atlas as ${input.role}.\n\nSign in with this email address, then accept here:\n\n${origin}/invitations/accept?token=${token}\n\nThis invitation expires in 7 days.`,
+        subject: message(locale, 'invite.subject', {
+          organization: tenant.slug,
+        }),
+        text: message(locale, 'invite.text', {
+          inviter: actor.user.displayName,
+          organization: tenant.slug,
+          role: message(locale, `role.${input.role}` as const),
+          link: `${origin}/invitations/accept?token=${token}`,
+        }),
       });
     } catch {
       this.logger.error('invitation email could not be sent');

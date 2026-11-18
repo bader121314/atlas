@@ -41,7 +41,7 @@ pnpm demo:seed                # prints a sign-in for the demo organization
 ```
 
 `pnpm demo:seed` creates **Harbour Works**, a fictional team surveying a
-harbour: two projects with statuses, labels, milestones, dependencies,
+harbour: three projects (one written in Arabic) with statuses, labels, milestones, dependencies,
 comments, custom fields, an automation rule and a recurring task. Sign in
 with the printed account and try:
 
@@ -89,9 +89,12 @@ HTTPS on one free cloud server; see the
   [examples](examples) of a client and a webhook receiver.
 - **Accounts and security:** email verification, password reset and change,
   session management, rate limits, an audit log owners can export, content
-  security policy; see the [security review](docs/15-security-review.md).
+  security policy with per-request nonces, ClamAV scanning of uploads; see
+  the [security review](docs/15-security-review.md).
 - **Arabic:** the whole interface in Arabic with a right-to-left layout,
-  switchable per person (ADR-063).
+  switchable per person, and emails and push messages in each person's
+  language (ADR-063, ADR-066); see the
+  [Arabic demo project](docs/screenshots/demo-arabic.png).
 - **Enterprise:** single sign-on with OpenID Connect, SCIM provisioning,
   verified email domains, label-scoped guest access and usage metering.
 - **Accessibility:** keyboard shortcuts and a skip link, WCAG contrast checks

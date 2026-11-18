@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { n } from './i18n';
 
 export interface LiveEvent {
   id: string;
@@ -73,10 +74,10 @@ export function useProjectEvents(base: string, handlers: Handlers): LiveStatus {
 }
 
 const STATUS_TEXT: Record<LiveStatus, string> = {
-  connecting: 'Connecting to live updates…',
-  live: 'Live: changes by others appear here',
-  reconnecting: 'Reconnecting…',
-  off: 'Live updates are off; reload to see changes',
+  connecting: n('Connecting to live updates…'),
+  live: n('Live: changes by others appear here'),
+  reconnecting: n('Reconnecting…'),
+  off: n('Live updates are off; reload to see changes'),
 };
 
 export function liveStatusText(status: LiveStatus): string {

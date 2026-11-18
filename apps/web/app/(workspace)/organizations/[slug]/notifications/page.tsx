@@ -7,7 +7,7 @@ import { Notice } from '../../../../../components/form';
 import { api, describeFailure } from '../../../../../lib/api';
 import type { AppNotification } from '../../../../../lib/api';
 import { PushToggle } from '../../../../../components/push-toggle';
-import { useT } from '../../../../../lib/i18n';
+import { n, useT } from '../../../../../lib/i18n';
 
 const when = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -24,26 +24,28 @@ interface Preferences {
 
 const KINDS: [Kind, string][] = [
   ['task.assigned', 'A task is assigned to me'],
-  ['mention', 'Someone mentions me'],
+  ['mention', n('Someone mentions me')],
   [
     'comment.created',
-    'Someone comments on a task I created, am assigned to or commented on',
+    n('Someone comments on a task I created, am assigned to or commented on'),
   ],
 ];
 
 const MODES: [Mode, string][] = [
-  ['instant', 'Email each notification I have not read within two minutes'],
-  ['daily', 'Email one daily summary of what I have not read'],
-  ['off', 'No email'],
+  ['instant', n('Email each notification I have not read within two minutes')],
+  ['daily', n('Email one daily summary of what I have not read')],
+  ['off', n('No email')],
 ];
 
-function describe(item: AppNotification): string {
-  const who = item.actor ?? 'Someone';
+function describe(
+  item: AppNotification,
+  t: (text: string, vars?: Record<string, string>) => string,
+): string {
+  const vars = { who: item.actor ?? t('Someone'), key: item.task.key };
   if (item.kind === 'task.assigned')
-    return `${who} assigned ${item.task.key} to you`;
-  if (item.kind === 'mention')
-    return `${who} mentioned you on ${item.task.key}`;
-  return `${who} commented on ${item.task.key}`;
+    return t('{who} assigned {key} to you', vars);
+  if (item.kind === 'mention') return t('{who} mentioned you on {key}', vars);
+  return t('{who} commented on {key}', vars);
 }
 
 export default function NotificationsPage() {
@@ -153,7 +155,7 @@ export default function NotificationsPage() {
       ) : items.length === 0 ? (
         <p className="muted">
           {unreadOnly
-            ? 'Nothing unread.'
+            ? t('Nothing unread.')
             : 'Nothing yet. You will hear here when a task is assigned to you or someone comments on your work.'}
         </p>
       ) : (
@@ -166,7 +168,7 @@ export default function NotificationsPage() {
                   type="button"
                   onClick={() => void open(item)}
                 >
-                  {describe(item)}
+                  {describe(item, t)}
                 </button>
                 <br />
                 <span className="muted">
@@ -196,7 +198,7 @@ export default function NotificationsPage() {
                     })
                   }
                 />
-                {label}
+                {t(label)}
               </label>
             ))}
           </fieldset>
@@ -210,7 +212,7 @@ export default function NotificationsPage() {
                   checked={prefs.emailMode === mode}
                   onChange={() => void savePrefs({ emailMode: mode })}
                 />
-                {label}
+                {t(label)}
               </label>
             ))}
           </fieldset>

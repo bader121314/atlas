@@ -114,8 +114,10 @@ export default function OrganizationsPage() {
               }}
             />
             <span className="hint" id="slug-hint">
-              Lowercase letters, numbers and hyphens. Appears in links as
-              /organizations/{slug || 'your-team'}.
+              {t(
+                'Lowercase letters, numbers and hyphens. Appears in links as {path}.',
+                { path: `/organizations/${slug || 'your-team'}` },
+              )}
             </span>
           </div>
           <button className="button" type="submit" disabled={busy}>

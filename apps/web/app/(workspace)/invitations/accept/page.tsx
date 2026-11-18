@@ -32,10 +32,15 @@ function Accept() {
     setBusy(false);
     setError(
       result.status === 409
-        ? 'You are already a member of this organization, or your membership is suspended.'
+        ? t(
+            'You are already a member of this organization, or your membership is suspended.',
+          )
         : describeFailure(
             result.status,
-            `This invitation is not valid for ${user.email}. It may have expired, been revoked, or been sent to a different address.`,
+            t(
+              'This invitation is not valid for {email}. It may have expired, been revoked, or been sent to a different address.',
+              { email: user.email },
+            ),
           ),
     );
   }

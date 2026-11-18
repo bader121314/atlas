@@ -86,7 +86,7 @@ export function TimelineView({
         <div className="table-wrap">
           <table className="timeline">
             <caption className="visually-hidden">
-              Tasks scheduled from {range}
+              {t('Tasks scheduled from {range}', { range })}
             </caption>
             <thead>
               <tr>
@@ -166,14 +166,20 @@ export function TimelineView({
         <p className="muted">
           {[
             outside > 0
-              ? `${outside} scheduled ${outside === 1 ? 'task is' : 'tasks are'} outside these weeks`
+              ? outside === 1
+                ? t('1 scheduled task is outside these weeks')
+                : t('{count} scheduled tasks are outside these weeks', {
+                    count: String(outside),
+                  })
               : '',
             undated > 0
-              ? `${undated} ${undated === 1 ? 'task has' : 'tasks have'} no dates`
+              ? undated === 1
+                ? t('1 task has no dates')
+                : t('{count} tasks have no dates', { count: String(undated) })
               : '',
           ]
             .filter(Boolean)
-            .join('; ')}
+            .join(t('; '))}
           .
         </p>
       ) : null}

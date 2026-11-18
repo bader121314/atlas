@@ -1146,6 +1146,15 @@ paths:
         '400': { description: Wrong current password or weak new one }
         '401': { description: Not signed in }
         '429': { $ref: '#/components/responses/TooManyRequests' }
+  /auth/locale:
+    put:
+      operationId: setLocale
+      security: [{ sessionCookie: [] }]
+      description: "Body: { locale: 'en' | 'ar' }. The language of emails and push messages sent to this account; sign-up and sign-in also record the web app's atlas_locale cookie. ADR-066."
+      responses:
+        '204': { description: Saved }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { description: Not signed in }
   /organizations/{slug}/projects/{key}/tasks/{number}/assignees:
     put:
       operationId: setTaskAssignees

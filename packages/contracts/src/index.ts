@@ -44,6 +44,11 @@ export const changePasswordRequestSchema = z
   .strict();
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
 
+export const setLocaleRequestSchema = z
+  .object({ locale: z.enum(['en', 'ar']) })
+  .strict();
+export type SetLocaleRequest = z.infer<typeof setLocaleRequestSchema>;
+
 export const passwordResetRequestSchema = z.object({ email }).strict();
 export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
 

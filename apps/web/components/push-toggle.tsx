@@ -84,14 +84,18 @@ export function PushToggle() {
         </p>
       ) : state === 'blocked' ? (
         <p className="muted">
-          Notifications are blocked for Atlas in this browser&apos;s settings.
+          {t("Notifications are blocked for Atlas in this browser's settings.")}
         </p>
       ) : (
         <>
           <p className="muted">
             {state === 'on'
-              ? 'This browser shows a notification as soon as something needs you.'
-              : 'Get a notification on this device as soon as something needs you.'}
+              ? t(
+                  'This browser shows a notification as soon as something needs you.',
+                )
+              : t(
+                  'Get a notification on this device as soon as something needs you.',
+                )}
           </p>
           <button
             className="button secondary small"
@@ -99,8 +103,8 @@ export function PushToggle() {
             onClick={() => void (state === 'on' ? disable() : enable())}
           >
             {state === 'on'
-              ? 'Turn off notifications on this device'
-              : 'Turn on notifications on this device'}
+              ? t('Turn off notifications on this device')
+              : t('Turn on notifications on this device')}
           </button>
         </>
       )}

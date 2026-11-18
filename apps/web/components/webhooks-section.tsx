@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice, value } from './form';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 interface Endpoint {
   id: string;
@@ -26,9 +26,9 @@ interface Delivery {
 }
 
 const EVENTS = [
-  ['task.created', 'Task created'],
-  ['task.updated', 'Task changed'],
-  ['comment.created', 'Comment added'],
+  ['task.created', n('Task created')],
+  ['task.updated', n('Task changed')],
+  ['comment.created', n('Comment added')],
 ] as const;
 
 const when = new Intl.DateTimeFormat(undefined, {
@@ -88,8 +88,10 @@ export function WebhooksSection({ slug }: { slug: string }) {
         describeFailure(
           result.status,
           result.status === 400
-            ? 'Use an https address on the public internet and choose at least one event.'
-            : 'The endpoint could not be added.',
+            ? t(
+                'Use an https address on the public internet and choose at least one event.',
+              )
+            : t('The endpoint could not be added.'),
         ),
       );
     }
@@ -123,7 +125,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
       {secret ? (
         <Notice>
           <p>
-            Copy this signing secret now; it will not be shown again:{' '}
+            {t('Copy this signing secret now; it will not be shown again:')}{' '}
             <code className="secret">{secret}</code>
           </p>
           <button
@@ -144,7 +146,9 @@ export function WebhooksSection({ slug }: { slug: string }) {
               <span className="muted">
                 {endpoint.events.join(', ')}
                 {endpoint.status === 'paused'
-                  ? `, paused after ${endpoint.consecutiveFailures} failed attempts`
+                  ? t(', paused after {count} failed attempts', {
+                      count: String(endpoint.consecutiveFailures),
+                    })
                   : ''}
               </span>
             </span>
@@ -183,7 +187,11 @@ export function WebhooksSection({ slug }: { slug: string }) {
                 className="button danger small"
                 type="button"
                 onClick={() => {
-                  if (window.confirm(`Delete the webhook to ${endpoint.url}?`))
+                  if (
+                    window.confirm(
+                      t('Delete the webhook to {url}?', { url: endpoint.url }),
+                    )
+                  )
                     void act(endpoint, '', 'DELETE');
                 }}
               >
@@ -271,7 +279,7 @@ export function WebhooksSection({ slug }: { slug: string }) {
                 name={`event-${key}`}
                 defaultChecked={key !== 'task.updated'}
               />
-              {label}
+              {t(label)}
             </label>
           ))}
         </fieldset>

@@ -27,11 +27,11 @@ describe('Arabic interface text (ADR-063)', () => {
   for (const file of [
     ...sources(join(root, 'app')),
     ...sources(join(root, 'components')),
-    join(root, 'lib/api.ts'),
+    ...sources(join(root, 'lib')).filter((path) => !path.includes('locales')),
   ]) {
     const text = readFileSync(file, 'utf8');
     for (const match of text.matchAll(
-      /\bt[r]?\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g,
+      /(?<![\w.])(?:tr|t|n)\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g,
     ))
       used.add((match[1] ?? match[2] ?? '').replace(/\\(['"])/g, '$1'));
   }
@@ -63,11 +63,6 @@ describe('Arabic interface text (ADR-063)', () => {
       'High',
       'Urgent',
       'No priority',
-      // Field types, translated through a variable as well.
-      'Text',
-      'Number',
-      'Date',
-      'Choice list',
     ];
     const unused = Object.keys(ar).filter(
       (key) => !used.has(key) && !roles.includes(key),

@@ -62,7 +62,9 @@ export function ApiTokensSection({ slug }: { slug: string }) {
   async function revoke(token: Token) {
     if (
       !window.confirm(
-        `Revoke ${token.name}? Scripts using it stop working at once.`,
+        t('Revoke {name}? Scripts using it stop working at once.', {
+          name: token.name,
+        }),
       )
     )
       return;
@@ -83,7 +85,7 @@ export function ApiTokensSection({ slug }: { slug: string }) {
       {secret ? (
         <Notice>
           <p>
-            Copy this token now; it will not be shown again:{' '}
+            {t('Copy this token now; it will not be shown again:')}{' '}
             <code className="secret">{secret}</code>
           </p>
           <button
@@ -104,12 +106,16 @@ export function ApiTokensSection({ slug }: { slug: string }) {
               <br />
               <span className="muted">
                 {token.scopes.includes('tasks:write')
-                  ? 'Read and change tasks'
-                  : 'Read tasks'}
-                , expires {day.format(new Date(token.expiresAt))}
+                  ? t('Read and change tasks')
+                  : t('Read tasks')}
                 {token.lastUsedAt
-                  ? `, last used ${day.format(new Date(token.lastUsedAt))}`
-                  : ', never used'}
+                  ? t(', expires {date}, last used {last}', {
+                      date: day.format(new Date(token.expiresAt)),
+                      last: day.format(new Date(token.lastUsedAt)),
+                    })
+                  : t(', expires {date}, never used', {
+                      date: day.format(new Date(token.expiresAt)),
+                    })}
               </span>
             </span>
             <button

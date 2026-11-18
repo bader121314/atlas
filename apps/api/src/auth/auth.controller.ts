@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Inject,
   Post,
+  Put,
   Req,
   Res,
   UnauthorizedException,
@@ -21,9 +22,11 @@ import {
   passwordResetRequestSchema,
   resendVerificationRequestSchema,
   signupRequestSchema,
+  setLocaleRequestSchema,
   verifyEmailRequestSchema,
 } from '@atlas/contracts';
 import type { SessionResponse } from '@atlas/contracts';
+import { localeFromCookies } from '@atlas/shared';
 import type { RequestMeta } from '../audit/audit.service';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
 import { AuthService, SESSION_TTL_SECONDS } from './auth.service';
@@ -50,6 +53,7 @@ export function requestMeta(request: HttpRequest): RequestMeta {
     ip: request.ip,
     userAgent: header(request, 'user-agent'),
     requestId: request.requestId,
+    locale: localeFromCookies(header(request, 'cookie')),
   };
 }
 
@@ -200,6 +204,18 @@ export class AuthController {
     );
     // A wrong current password is a validation error, not a sign-out.
     if (!changed) throw new BadRequestException();
+  }
+
+  /** The language for emails and push messages (ADR-066). */
+  @Put('locale')
+  @HttpCode(204)
+  @UseGuards(SessionGuard)
+  async setLocale(
+    @Body() body: unknown,
+    @Req() request: HttpRequest,
+  ): Promise<void> {
+    const { locale } = parse(setLocaleRequestSchema, body);
+    await this.auth.setLocale(caller(request).user.id, locale);
   }
 
   @Post('logout')

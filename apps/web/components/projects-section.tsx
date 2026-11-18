@@ -48,7 +48,7 @@ export function ProjectsSection({
     }
     setError(
       result.status === 409
-        ? 'That project key is already used in this organization.'
+        ? t('That project key is already used in this organization.')
         : describeFailure(
             result.status,
             t(
@@ -65,7 +65,7 @@ export function ProjectsSection({
         <p className="muted">
           {canCreate
             ? 'No projects yet. Create the first one below.'
-            : 'You have not been added to any projects yet.'}
+            : t('You have not been added to any projects yet.')}
         </p>
       ) : (
         <ul className="rows">

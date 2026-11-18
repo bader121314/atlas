@@ -48,7 +48,7 @@ export function ShareLinksSection({ base }: { base: string }) {
           result.status,
           result.status === 409
             ? 'This project already has 10 public links. Revoke one first.'
-            : 'The link could not be created.',
+            : t('The link could not be created.'),
         ),
       );
     }
@@ -70,17 +70,15 @@ export function ShareLinksSection({ base }: { base: string }) {
     <section className="section" aria-labelledby="share-heading">
       <h2 id="share-heading">{t('Public links')}</h2>
       <p className="muted">
-        Anyone with a link can see this project&apos;s task titles, statuses,
-        priorities and due dates without signing in. Descriptions, people,
-        comments and files are never shown. A link stops working when it
-        expires, is revoked, the project is archived, or its creator stops
-        managing the project.
+        {t(
+          "Anyone with a link can see this project's task titles, statuses, priorities and due dates without signing in. Descriptions, people, comments and files are never shown. A link stops working when it expires, is revoked, the project is archived, or its creator stops managing the project.",
+        )}
       </p>
       {error ? <Notice tone="error">{error}</Notice> : null}
       {url ? (
         <Notice>
           <p>
-            Copy this link now; it will not be shown again:{' '}
+            {t('Copy this link now; it will not be shown again:')}{' '}
             <code className="secret">{url}</code>
           </p>
           <button
@@ -99,11 +97,16 @@ export function ShareLinksSection({ base }: { base: string }) {
               <code>{link.prefix}…</code>
               <br />
               <span className="muted">
-                By {link.createdBy.displayName}, expires{' '}
-                {day.format(new Date(link.expiresAt))}
                 {link.lastUsedAt
-                  ? `, last opened ${day.format(new Date(link.lastUsedAt))}`
-                  : ', never opened'}
+                  ? t('By {name}, expires {date}, last opened {last}', {
+                      name: link.createdBy.displayName,
+                      date: day.format(new Date(link.expiresAt)),
+                      last: day.format(new Date(link.lastUsedAt)),
+                    })
+                  : t('By {name}, expires {date}, never opened', {
+                      name: link.createdBy.displayName,
+                      date: day.format(new Date(link.expiresAt)),
+                    })}
               </span>
             </span>
             <button

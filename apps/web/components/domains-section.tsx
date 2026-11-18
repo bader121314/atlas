@@ -51,7 +51,7 @@ export function DomainsSection({ slug }: { slug: string }) {
         text: describeFailure(
           result.status,
           result.status === 409
-            ? 'That domain is already listed, or the limit of 10 is reached.'
+            ? t('That domain is already listed, or the limit of 10 is reached.')
             : 'Enter a domain such as example.com.',
         ),
       });
@@ -63,12 +63,18 @@ export function DomainsSection({ slug }: { slug: string }) {
     const result = await api(`${base}/${domain.id}/verify`, { method: 'POST' });
     setMessage(
       result.ok
-        ? { tone: 'info', text: `${domain.domain} is verified.` }
+        ? {
+            tone: 'info',
+            text: t('{domain} is verified.', { domain: domain.domain }),
+          }
         : {
             tone: 'error',
             text: describeFailure(
               result.status,
-              `The TXT record for ${domain.domain} was not found, or another organization has verified it. DNS changes can take a while to appear.`,
+              t(
+                'The TXT record for {domain} was not found, or another organization has verified it. DNS changes can take a while to appear.',
+                { domain: domain.domain },
+              ),
             ),
           },
     );

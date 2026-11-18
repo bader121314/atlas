@@ -359,6 +359,60 @@ if (existing.rowCount) {
     { milestones: [['Ready for summer', 35]] },
   );
 
+  // A project written in Arabic, to show the right-to-left interface with
+  // real content (ADR-066).
+  await project(
+    'MRN',
+    'تجديد مرسى القوارب',
+    'إصلاح أرصفة المرسى وتحسين السلامة قبل موسم الصيد.',
+    [
+      {
+        title: 'فحص الأرصفة الخشبية واستبدال التالف منها',
+        priority: 'high',
+        assignee: 'omar',
+        state: 'in_progress',
+        due: 4,
+        labels: ['Safety'],
+        comments: [
+          ['omar', 'وجدنا ثلاثة ألواح متشققة عند الرصيف الشمالي.'],
+          ['maha', 'ممتاز، سأطلب الألواح البديلة اليوم.'],
+        ],
+      },
+      {
+        title: 'طلب ألواح بديلة من المورد',
+        priority: 'medium',
+        assignee: 'maha',
+        due: 6,
+        labels: ['Equipment'],
+      },
+      {
+        title: 'تركيب إنارة جديدة على الممرات',
+        priority: 'medium',
+        assignee: 'lina',
+        due: 20,
+        milestone: 'جاهز لموسم الصيد',
+      },
+      {
+        title: 'الحصول على تصريح الأعمال من إدارة الميناء',
+        priority: 'high',
+        state: 'done',
+        labels: ['Permits'],
+      },
+      {
+        title: 'تدريب فريق المرسى على إجراءات الطوارئ',
+        priority: 'low',
+        assignee: 'lina',
+        due: 25,
+        milestone: 'جاهز لموسم الصيد',
+        labels: ['Safety'],
+      },
+    ],
+    {
+      milestones: [['جاهز لموسم الصيد', 30]],
+      dependencies: [[2, 1]],
+    },
+  );
+
   // Custom fields, a rule and a recurring task on the survey project.
   const depth = await call('demo', 'POST', `${hbr}/fields`, {
     name: 'Depth (m)',
@@ -397,7 +451,7 @@ if (existing.rowCount) {
     dueInDays: 2,
     startsAt: inDays(2),
   });
-  console.log('Seeded Harbour Works with two projects.');
+  console.log('Seeded Harbour Works with three projects.');
 }
 
 await db.end();
