@@ -1,6 +1,6 @@
 # Atlas session handoff
 
-**Date:** 2026-11-16 (Asia/Riyadh).
+**Date:** 2026-11-18 (Asia/Riyadh).
 **Milestone:** M0, M1 and M2 complete (`docs/09`, `docs/10`); M3 next.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
@@ -196,10 +196,26 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
 28. Done (PR #80): Arabic interface with right-to-left layout (ADR-063).
     New text in the web app must use t('...') and get an entry in
     apps/web/lib/locales/ar.ts (tests/i18n.test.ts enforces it).
-29. Remaining M9 items need approval or hosted services: billing (Stripe
+29. Done (PR #81): docs/02 describes the architecture as built.
+30. Done (PR #82): per-request nonce in the content security policy
+    (ADR-064). `apps/web/proxy.ts` sets the policy; the storage origin is
+    read at request time. The browser test fails on any policy violation.
+31. Done (PR #83): ClamAV scans uploads over clamd INSTREAM (ADR-065).
+    New optional env `CLAMD_HOST`/`CLAMD_PORT`; without them the EICAR
+    stand-in remains. Runs in the demo kit and as a CI service; AWS ECS
+    wiring awaits approval (adds cost).
+32. Done (PR #84): emails and push in each person's language (ADR-066),
+    stored in `users.locale` from the `atlas_locale` cookie at sign-up and
+    sign-in and via `PUT /v1/auth/locale`; the rest of the interface
+    sentences translated; module-level labels use `n()`; the demo has an
+    Arabic project (README screenshot `docs/screenshots/demo-arabic.png`).
+33. Done (PR #85): two slow queries fixed on a 20,000-task dataset
+    (`scripts/perf/large-dataset.sql`, docs/16).
+34. Remaining items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
-    service, SAML, the hosted demo. Everything buildable without approval
-    is done; wait for the user's decision before starting these.
+    service, SAML, the hosted demo (Oracle sign-up pending), ClamAV on AWS.
+    Everything buildable without approval is done; wait for the user's
+    decision before starting these.
 
 ## Environment and versions
 
