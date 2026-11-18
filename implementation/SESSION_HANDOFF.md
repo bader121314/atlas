@@ -213,7 +213,11 @@ job: dispatch `ui-smoke.yml` with `print_screenshots=true` and decode the
     Arabic project (README screenshot `docs/screenshots/demo-arabic.png`).
 33. Done (PR #85): two slow queries fixed on a 20,000-task dataset
     (`scripts/perf/large-dataset.sql`, docs/16).
-34. Remaining items need approval or hosted services: billing (Stripe
+34. Done: demo upkeep (ADR-067): `setup.sh backup` and `reset`, scheduled
+    by cron from `start`/`update`; hourly uptime workflow
+    (`.github/workflows/uptime.yml`). PR bodies get an automatic footer; the
+    owner strips them in batches with `~/clean-prs.sh` on the demo server.
+35. Remaining items need approval or hosted services: billing (Stripe
     test mode asked, deferred), multi-region recovery, a search index
     service, SAML, the hosted demo (Oracle sign-up pending), ClamAV on AWS.
     Everything buildable without approval is done; wait for the user's
