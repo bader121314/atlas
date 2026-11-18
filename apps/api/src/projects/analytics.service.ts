@@ -65,20 +65,33 @@ export class AnalyticsService {
         created: string;
         completed: string;
       }>(
+        // One pass per measure, grouped by week, instead of two counts per
+        // week: 14 times faster on a 20,000-task project (docs/16).
         `WITH weeks AS (
            SELECT generate_series(
              date_trunc('week', now() AT TIME ZONE 'UTC') - interval '${WEEKS - 1} weeks',
              date_trunc('week', now() AT TIME ZONE 'UTC'),
              interval '1 week') AS week
+         ),
+         since AS (SELECT min(week) AT TIME ZONE 'UTC' AS at FROM weeks),
+         created AS (
+           SELECT date_trunc('week', t.created_at AT TIME ZONE 'UTC') AS week, count(*) AS n
+           FROM tasks t, since
+           WHERE t.organization_id = $1 AND t.project_id = $2 AND t.created_at >= since.at
+           GROUP BY 1
+         ),
+         completed AS (
+           SELECT date_trunc('week', t.completed_at AT TIME ZONE 'UTC') AS week, count(*) AS n
+           FROM tasks t, since
+           WHERE t.organization_id = $1 AND t.project_id = $2 AND t.completed_at >= since.at
+           GROUP BY 1
          )
          SELECT to_char(w.week, 'YYYY-MM-DD') AS week,
-           (SELECT count(*) FROM tasks t WHERE t.organization_id = $1 AND t.project_id = $2
-              AND (t.created_at AT TIME ZONE 'UTC') >= w.week
-              AND (t.created_at AT TIME ZONE 'UTC') < w.week + interval '1 week') AS created,
-           (SELECT count(*) FROM tasks t WHERE t.organization_id = $1 AND t.project_id = $2
-              AND (t.completed_at AT TIME ZONE 'UTC') >= w.week
-              AND (t.completed_at AT TIME ZONE 'UTC') < w.week + interval '1 week') AS completed
-         FROM weeks w ORDER BY w.week`,
+           COALESCE(c.n, 0) AS created, COALESCE(d.n, 0) AS completed
+         FROM weeks w
+         LEFT JOIN created c ON c.week = w.week
+         LEFT JOIN completed d ON d.week = w.week
+         ORDER BY w.week`,
         args,
       ),
       this.database.pool.query<{ days: number }>(

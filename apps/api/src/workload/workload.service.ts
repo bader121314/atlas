@@ -48,9 +48,9 @@ export class WorkloadService {
        ),
        open AS (
          SELECT a.user_id, t.due_at,
-           -- An estimate is shared equally between assignees (ADR-054).
-           t.estimate_minutes::numeric
-             / (SELECT count(*) FROM task_assignees a2 WHERE a2.task_id = t.id) AS share
+           -- An estimate is shared equally between assignees (ADR-054); the
+           -- window counts them in the same pass (docs/16).
+           t.estimate_minutes::numeric / count(*) OVER (PARTITION BY t.id) AS share
          FROM tasks t
          JOIN readable r ON r.id = t.project_id
          JOIN workflow_states s ON s.id = t.state_id AND s.category <> 'done'
