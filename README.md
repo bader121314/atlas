@@ -9,9 +9,14 @@ up, and both are attacked by automated tests on every change.
 
 Built by Bader Altemane as a portfolio project ([case study](docs/18-case-study.md)), milestone by milestone, with
 every design decision recorded as an [ADR](docs/adrs) and every milestone
-closed by an exit report. **It is not deployed**; the AWS stack is written
-and validated but has not been applied, and the limitations are listed in
-the [M7 exit report](docs/17-m7-exit-report.md).
+closed by an exit report.
+
+**Try it:** [atlas.84-13-151-33.sslip.io](https://atlas.84-13-151-33.sslip.io),
+a demo on one free Oracle Cloud server; the demo sign-in is shown on the
+sign-in page. It runs the [free demo kit](docs/runbooks/free-demo.md) (one
+server, no automatic backups), not the production AWS stack, which is
+written and validated but has not been applied; the limitations are listed
+in the [M7 exit report](docs/17-m7-exit-report.md).
 
 ![A 20-second walkthrough: signing in, the board, a task, the table, timeline and calendar views, search and the team's workload](docs/screenshots/demo-tour.gif)
 

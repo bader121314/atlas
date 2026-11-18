@@ -4,7 +4,9 @@
 **Milestone:** M0, M1 and M2 complete (`docs/09`, `docs/10`); M3 next.
 **Repository:** https://github.com/bader121314/atlas (public). Default branch `main`.
 **Workflow:** work on a branch, open a pull request, merge only with green CI.
-**Deployments:** none; no paid resources provisioned.
+**Deployments:** a free demo at https://atlas.84-13-151-33.sslip.io (Oracle
+Always Free, Riyadh, Ampere A1, set up 2026-11-18 with the demo kit); no
+paid resources provisioned. The AWS stack has not been applied.
 
 ## Status
 
