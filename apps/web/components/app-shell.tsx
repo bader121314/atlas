@@ -46,12 +46,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     () => [
       {
         keys: 'g o',
-        description: 'Go to your organizations',
+        description: t('Go to your organizations'),
         run: () => router.push('/organizations'),
       },
       {
         keys: '/',
-        description: 'Search this organization',
+        description: t('Search this organization'),
         run: () => {
           const slug = window.location.pathname.split('/')[2];
           if (!window.location.pathname.startsWith('/organizations/') || !slug)
@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       },
       {
         keys: 'g n',
-        description: 'Go to notifications in this organization',
+        description: t('Go to notifications in this organization'),
         run: () => {
           const slug = window.location.pathname.split('/')[2];
           if (window.location.pathname.startsWith('/organizations/') && slug)
@@ -72,11 +72,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       },
       {
         keys: 'g a',
-        description: 'Go to your account',
+        description: t('Go to your account'),
         run: () => router.push('/account'),
       },
     ],
-    [router],
+    [router, t],
   );
 
   const refreshOrganizations = useCallback(async () => {
@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           {currentSlug ? (
             <Link href={`/organizations/${currentSlug}/notifications`}>
-              Notifications
+              {t('Notifications')}
               {unread > 0 ? (
                 <span className="count-badge">
                   {' '}

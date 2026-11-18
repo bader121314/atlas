@@ -49,7 +49,7 @@ export function ExportsSection({ base }: { base: string }) {
             result.status,
             result.status === 409
               ? 'You already have exports waiting. Try again when they finish.'
-              : 'The export could not be started.',
+              : t('The export could not be started.'),
           ),
     );
     await load();
@@ -81,27 +81,31 @@ export function ExportsSection({ base }: { base: string }) {
                     className="title"
                     href={`/api${base}/exports/${item.id}/download`}
                   >
-                    Download (
                     {item.rowCount === 1
-                      ? '1 task'
-                      : `${item.rowCount ?? 0} tasks`}
-                    )
+                      ? t('Download (1 task)')
+                      : t('Download ({count} tasks)', {
+                          count: String(item.rowCount ?? 0),
+                        })}
                   </a>
                 ) : (
                   <span className="title">
                     {item.status === 'queued'
-                      ? 'Preparing…'
+                      ? t('Preparing…')
                       : item.status === 'expired'
-                        ? 'Expired'
+                        ? t('Expired')
                         : 'Failed: you may no longer have access to this project'}
                   </span>
                 )}
                 <br />
                 <span className="muted">
-                  Requested {when.format(new Date(item.createdAt))}
                   {item.status === 'ready' && item.expiresAt
-                    ? `, available until ${when.format(new Date(item.expiresAt))}`
-                    : ''}
+                    ? t('Requested {date}, available until {until}', {
+                        date: when.format(new Date(item.createdAt)),
+                        until: when.format(new Date(item.expiresAt)),
+                      })
+                    : t('Requested {date}', {
+                        date: when.format(new Date(item.createdAt)),
+                      })}
                 </span>
               </span>
             </li>

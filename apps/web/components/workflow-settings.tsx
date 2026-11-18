@@ -5,12 +5,12 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { WorkflowState } from '../lib/api';
 import { Notice, value } from './form';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 const CATEGORIES: { value: WorkflowState['category']; label: string }[] = [
-  { value: 'todo', label: 'Not started' },
-  { value: 'in_progress', label: 'Started' },
-  { value: 'done', label: 'Finished' },
+  { value: 'todo', label: n('Not started') },
+  { value: 'in_progress', label: n('Started') },
+  { value: 'done', label: n('Finished') },
 ];
 
 /** Project managers customize the columns of the board. */
@@ -42,7 +42,7 @@ export function WorkflowSettings({
     order.splice(index + offset, 0, item);
     void run(
       api(`${base}/states/order`, { method: 'PUT', body: { stateIds: order } }),
-      'The order could not be saved.',
+      t('The order could not be saved.'),
     );
   }
 
@@ -65,7 +65,7 @@ export function WorkflowSettings({
           category: value(form, 'stateCategory'),
         },
       }),
-      'The status could not be added.',
+      t('The status could not be added.'),
     );
     form.reset();
   }
@@ -93,7 +93,7 @@ export function WorkflowSettings({
                   method: 'PATCH',
                   body: { label },
                 }),
-                'The name could not be saved.',
+                t('The name could not be saved.'),
               )
             }
             onCategory={(category) =>
@@ -102,7 +102,7 @@ export function WorkflowSettings({
                   method: 'PATCH',
                   body: { category },
                 }),
-                'The type could not be saved.',
+                t('The type could not be saved.'),
               )
             }
             onMove={(offset) => move(index, offset)}
@@ -124,7 +124,7 @@ export function WorkflowSettings({
           >
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
-                {c.label}
+                {t(c.label)}
               </option>
             ))}
           </select>
@@ -161,7 +161,7 @@ function WorkflowRow({
   return (
     <li>
       <input
-        aria-label={`Name of ${state.label}`}
+        aria-label={t('Name of {name}', { name: state.label })}
         defaultValue={state.label}
         maxLength={50}
         onBlur={(event) => {
@@ -170,13 +170,13 @@ function WorkflowRow({
         }}
       />
       <select
-        aria-label={`Type of ${state.label}`}
+        aria-label={t('Type of {name}', { name: state.label })}
         value={state.category}
         onChange={(event) => onCategory(event.target.value)}
       >
         {CATEGORIES.map((c) => (
           <option key={c.value} value={c.value}>
-            {c.label}
+            {t(c.label)}
           </option>
         ))}
       </select>
@@ -185,7 +185,7 @@ function WorkflowRow({
         type="button"
         disabled={first}
         onClick={() => onMove(-1)}
-        aria-label={`Move ${state.label} earlier`}
+        aria-label={t('Move {name} earlier', { name: state.label })}
       >
         {t('Earlier')}
       </button>
@@ -194,12 +194,12 @@ function WorkflowRow({
         type="button"
         disabled={last}
         onClick={() => onMove(1)}
-        aria-label={`Move ${state.label} later`}
+        aria-label={t('Move {name} later', { name: state.label })}
       >
         {t('Later')}
       </button>
       <select
-        aria-label={`Move tasks from ${state.label} to`}
+        aria-label={t('Move tasks from {name} to', { name: state.label })}
         value={moveTo}
         onChange={(event) => setMoveTo(event.target.value)}
       >

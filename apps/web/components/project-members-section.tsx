@@ -5,7 +5,7 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { Label } from '../lib/api';
 import { Notice } from './form';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 type Role = 'manager' | 'editor' | 'commenter' | 'viewer';
 
@@ -23,10 +23,10 @@ interface OrganizationMember {
 }
 
 const ROLES: [Role, string][] = [
-  ['manager', 'Manager'],
-  ['editor', 'Editor'],
-  ['commenter', 'Commenter'],
-  ['viewer', 'Viewer'],
+  ['manager', n('Manager')],
+  ['editor', n('Editor')],
+  ['commenter', n('Commenter')],
+  ['viewer', n('Viewer')],
 ];
 
 /**
@@ -101,19 +101,26 @@ export function ProjectMembersSection({
     await put(
       userId,
       { role: String(values.get('role')) },
-      'Added to the project.',
+      t('Added to the project.'),
     );
   }
 
   async function remove(member: ProjectMember) {
-    if (!window.confirm(`Remove ${member.displayName} from this project?`))
+    if (
+      !window.confirm(
+        t('Remove {name} from this project?', { name: member.displayName }),
+      )
+    )
       return;
     const result = await api(`${base}/members/${member.userId}`, {
       method: 'DELETE',
     });
     setMessage(
       result.ok
-        ? { tone: 'info', text: `${member.displayName} was removed.` }
+        ? {
+            tone: 'info',
+            text: t('{name} was removed.', { name: member.displayName }),
+          }
         : {
             tone: 'error',
             text: describeFailure(result.status, t('Not removed.')),
@@ -133,9 +140,9 @@ export function ProjectMembersSection({
     <section className="section" aria-labelledby="project-members-heading">
       <h2 id="project-members-heading">{t('Project members')}</h2>
       <p className="muted">
-        Owners and admins manage every project. Add people here to give them a
-        role in this project; guests can also be limited to tasks with chosen
-        labels.
+        {t(
+          'Owners and admins manage every project. Add people here to give them a role in this project; guests can also be limited to tasks with chosen labels.',
+        )}
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <ul className="rows">
@@ -161,8 +168,12 @@ export function ProjectMembersSection({
                               labelIds: event.target.checked ? null : [],
                             },
                             event.target.checked
-                              ? `${member.displayName} sees every task.`
-                              : `${member.displayName} sees only labelled tasks.`,
+                              ? t('{name} sees every task.', {
+                                  name: member.displayName,
+                                })
+                              : t('{name} sees only labelled tasks.', {
+                                  name: member.displayName,
+                                }),
                           )
                         }
                       />
@@ -188,7 +199,7 @@ export function ProjectMembersSection({
                                           (id) => id !== label.id,
                                         ),
                                   },
-                                  'Visible labels saved.',
+                                  t('Visible labels saved.'),
                                 )
                               }
                             />
@@ -202,7 +213,7 @@ export function ProjectMembersSection({
                 className="visually-hidden"
                 htmlFor={`role-${member.userId}`}
               >
-                Role for {member.displayName}
+                {t('Role for {name}', { name: member.displayName })}
               </label>
               <select
                 id={`role-${member.userId}`}
@@ -211,7 +222,7 @@ export function ProjectMembersSection({
                   void put(
                     member.userId,
                     { role: event.target.value },
-                    'Role saved.',
+                    t('Role saved.'),
                   )
                 }
               >
@@ -220,7 +231,7 @@ export function ProjectMembersSection({
                     !guest || role === 'commenter' || role === 'viewer',
                 ).map(([role, label]) => (
                   <option key={role} value={role}>
-                    {label}
+                    {t(label)}
                   </option>
                 ))}
               </select>
@@ -253,7 +264,7 @@ export function ProjectMembersSection({
             <select id="projectMemberRole" name="role" defaultValue="commenter">
               {ROLES.map(([role, label]) => (
                 <option key={role} value={role}>
-                  {label}
+                  {t(label)}
                 </option>
               ))}
             </select>

@@ -62,7 +62,11 @@ export function MilestonesSection({
   }
 
   async function remove(milestone: Milestone) {
-    if (!window.confirm(`Delete ${milestone.title}? Its tasks are kept.`))
+    if (
+      !window.confirm(
+        t('Delete {name}? Its tasks are kept.', { name: milestone.title }),
+      )
+    )
       return;
     await api(`${base}/milestones/${milestone.id}`, { method: 'DELETE' });
     await load();

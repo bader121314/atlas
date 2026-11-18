@@ -89,7 +89,7 @@ export function ViewToolbar({
       result.ok
         ? ''
         : result.status === 409
-          ? 'You already have a view with that name.'
+          ? t('You already have a view with that name.')
           : describeFailure(result.status, t('The view could not be saved.')),
     );
     if (result.ok) form.reset();
@@ -132,12 +132,12 @@ export function ViewToolbar({
             <li key={view.id}>
               <button type="button" onClick={() => onApply(view.config)}>
                 {view.name}
-                {view.shared ? ' (shared)' : ''}
+                {view.shared ? ` ${t('(shared)')}` : ''}
               </button>
               {view.mine || (view.shared && canManage) ? (
                 <button
                   type="button"
-                  aria-label={`Delete view ${view.name}`}
+                  aria-label={t('Delete view {name}', { name: view.name })}
                   onClick={() => void remove(view)}
                 >
                   ×
@@ -150,42 +150,42 @@ export function ViewToolbar({
       <div className="filters" role="group" aria-label={t('Filters')}>
         {select(
           'state',
-          'Status',
+          t('Status'),
           states.map((s) => ({ value: s.key, label: s.label })),
-          'Any status',
+          t('Any status'),
         )}
         {select(
           'assignee',
-          'Assignee',
+          t('Assignee'),
           [
-            { value: 'me', label: 'Me' },
-            { value: 'none', label: 'Unassigned' },
+            { value: 'me', label: t('Me') },
+            { value: 'none', label: t('Unassigned') },
           ],
-          'Anyone',
+          t('Anyone'),
         )}
         {select(
           'priority',
-          'Priority',
+          t('Priority'),
           PRIORITIES.map((p) => ({ value: p, label: priorityLabel(p) })),
-          'Any priority',
+          t('Any priority'),
         )}
         {labels.length > 0
           ? select(
               'label',
-              'Label',
+              t('Label'),
               labels.map((l) => ({ value: l.id, label: l.name })),
-              'Any label',
+              t('Any label'),
             )
           : null}
         {milestones.length > 0
           ? select(
               'milestone',
-              'Milestone',
+              t('Milestone'),
               [
                 ...milestones.map((m) => ({ value: m.id, label: m.title })),
-                { value: 'none', label: 'No milestone' },
+                { value: 'none', label: t('No milestone') },
               ],
-              'Any milestone',
+              t('Any milestone'),
             )
           : null}
         {Object.values(filters).some(Boolean) ? (

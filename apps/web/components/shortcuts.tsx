@@ -39,12 +39,12 @@ export function ShortcutProvider({
   const bindings = useMemo(() => {
     const leave: Shortcut = {
       keys: 'Esc',
-      description: 'Leave a text field so shortcuts work again',
+      description: t('Leave a text field so shortcuts work again'),
       run: () => undefined,
     };
     const help: Shortcut = {
       keys: '?',
-      description: 'Show keyboard shortcuts',
+      description: t('Show keyboard shortcuts'),
       run: () => dialog.current?.showModal(),
     };
     return [help, leave, ...global, ...Object.values(groups).flat()];

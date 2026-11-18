@@ -23,6 +23,12 @@ Arabic would still get English email.
   shares a language with the person they invite.
 - **What stays as typed:** task titles, names and organization names are
   data and are not translated; roles in invitations are.
+- **The rest of the interface text.** A screenshot of the Arabic demo showed
+  sentences ADR-063 had missed: text built from parts ("Due {date}", "Signed
+  in {date}"), confirmation prompts, labels kept in module constants, and the
+  task history. They are now whole sentences with placeholders, so Arabic
+  word order is free, and constants are marked with `n()` and translated
+  where shown. The interface test reads `n()` too.
 - **The demo** gains a third project written in Arabic, so the right-to-left
   interface can be seen with real content, and the README shows it.
 

@@ -71,45 +71,62 @@ const when = new Intl.DateTimeFormat(undefined, {
 });
 
 /** One readable line per history entry. */
-function describe(entry: Activity, names: Map<string, string>): string {
+function describe(
+  entry: Activity,
+  names: Map<string, string>,
+  t: (text: string, vars?: Record<string, string>) => string,
+): string {
   const who = entry.actor.displayName;
+  const task = String(entry.changes.blockedBy);
   switch (entry.action) {
     case 'task.created':
-      return `${who} created the task`;
+      return t('{who} created the task', { who });
     case 'comment.created':
-      return `${who} commented`;
+      return t('{who} commented', { who });
     case 'comment.edited':
-      return `${who} edited a comment`;
+      return t('{who} edited a comment', { who });
     case 'comment.deleted':
-      return `${who} deleted a comment`;
+      return t('{who} deleted a comment', { who });
     case 'dependency.added':
-      return `${who} marked it blocked by task ${String(entry.changes.blockedBy)}`;
+      return t('{who} marked it blocked by task {task}', { who, task });
     case 'dependency.removed':
-      return `${who} removed the blocker task ${String(entry.changes.blockedBy)}`;
+      return t('{who} removed the blocker task {task}', { who, task });
     default: {
       const parts = Object.entries(entry.changes).map(([field, change]) => {
-        if (change === true) return `changed the ${field}`;
+        if (change === true) return t('changed the {field}', { field });
         const { to } = change as { to: string | null };
         if (field === 'assignee')
           return to
-            ? `assigned ${names.get(to) ?? 'someone'}`
-            : 'unassigned it';
+            ? t('assigned {name}', { name: names.get(to) ?? t('someone') })
+            : t('unassigned it');
         if (field === 'dueAt')
           return to
-            ? `set the due date to ${new Date(to).toLocaleDateString()}`
-            : 'cleared the due date';
+            ? t('set the due date to {date}', {
+                date: new Date(to).toLocaleDateString(),
+              })
+            : t('cleared the due date');
         if (field === 'estimate')
           return to
-            ? `set the estimate to ${formatDuration(Number(to))}`
-            : 'cleared the estimate';
+            ? t('set the estimate to {estimate}', {
+                estimate: formatDuration(Number(to)),
+              })
+            : t('cleared the estimate');
         if (field === 'startAt')
           return to
-            ? `set the start date to ${new Date(to).toLocaleDateString()}`
-            : 'cleared the start date';
-        if (field === 'state') return `moved it to ${to?.replace('_', ' ')}`;
-        return `set ${field} to ${to}`;
+            ? t('set the start date to {date}', {
+                date: new Date(to).toLocaleDateString(),
+              })
+            : t('cleared the start date');
+        if (field === 'state')
+          return t('moved it to {state}', {
+            state: to?.replace('_', ' ') ?? '',
+          });
+        return t('set {field} to {value}', { field, value: String(to) });
       });
-      return `${who} ${parts.join(', ') || 'updated the task'}`;
+      return t('{who} {changes}', {
+        who,
+        changes: parts.join(t(', ')) || t('updated the task'),
+      });
     }
   }
 }
@@ -128,16 +145,16 @@ export default function TaskPage() {
     () => [
       {
         keys: 'c',
-        description: 'Write a comment',
+        description: t('Write a comment'),
         run: () => document.getElementById('comment')?.focus(),
       },
       {
         keys: 'g p',
-        description: 'Go back to the project',
+        description: t('Go back to the project'),
         run: () => router.push(base),
       },
     ],
-    [router, base],
+    [router, base, t],
   );
   useShortcuts('task', shortcuts);
   const [project, setProject] = useState<Project>();
@@ -233,7 +250,7 @@ export default function TaskPage() {
         text:
           result.status === 409
             ? 'Your offline changes were not saved because someone else changed this task meanwhile. Their version is shown; apply yours again if still needed.'
-            : 'Your offline changes could not be saved.',
+            : t('Your offline changes could not be saved.'),
       });
     };
     void flush();
@@ -456,7 +473,7 @@ export default function TaskPage() {
         title: String(form.get('title') ?? ''),
         description: String(form.get('description') ?? ''),
       },
-      'Task saved.',
+      t('Task saved.'),
     );
   }
 
@@ -492,7 +509,7 @@ export default function TaskPage() {
           result.status,
           result.status === 400
             ? 'The comment could not be posted. Check that everyone you mentioned can open this project.'
-            : 'The comment could not be posted.',
+            : t('The comment could not be posted.'),
         ),
       });
     }
@@ -565,7 +582,9 @@ export default function TaskPage() {
           ) : (
             <>
               <h1>{task.title}</h1>
-              <p className="prewrap">{task.description || 'No description.'}</p>
+              <p className="prewrap">
+                {task.description || t('No description.')}
+              </p>
             </>
           )}
 
@@ -726,7 +745,7 @@ export default function TaskPage() {
             <ul className="history">
               {history.map((entry) => (
                 <li key={entry.id}>
-                  {describe(entry, names)}{' '}
+                  {describe(entry, names, t)}{' '}
                   <span>({when.format(new Date(entry.occurredAt))})</span>
                 </li>
               ))}
@@ -742,7 +761,7 @@ export default function TaskPage() {
               value={task.state.id}
               disabled={!canWrite}
               onChange={(event) =>
-                void save({ stateId: event.target.value }, 'Status changed.')
+                void save({ stateId: event.target.value }, t('Status changed.'))
               }
             >
               {states.map((state) => (
@@ -759,7 +778,10 @@ export default function TaskPage() {
               value={task.priority}
               disabled={!canWrite}
               onChange={(event) =>
-                void save({ priority: event.target.value }, 'Priority changed.')
+                void save(
+                  { priority: event.target.value },
+                  t('Priority changed.'),
+                )
               }
             >
               {PRIORITIES.map((priority) => (
@@ -778,7 +800,7 @@ export default function TaskPage() {
               onChange={(event) =>
                 void save(
                   { assigneeId: event.target.value || null },
-                  'Assignee changed.',
+                  t('Assignee changed.'),
                 )
               }
             >
@@ -837,13 +859,15 @@ export default function TaskPage() {
                   setMessage({
                     tone: 'error',
                     text: t(
-                      'Enter an estimate like 45m, 4h or 2h 30m, up to 1000 hours.',
+                      t(
+                        'Enter an estimate like 45m, 4h or 2h 30m, up to 1000 hours.',
+                      ),
                     ),
                   });
                   return;
                 }
                 if (minutes === task.estimateMinutes) return;
-                void save({ estimateMinutes: minutes }, 'Estimate changed.');
+                void save({ estimateMinutes: minutes }, t('Estimate changed.'));
               }}
             />
           </div>
@@ -863,7 +887,7 @@ export default function TaskPage() {
                       ? `${event.target.value}T12:00:00Z`
                       : null,
                   },
-                  'Start date changed.',
+                  t('Start date changed.'),
                 )
               }
             />
@@ -884,7 +908,7 @@ export default function TaskPage() {
                       ? `${event.target.value}T12:00:00Z`
                       : null,
                   },
-                  'Due date changed.',
+                  t('Due date changed.'),
                 )
               }
             />
@@ -919,7 +943,7 @@ export default function TaskPage() {
                 onChange={(event) =>
                   void save(
                     { milestoneId: event.target.value || null },
-                    'Milestone changed.',
+                    t('Milestone changed.'),
                   )
                 }
               >
@@ -960,7 +984,7 @@ export default function TaskPage() {
                     { parentNumber: next },
                     next
                       ? `Now part of ${key}-${next}.`
-                      : 'No longer a subtask.',
+                      : t('No longer a subtask.'),
                   );
                 }
               }}
@@ -968,7 +992,9 @@ export default function TaskPage() {
           </div>
           {task.completedAt ? (
             <p className="muted">
-              Completed {when.format(new Date(task.completedAt))}
+              {t('Completed {date}', {
+                date: when.format(new Date(task.completedAt)),
+              })}
             </p>
           ) : null}
         </aside>

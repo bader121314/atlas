@@ -84,7 +84,9 @@ export default function WorkloadPage() {
       setMessage({
         tone: 'error',
         text: t(
-          'Enter hours per week like 30h or 37h 30m, or leave it empty to clear it.',
+          t(
+            'Enter hours per week like 30h or 37h 30m, or leave it empty to clear it.',
+          ),
         ),
       });
       return;
@@ -112,14 +114,13 @@ export default function WorkloadPage() {
       </p>
       <h1>{t('Workload')}</h1>
       <p className="muted">
-        Open tasks assigned to each person, by the week they are due, across the
-        projects you can open. Where tasks have estimates, each week also shows
-        the estimated hours against the person&apos;s weekly capacity; a task
-        with several assignees counts a share for each.
+        {t(
+          "Open tasks assigned to each person, by the week they are due, across the projects you can open. Where tasks have estimates, each week also shows the estimated hours against the person's weekly capacity; a task with several assignees counts a share for each.",
+        )}
       </p>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       {status === 403 ? (
-        <p>Guests cannot see the team&apos;s workload.</p>
+        <p>{t("Guests cannot see the team's workload.")}</p>
       ) : !data ? (
         <p className="muted" role="status">
           {t('Loading…')}
@@ -145,7 +146,9 @@ export default function WorkloadPage() {
                 <th scope="col">{t('Overdue')}</th>
                 {data.weekStarts.map((w) => (
                   <th key={w} scope="col">
-                    Week of {week.format(new Date(`${w}T00:00:00Z`))}
+                    {t('Week of {date}', {
+                      date: week.format(new Date(`${w}T00:00:00Z`)),
+                    })}
                   </th>
                 ))}
                 <th scope="col">{t('Later')}</th>
@@ -161,7 +164,7 @@ export default function WorkloadPage() {
                     <br />
                     <span className="muted">
                       {p.capacityMinutes === null
-                        ? 'No capacity set'
+                        ? t('No capacity set')
                         : `${formatDuration(p.capacityMinutes)} a week`}
                     </span>
                   </th>

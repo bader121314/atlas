@@ -32,7 +32,9 @@ function ResetForm() {
       describeFailure(
         result.status,
         t(
-          'The password must be at least 12 characters, and the link must be the most recent one, used within 1 hour.',
+          t(
+            'The password must be at least 12 characters, and the link must be the most recent one, used within 1 hour.',
+          ),
         ),
       ),
     );
@@ -44,7 +46,9 @@ function ResetForm() {
         <Notice>
           <p>
             {t(
-              'Your password is changed and every device has been signed out.',
+              t(
+                'Your password is changed and every device has been signed out.',
+              ),
             )}
           </p>
         </Notice>

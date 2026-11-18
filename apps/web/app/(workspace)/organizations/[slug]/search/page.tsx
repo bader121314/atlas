@@ -88,7 +88,9 @@ function SearchResults() {
       {hits === undefined ? (
         <p className="muted">
           {t(
-            'Type words from a title, description or comment, or a task key like NW-12.',
+            t(
+              'Type words from a title, description or comment, or a task key like NW-12.',
+            ),
           )}
         </p>
       ) : hits.length === 0 ? (

@@ -95,7 +95,9 @@ export default function UsagePage() {
             <h2 id="metered-heading">{t('By month')}</h2>
             <p className="muted">
               {t(
-                'Requests from API tokens and your identity provider, webhook deliveries and notification emails, counted in UTC months.',
+                t(
+                  'Requests from API tokens and your identity provider, webhook deliveries and notification emails, counted in UTC months.',
+                ),
               )}
             </p>
             <div

@@ -66,7 +66,7 @@ export function AnalyticsSection({
           <dt>{t('Typical time to finish')}</dt>
           <dd>
             {data.medianLeadDays === null
-              ? 'Not enough finished tasks'
+              ? t('Not enough finished tasks')
               : `${data.medianLeadDays} days (median, last 90 days)`}
           </dd>
         </div>

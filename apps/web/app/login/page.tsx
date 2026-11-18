@@ -50,7 +50,9 @@ function LoginForm() {
       describeFailure(
         result.status,
         t(
-          'Email or password is incorrect, or the email has not been verified yet.',
+          t(
+            'Email or password is incorrect, or the email has not been verified yet.',
+          ),
         ),
       ),
     );

@@ -141,9 +141,9 @@ export default function OrganizationPage() {
     });
     report(
       result.ok,
-      'Name saved.',
+      t('Name saved.'),
       result.status,
-      'The name could not be saved.',
+      t('The name could not be saved.'),
     );
     if (result.ok) {
       await load();
@@ -184,7 +184,7 @@ export default function OrganizationPage() {
       result.ok,
       `Invitation for ${invitation.email} revoked.`,
       result.status,
-      'The invitation could not be revoked.',
+      t('The invitation could not be revoked.'),
     );
     await load();
   }
@@ -203,7 +203,7 @@ export default function OrganizationPage() {
       result.status,
       result.status === 409
         ? 'An organization needs at least one owner. Make someone else owner first.'
-        : 'The role could not be changed.',
+        : t('The role could not be changed.'),
     );
     await load();
   }
@@ -231,7 +231,7 @@ export default function OrganizationPage() {
       result.status,
       result.status === 409
         ? 'An organization needs at least one owner. Make someone else owner first.'
-        : 'The member could not be removed.',
+        : t('The member could not be removed.'),
     );
     await load();
   }
@@ -251,7 +251,7 @@ export default function OrganizationPage() {
             className="button secondary small"
             href={`/organizations/${slug}/workload`}
           >
-            See the team&apos;s workload
+            {t("See the team's workload")}
           </Link>
           <Link
             className="button secondary small"
@@ -355,8 +355,12 @@ export default function OrganizationPage() {
                       <span className="title">{invitation.email}</span>
                       <br />
                       <span className="muted">
-                        Invited by {invitation.invitedBy}, expires{' '}
-                        {dateFormat.format(new Date(invitation.expiresAt))}
+                        {t('Invited by {name}, expires {date}', {
+                          name: invitation.invitedBy,
+                          date: dateFormat.format(
+                            new Date(invitation.expiresAt),
+                          ),
+                        })}
                       </span>
                     </span>
                     <span className="role">{invitation.role}</span>
@@ -403,7 +407,9 @@ export default function OrganizationPage() {
             <h2 id="audit-heading">{t('Audit and usage')}</h2>
             <p className="muted">
               {t(
-                'Who changed members, projects, tokens and links, and how much the organization uses each month.',
+                t(
+                  'Who changed members, projects, tokens and links, and how much the organization uses each month.',
+                ),
               )}
             </p>
             <p>

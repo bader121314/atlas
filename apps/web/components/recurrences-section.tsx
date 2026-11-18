@@ -118,7 +118,10 @@ export function RecurrencesSection({
                   onClick={() => {
                     if (
                       window.confirm(
-                        `Stop repeating ${r.title}? Tasks already created stay.`,
+                        t(
+                          'Stop repeating {name}? Tasks already created stay.',
+                          { name: r.title },
+                        ),
                       )
                     )
                       void api(`${base}/recurrences/${r.id}`, {

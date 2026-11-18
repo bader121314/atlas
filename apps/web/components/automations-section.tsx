@@ -55,32 +55,49 @@ export function AutomationsSection({
   }, [load]);
 
   const stateName = (id?: string) =>
-    states.find((s) => s.id === id)?.label ?? 'any status';
+    states.find((s) => s.id === id)?.label ?? t('any status');
 
   function describe(rule: Rule): string {
-    const when =
+    const trigger =
       rule.trigger.type === 'task.created'
-        ? 'When a task is created'
+        ? t('When a task is created')
         : rule.trigger.type === 'comment.created'
-          ? 'When someone comments'
-          : `When a task moves to ${stateName(rule.trigger.toStateId)}`;
-    const only = rule.conditions.priorities
-      ? ` with priority ${rule.conditions.priorities.map((p) => priorityLabel(p as never)).join(' or ')}`
-      : '';
+          ? t('When someone comments')
+          : t('When a task moves to {state}', {
+              state: stateName(rule.trigger.toStateId),
+            });
+    const when = rule.conditions.priorities
+      ? t('{trigger} with priority {priorities}', {
+          trigger,
+          priorities: rule.conditions.priorities
+            .map((p) => priorityLabel(p as never))
+            .join(t(' or ')),
+        })
+      : trigger;
     const what = rule.actions
       .map((a) => {
         if (a.type === 'set_priority')
-          return `set priority to ${priorityLabel(a.priority as never)}`;
+          return t('set priority to {priority}', {
+            priority: priorityLabel(a.priority as never),
+          });
         if (a.type === 'assign')
-          return `assign ${members.find((m) => m.userId === a.userId)?.displayName ?? 'someone'}`;
+          return t('assign {name}', {
+            name:
+              members.find((m) => m.userId === a.userId)?.displayName ??
+              t('someone'),
+          });
         if (a.type === 'add_label')
-          return `add ${labels.find((l) => l.id === a.labelId)?.name ?? 'a label'}`;
+          return t('add {label}', {
+            label: labels.find((l) => l.id === a.labelId)?.name ?? t('a label'),
+          });
         if (a.type === 'set_state')
-          return `move to ${stateName(a.stateId as string)}`;
-        return 'add a comment';
+          return t('move to {state}', {
+            state: stateName(a.stateId as string),
+          });
+        return t('add a comment');
       })
-      .join(', ');
-    return `${when}${only}: ${what}.`;
+      .join(t(', '));
+    return t('{when}: {what}.', { when, what });
   }
 
   function rule(form: HTMLFormElement) {
@@ -138,7 +155,10 @@ export function AutomationsSection({
     );
     if (result.data)
       setPreview(
-        `${result.data.matched.length} of the latest ${result.data.checked} tasks match these conditions` +
+        t('{matched} of the latest {checked} tasks match these conditions', {
+          matched: String(result.data.matched.length),
+          checked: String(result.data.checked),
+        }) +
           (result.data.matched.length
             ? `: ${result.data.matched
                 .slice(0, 5)
@@ -224,7 +244,9 @@ export function AutomationsSection({
               className="button danger small"
               type="button"
               onClick={() => {
-                if (window.confirm(`Delete the rule ${r.name}?`))
+                if (
+                  window.confirm(t('Delete the rule {name}?', { name: r.name }))
+                )
                   void api(`${base}/automations/${r.id}`, {
                     method: 'DELETE',
                   }).then(load);

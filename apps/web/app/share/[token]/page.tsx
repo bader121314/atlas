@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { useT } from '../../../lib/i18n';
+import { n, useT } from '../../../lib/i18n';
 
 interface Shared {
   project: { key: string; name: string };
@@ -26,10 +26,10 @@ const date = new Intl.DateTimeFormat(undefined, {
 
 const PRIORITY: Record<string, string> = {
   none: '',
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  urgent: 'Urgent',
+  low: n('Low'),
+  medium: n('Medium'),
+  high: n('High'),
+  urgent: n('Urgent'),
 };
 
 /** Read-only view of a project's tasks for anyone with the link (ADR-050). */
@@ -103,10 +103,16 @@ export default function SharedProjectPage() {
                         <span className="muted">
                           {[
                             PRIORITY[task.priority]
-                              ? `${PRIORITY[task.priority]} priority`
+                              ? t('{priority} priority', {
+                                  priority: t(PRIORITY[task.priority]),
+                                })
                               : '',
                             task.dueOn
-                              ? `due ${date.format(new Date(`${task.dueOn}T00:00:00Z`))}`
+                              ? t('due {date}', {
+                                  date: date.format(
+                                    new Date(`${task.dueOn}T00:00:00Z`),
+                                  ),
+                                })
                               : '',
                           ]
                             .filter(Boolean)

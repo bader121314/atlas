@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { priorityLabel } from '../lib/api';
 import type { CustomField, Task } from '../lib/api';
 import { formatFieldValue } from './custom-fields';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 export type SortField =
   'number' | 'title' | 'priority' | 'due' | 'state' | 'assignee';
@@ -57,12 +57,12 @@ function ariaSort(active: boolean, sort: Sort) {
 }
 
 const COLUMNS: { field: SortField; label: string }[] = [
-  { field: 'number', label: 'Key' },
-  { field: 'title', label: 'Title' },
-  { field: 'state', label: 'Status' },
-  { field: 'priority', label: 'Priority' },
-  { field: 'assignee', label: 'Assignee' },
-  { field: 'due', label: 'Due' },
+  { field: 'number', label: n('Key') },
+  { field: 'title', label: n('Title') },
+  { field: 'state', label: n('Status') },
+  { field: 'priority', label: n('Priority') },
+  { field: 'assignee', label: n('Assignee') },
+  { field: 'due', label: n('Due') },
 ];
 
 const day = new Intl.DateTimeFormat(undefined, {
@@ -107,7 +107,7 @@ export function TableView({
                       })
                     }
                   >
-                    {column.label}
+                    {t(column.label)}
                     {active ? (sort.direction === 'asc' ? ' ↑' : ' ↓') : ''}
                   </button>
                 </th>
@@ -158,13 +158,26 @@ export function TableView({
   );
 }
 
-function undatedText(count: number): string {
+function undatedText(
+  count: number,
+  t: (text: string, vars?: Record<string, string>) => string,
+): string {
   return count === 1
-    ? '1 task has no due date and is not shown.'
-    : `${count} tasks have no due date and are not shown.`;
+    ? t('1 task has no due date and is not shown.')
+    : t('{count} tasks have no due date and are not shown.', {
+        count: String(count),
+      });
 }
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEKDAYS = [
+  n('Mon'),
+  n('Tue'),
+  n('Wed'),
+  n('Thu'),
+  n('Fri'),
+  n('Sat'),
+  n('Sun'),
+];
 const monthName = new Intl.DateTimeFormat(undefined, {
   month: 'long',
   year: 'numeric',
@@ -234,7 +247,7 @@ export function CalendarView({
         <div className="calendar-row" role="row">
           {WEEKDAYS.map((d) => (
             <div key={d} className="calendar-weekday" role="columnheader">
-              {d}
+              {t(d)}
             </div>
           ))}
         </div>
@@ -261,7 +274,7 @@ export function CalendarView({
           </div>
         ))}
       </div>
-      {undated > 0 ? <p className="muted">{undatedText(undated)}</p> : null}
+      {undated > 0 ? <p className="muted">{undatedText(undated, t)}</p> : null}
     </section>
   );
 }

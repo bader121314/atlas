@@ -77,6 +77,7 @@ function TaskCard({
   states: WorkflowState[];
   onMove: ((task: Task, stateId: string) => void) | undefined;
 }) {
+  const t = useT();
   return (
     <div
       className="card"
@@ -105,9 +106,13 @@ function TaskCard({
             </span>
           ) : null}
           {task.dueAt ? (
-            <span>Due {day.format(new Date(task.dueAt))}</span>
+            <span>
+              {t('Due {date}', { date: day.format(new Date(task.dueAt)) })}
+            </span>
           ) : null}
-          {task.parent ? <span>Part of {task.parent.key}</span> : null}
+          {task.parent ? (
+            <span>{t('Part of {key}', { key: task.parent.key })}</span>
+          ) : null}
           {task.labels.map((label) => (
             <span key={label.id} className={`label label-${label.color}`}>
               {label.name}
@@ -118,7 +123,7 @@ function TaskCard({
       {onMove ? (
         <select
           className="card-move"
-          aria-label={`Move ${task.key} to`}
+          aria-label={t('Move {key} to', { key: task.key })}
           value={task.state.id}
           onChange={(event) => onMove(task, event.target.value)}
         >
@@ -156,12 +161,12 @@ export default function ProjectPage() {
     () => [
       {
         keys: 'n',
-        description: 'Write a new task',
+        description: t('Write a new task'),
         run: () => document.getElementById('taskTitle')?.focus(),
       },
       {
         keys: 'f',
-        description: 'Filter by status',
+        description: t('Filter by status'),
         run: () => document.getElementById('filter-state')?.focus(),
       },
       ...LAYOUTS.map((layout) => ({
@@ -171,7 +176,7 @@ export default function ProjectPage() {
         run: () => setView(layout),
       })),
     ],
-    [],
+    [t],
   );
   useShortcuts('project', shortcuts);
 
@@ -363,8 +368,8 @@ export default function ProjectPage() {
       {tasks.length === 0 ? (
         <p className="muted">
           {Object.values(filters).some(Boolean)
-            ? 'No tasks match these filters.'
-            : 'No tasks yet.'}
+            ? t('No tasks match these filters.')
+            : t('No tasks yet.')}
         </p>
       ) : view === 'board' ? (
         <div className="board">
@@ -437,7 +442,7 @@ export default function ProjectPage() {
                 {priorityLabel(task.priority)}
               </span>
               <span className="muted">
-                {task.assignee?.displayName ?? 'Unassigned'}
+                {task.assignee?.displayName ?? t('Unassigned')}
               </span>
             </li>
           ))}

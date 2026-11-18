@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import { Notice } from './form';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 interface Attachment {
   id: string;
@@ -27,9 +27,9 @@ function size(bytes: number): string {
 }
 
 const REASONS: Record<string, string> = {
-  type: 'its content is not the type it claims',
-  malware: 'it failed the malware check',
-  size: 'the upload was incomplete',
+  type: n('its content is not the type it claims'),
+  malware: n('it failed the malware check'),
+  size: n('the upload was incomplete'),
 };
 
 /** Files on a task: upload, check status, download, delete (ADR-034). */
@@ -79,7 +79,10 @@ export function AttachmentsSection({
     event.target.value = '';
     if (!file) return;
     if (file.size > MAX_BYTES) {
-      setMessage({ tone: 'error', text: `${file.name} is larger than 10 MB.` });
+      setMessage({
+        tone: 'error',
+        text: t('{name} is larger than 10 MB.', { name: file.name }),
+      });
       return;
     }
     setBusy(true);
@@ -98,8 +101,11 @@ export function AttachmentsSection({
           text: describeFailure(
             created.status,
             created.status === 400
-              ? `${file.name} is not a supported type. Use an image, PDF, text or CSV file.`
-              : `${file.name} could not be uploaded.`,
+              ? t(
+                  '{name} is not a supported type. Use an image, PDF, text or CSV file.',
+                  { name: file.name },
+                )
+              : t('{name} could not be uploaded.', { name: file.name }),
           ),
         });
         return;
@@ -112,7 +118,7 @@ export function AttachmentsSection({
       if (!put.ok) {
         setMessage({
           tone: 'error',
-          text: `${file.name} could not be uploaded.`,
+          text: t('{name} could not be uploaded.', { name: file.name }),
         });
         return;
       }
@@ -124,17 +130,22 @@ export function AttachmentsSection({
         done.ok
           ? {
               tone: 'info',
-              text: `${file.name} uploaded. Checking it before anyone can download it.`,
+              text: t(
+                '{name} uploaded. Checking it before anyone can download it.',
+                { name: file.name },
+              ),
             }
           : {
               tone: 'error',
-              text: `${file.name} did not arrive completely. Try again.`,
+              text: t('{name} did not arrive completely. Try again.', {
+                name: file.name,
+              }),
             },
       );
     } catch {
       setMessage({
         tone: 'error',
-        text: `${file.name} could not be uploaded.`,
+        text: t('{name} could not be uploaded.', { name: file.name }),
       });
     } finally {
       setBusy(false);
@@ -172,9 +183,14 @@ export function AttachmentsSection({
               <br />
               <span className="muted">
                 {size(item.size)}, {item.uploadedBy.displayName}
-                {item.status === 'quarantined' ? ', checking…' : ''}
+                {item.status === 'quarantined' ? t(', checking…') : ''}
                 {item.status === 'rejected'
-                  ? `, rejected because ${REASONS[item.rejectionReason ?? ''] ?? 'it failed the checks'}`
+                  ? t(', rejected because {reason}', {
+                      reason: t(
+                        REASONS[item.rejectionReason ?? ''] ??
+                          n('it failed the checks'),
+                      ),
+                    })
                   : ''}
               </span>
             </span>

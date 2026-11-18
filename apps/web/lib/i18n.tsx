@@ -54,6 +54,10 @@ export function tr(text: string, vars?: Vars): string {
   return translate(locale, text, vars);
 }
 
+/** Marks text for translation where t() is not available, such as module
+ * constants; render it with t(). The text itself is returned unchanged. */
+export const n = (text: string): string => text;
+
 export function useT(): (text: string, vars?: Vars) => string {
   const locale = useLocale();
   return useCallback(

@@ -5,14 +5,14 @@ import type { FormEvent } from 'react';
 import { api, describeFailure } from '../lib/api';
 import type { CustomField } from '../lib/api';
 import { Notice, value } from './form';
-import { useT } from '../lib/i18n';
+import { n, useT } from '../lib/i18n';
 
 // Translated where shown (ADR-063).
 const TYPE_LABELS: Record<CustomField['type'], string> = {
-  text: 'Text',
-  number: 'Number',
-  date: 'Date',
-  select: 'Choice list',
+  text: n('Text'),
+  number: n('Number'),
+  date: n('Date'),
+  select: n('Choice list'),
 };
 
 const day = new Intl.DateTimeFormat(undefined, {
@@ -69,7 +69,7 @@ export function FieldsSection({
             result.status,
             result.status === 409
               ? 'A field with that name already exists, or the project has 20 fields.'
-              : 'The field could not be added.',
+              : t('The field could not be added.'),
           ),
     );
     if (result.ok) {
@@ -81,7 +81,10 @@ export function FieldsSection({
 
   async function editOptions(field: CustomField) {
     const next = window.prompt(
-      `Choices for ${field.name}, separated by commas. Tasks using a removed choice are cleared.`,
+      t(
+        'Choices for {name}, separated by commas. Tasks using a removed choice are cleared.',
+        { name: field.name },
+      ),
       field.options.join(', '),
     );
     if (next === null) return;
@@ -100,7 +103,9 @@ export function FieldsSection({
   async function remove(field: CustomField) {
     if (
       !window.confirm(
-        `Delete ${field.name}? Its value is removed from every task.`,
+        t('Delete {name}? Its value is removed from every task.', {
+          name: field.name,
+        }),
       )
     )
       return;
@@ -115,7 +120,9 @@ export function FieldsSection({
       {fields.length === 0 ? (
         <p className="muted">
           {t(
-            'Add fields to track details your workflow needs, such as a region or an estimate.',
+            t(
+              'Add fields to track details your workflow needs, such as a region or an estimate.',
+            ),
           )}
         </p>
       ) : null}

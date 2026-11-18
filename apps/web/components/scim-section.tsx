@@ -45,7 +45,7 @@ export function ScimSection({ slug }: { slug: string }) {
           result.status,
           result.status === 409
             ? 'There are already two tokens. Revoke one before creating another.'
-            : 'The token could not be created.',
+            : t('The token could not be created.'),
         ),
       );
     }
@@ -69,10 +69,9 @@ export function ScimSection({ slug }: { slug: string }) {
     <section className="section" aria-labelledby="scim-heading">
       <h2 id="scim-heading">{t('Provisioning (SCIM)')}</h2>
       <p className="muted">
-        Let your identity provider (Okta, Microsoft Entra ID and others) add,
-        suspend and remove members. People it adds join as members; owners and
-        admins are never changed by it, and it cannot edit anyone&apos;s name,
-        email or password.
+        {t(
+          "Let your identity provider (Okta, Microsoft Entra ID and others) add, suspend and remove members. People it adds join as members; owners and admins are never changed by it, and it cannot edit anyone's name, email or password.",
+        )}
       </p>
       <p>
         {t('SCIM base URL:')} <code>{origin}/api/scim/v2</code>
@@ -81,8 +80,10 @@ export function ScimSection({ slug }: { slug: string }) {
       {secret ? (
         <Notice>
           <p>
-            Copy this token into your identity provider now; it will not be
-            shown again: <code className="secret">{secret}</code>
+            {t(
+              'Copy this token into your identity provider now; it will not be shown again:',
+            )}{' '}
+            <code className="secret">{secret}</code>
           </p>
           <button
             className="button secondary small"
@@ -100,11 +101,16 @@ export function ScimSection({ slug }: { slug: string }) {
               <code>{token.prefix}…</code>
               <br />
               <span className="muted">
-                By {token.createdBy.displayName},{' '}
-                {day.format(new Date(token.createdAt))}
                 {token.lastUsedAt
-                  ? `, last used ${day.format(new Date(token.lastUsedAt))}`
-                  : ', never used'}
+                  ? t('By {name}, {date}, last used {last}', {
+                      name: token.createdBy.displayName,
+                      date: day.format(new Date(token.createdAt)),
+                      last: day.format(new Date(token.lastUsedAt)),
+                    })
+                  : t('By {name}, {date}, never used', {
+                      name: token.createdBy.displayName,
+                      date: day.format(new Date(token.createdAt)),
+                    })}
               </span>
             </span>
             <button

@@ -98,7 +98,10 @@ export function TimeSection({
   async function remove(entry: Entry) {
     if (
       !window.confirm(
-        `Remove ${formatDuration(entry.minutes)} logged by ${entry.user.displayName}?`,
+        t('Remove {duration} logged by {name}?', {
+          duration: formatDuration(entry.minutes),
+          name: entry.user.displayName,
+        }),
       )
     )
       return;
@@ -112,7 +115,7 @@ export function TimeSection({
       {!data ? null : (
         <>
           <p>
-            Logged in total:{' '}
+            {t('Logged in total:')}{' '}
             <strong>{formatDuration(data.totalMinutes)}</strong>
             {estimateMinutes ? (
               <span className="muted">
